@@ -314,6 +314,19 @@ class NyStorage {
     await saveCollection<T>(key, collection);
   }
 
+  /// Update item(s) in a collection using a where query.
+  static Future updateCollectionWhere<T>(bool Function(dynamic value) where,
+      {required String key, required T Function(dynamic value) update}) async {
+    List<T> collection = await readCollection<T>(key);
+    if (collection.isEmpty) return;
+
+    collection.where((value) => where(value)).forEach((element) {
+      update(element);
+    });
+
+    await saveCollection<T>(key, collection);
+  }
+
   /// Read the collection values using a [key].
   static Future<List<T>> readCollection<T>(String key,
       {Map<Type, dynamic>? modelDecoders}) async {

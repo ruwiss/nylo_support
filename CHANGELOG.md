@@ -1,3 +1,7 @@
+## [5.61.0] - 2024-03-29
+
+* Added `updateCollectionWhere` to `NyStorage` class
+ 
 ## [5.60.1] - 2024-03-28
 
 * Update pubspec.yaml
