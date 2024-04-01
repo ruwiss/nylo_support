@@ -277,6 +277,23 @@ class _NyListViewState<T> extends NyState<NyListView> {
                 int crossAxisCount = widget.crossAxisCount ?? 1;
                 if (widget.header != null) {
                   return ListView(
+                    scrollDirection: widget.scrollDirection ?? Axis.vertical,
+                    reverse: widget.reverse ?? false,
+                    controller: widget.controller,
+                    primary: widget.primary,
+                    physics: widget.physics,
+                    shrinkWrap: widget.shrinkWrap ?? false,
+                    addAutomaticKeepAlives: widget.addAutomaticKeepAlives,
+                    addRepaintBoundaries: widget.addRepaintBoundaries,
+                    addSemanticIndexes: widget.addSemanticIndexes,
+                    cacheExtent: widget.cacheExtent,
+                    dragStartBehavior:
+                    widget.dragStartBehavior ?? DragStartBehavior.start,
+                    keyboardDismissBehavior: widget.keyboardDismissBehavior ??
+                        ScrollViewKeyboardDismissBehavior.manual,
+                    restorationId: widget.restorationId,
+                    clipBehavior: widget.clipBehavior ?? Clip.hardEdge,
+                    padding: widget.padding,
                     children: [
                       StaggeredGrid.count(
                           crossAxisCount: crossAxisCount,
@@ -297,6 +314,23 @@ class _NyListViewState<T> extends NyState<NyListView> {
                   );
                 } else {
                   return ListView(
+                    scrollDirection: widget.scrollDirection ?? Axis.vertical,
+                    reverse: widget.reverse ?? false,
+                    controller: widget.controller,
+                    primary: widget.primary,
+                    physics: widget.physics,
+                    shrinkWrap: widget.shrinkWrap ?? false,
+                    addAutomaticKeepAlives: widget.addAutomaticKeepAlives,
+                    addRepaintBoundaries: widget.addRepaintBoundaries,
+                    addSemanticIndexes: widget.addSemanticIndexes,
+                    cacheExtent: widget.cacheExtent,
+                    dragStartBehavior:
+                    widget.dragStartBehavior ?? DragStartBehavior.start,
+                    keyboardDismissBehavior: widget.keyboardDismissBehavior ??
+                        ScrollViewKeyboardDismissBehavior.manual,
+                    restorationId: widget.restorationId,
+                    clipBehavior: widget.clipBehavior ?? Clip.hardEdge,
+                    padding: widget.padding,
                     children: [
                       StaggeredGrid.count(
                         crossAxisCount: widget.crossAxisCount ?? 1,

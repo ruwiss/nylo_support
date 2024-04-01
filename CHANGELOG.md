@@ -1,3 +1,7 @@
+## [5.62.0] - 2024-04-01
+
+* Add extra parameters to `ListView` for `NyListView.grid`
+
 ## [5.61.0] - 2024-03-29
 
 * Added `updateCollectionWhere` to `NyStorage` class
