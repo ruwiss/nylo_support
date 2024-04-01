@@ -288,7 +288,7 @@ class _NyListViewState<T> extends NyState<NyListView> {
                     addSemanticIndexes: widget.addSemanticIndexes,
                     cacheExtent: widget.cacheExtent,
                     dragStartBehavior:
-                    widget.dragStartBehavior ?? DragStartBehavior.start,
+                        widget.dragStartBehavior ?? DragStartBehavior.start,
                     keyboardDismissBehavior: widget.keyboardDismissBehavior ??
                         ScrollViewKeyboardDismissBehavior.manual,
                     restorationId: widget.restorationId,
@@ -325,7 +325,7 @@ class _NyListViewState<T> extends NyState<NyListView> {
                     addSemanticIndexes: widget.addSemanticIndexes,
                     cacheExtent: widget.cacheExtent,
                     dragStartBehavior:
-                    widget.dragStartBehavior ?? DragStartBehavior.start,
+                        widget.dragStartBehavior ?? DragStartBehavior.start,
                     keyboardDismissBehavior: widget.keyboardDismissBehavior ??
                         ScrollViewKeyboardDismissBehavior.manual,
                     restorationId: widget.restorationId,
