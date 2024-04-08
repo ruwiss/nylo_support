@@ -1,3 +1,9 @@
+## [5.63.0] - 2024-04-08
+
+* New `NyAction` class added to the library
+  * `limitPerDay` method added to `NyAction` class - This will limit the number of times an action can be performed in a day.
+  * `authorized` method added to `NyAction` class - This will check if the user is authorized to perform an action.
+
 ## [5.62.0] - 2024-04-01
 
 * Add extra parameters to `ListView` for `NyListView.grid`
