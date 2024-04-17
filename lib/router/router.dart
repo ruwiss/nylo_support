@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import '/helpers/backpack.dart';
 import '/helpers/helper.dart';
@@ -140,6 +142,9 @@ class NyRouter {
 
     List<NyRouteGuard> routeGuards = [];
     String? prefix;
+    PageTransitionType? transition;
+    PageTransitionSettings? pageTransitionSettings;
+
     Map<String, dynamic> routeConfig = settings();
     if (routeConfig.containsKey('route_guards') &&
         routeConfig['route_guards'] is List<NyRouteGuard>) {
@@ -150,12 +155,29 @@ class NyRouter {
       prefix = routeConfig['prefix'] as String;
     }
 
-    nyRouter.getRegisteredRoutes().forEach((key, route) {
+    if (routeConfig.containsKey('transition') &&
+        routeConfig['transition'] is PageTransitionType) {
+      transition = routeConfig['transition'] as PageTransitionType;
+    }
+
+    if (routeConfig.containsKey('transition_settings') &&
+        routeConfig['transition_settings'] is PageTransitionSettings) {
+      pageTransitionSettings =
+          routeConfig['transition_settings'] as PageTransitionSettings;
+    }
+
+    nyRouter.getRegisteredRoutes().forEach((key, NyRouterRoute route) {
       if (routeGuards.isNotEmpty) {
         route.addRouteGuards(routeGuards);
       }
       if (prefix != null) {
         NyNavigator.instance.prefixRoutes[key] = prefix;
+      }
+      if (transition != null) {
+        route.transition(transition);
+      }
+      if (pageTransitionSettings != null) {
+        route.pageTransitionSettings = pageTransitionSettings;
       }
     });
 
@@ -179,7 +201,7 @@ class NyRouter {
     NyRouterRoute nyRouterRoute = NyRouterRoute(
         name: routeView.$1,
         view: (context) => routeView.$2(context),
-        pageTransitionType: transition ?? PageTransitionType.rightToLeft,
+        pageTransitionType: transition,
         pageTransitionSettings: pageTransitionSettings,
         routeGuards: routeGuards,
         initialRoute: initialRoute,
@@ -206,7 +228,7 @@ class NyRouter {
     NyRouterRoute nyRouterRoute = NyRouterRoute(
         name: name,
         view: view,
-        pageTransitionType: transition ?? PageTransitionType.rightToLeft,
+        pageTransitionType: transition,
         pageTransitionSettings: pageTransitionSettings,
         routeGuards: routeGuards,
         initialRoute: initialRoute,
@@ -558,7 +580,8 @@ class NyRouter {
           return route.builder(context, baseArgs ?? route.defaultArgs,
               queryParameters ?? route.queryParameters);
         }),
-        type: argumentsWrapper.pageTransitionType ?? route.pageTransitionType,
+        type: argumentsWrapper.pageTransitionType ??
+            (route.pageTransitionType ?? PageTransitionType.rightToLeft),
         settings: settings,
         duration: _getPageTransitionDuration(route, argumentsWrapper),
         alignment: _getPageTransitionAlignment(route, argumentsWrapper),
@@ -583,12 +606,10 @@ class NyRouter {
       NyRouterRoute route, ArgumentsWrapper argumentsWrapper) {
     Duration duration = this.options.pageTransitionSettings.duration!;
 
-    if (route.pageTransitionSettings != null &&
-        route.pageTransitionSettings!.duration != null) {
+    if (route.pageTransitionSettings?.duration != null) {
       duration = route.pageTransitionSettings!.duration!;
     }
-    if (argumentsWrapper.pageTransitionSettings != null &&
-        argumentsWrapper.pageTransitionSettings!.duration != null) {
+    if (argumentsWrapper.pageTransitionSettings?.duration != null) {
       duration = argumentsWrapper.pageTransitionSettings!.duration!;
     }
     return duration;
@@ -599,12 +620,10 @@ class NyRouter {
       NyRouterRoute route, ArgumentsWrapper argumentsWrapper) {
     Duration duration = this.options.pageTransitionSettings.reverseDuration!;
 
-    if (route.pageTransitionSettings != null &&
-        route.pageTransitionSettings!.reverseDuration != null) {
+    if (route.pageTransitionSettings?.reverseDuration != null) {
       duration = route.pageTransitionSettings!.reverseDuration!;
     }
-    if (argumentsWrapper.pageTransitionSettings != null &&
-        argumentsWrapper.pageTransitionSettings!.reverseDuration != null) {
+    if (argumentsWrapper.pageTransitionSettings?.reverseDuration != null) {
       duration = argumentsWrapper.pageTransitionSettings!.reverseDuration!;
     }
     return duration;
@@ -615,12 +634,10 @@ class NyRouter {
       NyRouterRoute route, ArgumentsWrapper argumentsWrapper) {
     Widget? widget = this.options.pageTransitionSettings.childCurrent;
 
-    if (route.pageTransitionSettings != null &&
-        route.pageTransitionSettings!.childCurrent != null) {
+    if (route.pageTransitionSettings?.childCurrent != null) {
       widget = route.pageTransitionSettings!.childCurrent;
     }
-    if (argumentsWrapper.pageTransitionSettings != null &&
-        argumentsWrapper.pageTransitionSettings!.childCurrent != null) {
+    if (argumentsWrapper.pageTransitionSettings?.childCurrent != null) {
       widget = argumentsWrapper.pageTransitionSettings!.childCurrent;
     }
     return widget;
@@ -631,12 +648,10 @@ class NyRouter {
       NyRouterRoute route, ArgumentsWrapper argumentsWrapper) {
     BuildContext? buildContext = this.options.pageTransitionSettings.context;
 
-    if (route.pageTransitionSettings != null &&
-        route.pageTransitionSettings!.context != null) {
+    if (route.pageTransitionSettings?.context != null) {
       buildContext = route.pageTransitionSettings!.context;
     }
-    if (argumentsWrapper.pageTransitionSettings != null &&
-        argumentsWrapper.pageTransitionSettings!.context != null) {
+    if (argumentsWrapper.pageTransitionSettings?.context != null) {
       buildContext = argumentsWrapper.pageTransitionSettings!.context;
     }
     return buildContext;
@@ -647,12 +662,10 @@ class NyRouter {
       NyRouterRoute route, ArgumentsWrapper argumentsWrapper) {
     bool boolVal = this.options.pageTransitionSettings.inheritTheme!;
 
-    if (route.pageTransitionSettings != null &&
-        route.pageTransitionSettings!.inheritTheme != null) {
+    if (route.pageTransitionSettings?.inheritTheme != null) {
       boolVal = route.pageTransitionSettings!.inheritTheme!;
     }
-    if (argumentsWrapper.pageTransitionSettings != null &&
-        argumentsWrapper.pageTransitionSettings!.inheritTheme != null) {
+    if (argumentsWrapper.pageTransitionSettings?.inheritTheme != null) {
       boolVal = argumentsWrapper.pageTransitionSettings!.inheritTheme!;
     }
     return boolVal;
@@ -663,12 +676,10 @@ class NyRouter {
       NyRouterRoute route, ArgumentsWrapper argumentsWrapper) {
     Curve curve = this.options.pageTransitionSettings.curve!;
 
-    if (route.pageTransitionSettings != null &&
-        route.pageTransitionSettings!.curve != null) {
+    if (route.pageTransitionSettings?.curve != null) {
       curve = route.pageTransitionSettings!.curve!;
     }
-    if (argumentsWrapper.pageTransitionSettings != null &&
-        argumentsWrapper.pageTransitionSettings!.curve != null) {
+    if (argumentsWrapper.pageTransitionSettings?.curve != null) {
       curve = argumentsWrapper.pageTransitionSettings!.curve!;
     }
     return curve;
@@ -679,12 +690,10 @@ class NyRouter {
       NyRouterRoute route, ArgumentsWrapper argumentsWrapper) {
     Alignment? alignment = this.options.pageTransitionSettings.alignment;
 
-    if (route.pageTransitionSettings != null &&
-        route.pageTransitionSettings!.alignment != null) {
+    if (route.pageTransitionSettings?.alignment != null) {
       alignment = route.pageTransitionSettings!.alignment;
     }
-    if (argumentsWrapper.pageTransitionSettings != null &&
-        argumentsWrapper.pageTransitionSettings!.alignment != null) {
+    if (argumentsWrapper.pageTransitionSettings?.alignment != null) {
       alignment = argumentsWrapper.pageTransitionSettings!.alignment;
     }
     return alignment;
@@ -696,12 +705,10 @@ class NyRouter {
     bool fullscreenDialog =
         this.options.pageTransitionSettings.fullscreenDialog!;
 
-    if (route.pageTransitionSettings != null &&
-        route.pageTransitionSettings!.fullscreenDialog != null) {
+    if (route.pageTransitionSettings?.fullscreenDialog != null) {
       fullscreenDialog = route.pageTransitionSettings!.fullscreenDialog!;
     }
-    if (argumentsWrapper.pageTransitionSettings != null &&
-        argumentsWrapper.pageTransitionSettings!.fullscreenDialog != null) {
+    if (argumentsWrapper.pageTransitionSettings?.fullscreenDialog != null) {
       fullscreenDialog =
           argumentsWrapper.pageTransitionSettings!.fullscreenDialog!;
     }
@@ -713,12 +720,10 @@ class NyRouter {
       NyRouterRoute route, ArgumentsWrapper argumentsWrapper) {
     bool opaque = this.options.pageTransitionSettings.opaque!;
 
-    if (route.pageTransitionSettings != null &&
-        route.pageTransitionSettings!.opaque != null) {
+    if (route.pageTransitionSettings?.opaque != null) {
       opaque = route.pageTransitionSettings!.opaque!;
     }
-    if (argumentsWrapper.pageTransitionSettings != null &&
-        argumentsWrapper.pageTransitionSettings!.opaque != null) {
+    if (argumentsWrapper.pageTransitionSettings?.opaque != null) {
       opaque = argumentsWrapper.pageTransitionSettings!.opaque!;
     }
     return opaque;
@@ -727,16 +732,23 @@ class NyRouter {
   /// Used to retrieve the correct IsIos value for the [PageTransition] constructor.
   bool _getPageTransitionIsIos(
       NyRouterRoute route, ArgumentsWrapper argumentsWrapper) {
-    bool isIos = this.options.pageTransitionSettings.isIos!;
+    bool isIos = false;
 
-    if (route.pageTransitionSettings != null &&
-        route.pageTransitionSettings!.isIos != null) {
+    if (Platform.isIOS) {
+      isIos = true;
+    }
+
+    if (this.options.pageTransitionSettings.isIos != null) {
+      isIos = this.options.pageTransitionSettings.isIos!;
+    }
+
+    if (route.pageTransitionSettings?.isIos != null) {
       isIos = route.pageTransitionSettings!.isIos!;
     }
-    if (argumentsWrapper.pageTransitionSettings != null &&
-        argumentsWrapper.pageTransitionSettings!.isIos != null) {
+    if (argumentsWrapper.pageTransitionSettings?.isIos != null) {
       isIos = argumentsWrapper.pageTransitionSettings!.isIos!;
     }
+
     return isIos;
   }
 
@@ -746,12 +758,10 @@ class NyRouter {
     PageTransitionsBuilder matchingBuilder =
         this.options.pageTransitionSettings.matchingBuilder!;
 
-    if (route.pageTransitionSettings != null &&
-        route.pageTransitionSettings!.matchingBuilder != null) {
+    if (route.pageTransitionSettings?.matchingBuilder != null) {
       matchingBuilder = route.pageTransitionSettings!.matchingBuilder!;
     }
-    if (argumentsWrapper.pageTransitionSettings != null &&
-        argumentsWrapper.pageTransitionSettings!.matchingBuilder != null) {
+    if (argumentsWrapper.pageTransitionSettings?.matchingBuilder != null) {
       matchingBuilder =
           argumentsWrapper.pageTransitionSettings!.matchingBuilder!;
     }

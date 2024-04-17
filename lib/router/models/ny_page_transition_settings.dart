@@ -37,7 +37,7 @@ class PageTransitionSettings {
       this.reverseDuration = const Duration(milliseconds: 200),
       this.fullscreenDialog = false,
       this.opaque = false,
-      this.isIos = false,
+      this.isIos,
       this.matchingBuilder = const CupertinoPageTransitionsBuilder()});
 
   @override

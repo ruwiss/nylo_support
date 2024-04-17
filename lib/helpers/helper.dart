@@ -1243,7 +1243,6 @@ class NyAppUsage {
 
 /// Nylo's NyAction class
 class NyAction {
-
   /// Limit the number of times an action can be performed in a day.
   /// Provide an [actionKey] for the action you want to limit.
   /// Provide an [perform] to execute if the user is authorized.
@@ -1289,7 +1288,6 @@ class NyAction {
   /// Provide an [unauthorized] function to execute if the user is not authorized.
   static authorized(Function() perform,
       {required bool Function() when, Function()? unauthorized}) async {
-
     bool canPerform = when();
     if (!canPerform) {
       if (unauthorized != null) {

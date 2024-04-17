@@ -1,3 +1,11 @@
+## [5.64.0] - 2024-04-17
+
+* Add the ability to set a custom transition to a `route.group` e.g. `router.group(() => {'transition': PageTransitionType.fade}, (router) { ... })`
+* Add the ability to set a transition_settings to a `route.group` e.g. `router.group(() => {'transition_settings': PageTransitionSettings(duration: Duration(milliseconds: 500)}, (router) { ... })`
+* Update `_getPageTransitionIsIos` to detect if the platform is iOS to use the CupertinoPageRoute for the transition
+* Small refactor to `_getPageTransition.*` methods in router.dart
+* Update pubspec.yaml
+
 ## [5.63.0] - 2024-04-08
 
 * New `NyAction` class added to the library

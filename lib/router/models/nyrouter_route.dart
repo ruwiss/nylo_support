@@ -21,7 +21,7 @@ class NyRouterRoute {
   final NyArgument? defaultArgs;
   final NyQueryParameters? queryParameters;
   final NyRouteView view;
-  PageTransitionType pageTransitionType;
+  PageTransitionType? pageTransitionType;
   PageTransitionSettings? pageTransitionSettings;
   bool _initialRoute, _authPage;
 
@@ -36,7 +36,7 @@ class NyRouterRoute {
       this.defaultArgs,
       this.queryParameters,
       List<RouteGuard>? routeGuards,
-      this.pageTransitionType = PageTransitionType.rightToLeft,
+      this.pageTransitionType,
       this.pageTransitionSettings,
       initialRoute = false,
       authPage = false})
