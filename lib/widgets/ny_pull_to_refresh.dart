@@ -248,6 +248,11 @@ class _NyPullToRefreshState<T> extends NyState<NyPullToRefresh> {
     _iteration = 1;
     _refreshController..refreshCompleted(resetFooterState: true);
     dynamic data = await widget.data(_iteration);
+    if (data == null) {
+      _data = [];
+      return;
+    }
+    assert(data is List<T>, "Data must be a List");
     _data = data;
   }
 

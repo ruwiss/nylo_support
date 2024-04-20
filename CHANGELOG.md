@@ -1,3 +1,8 @@
+## [5.65.0] - 2024-04-20
+
+* Update `NyPullToRefresh` validate that the `data` is a List
+* Update `NyListView` validate that the `data` is a List
+
 ## [5.64.0] - 2024-04-17
 
 * Add the ability to set a custom transition to a `route.group` e.g. `router.group(() => {'transition': PageTransitionType.fade}, (router) { ... })`

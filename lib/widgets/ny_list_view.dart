@@ -178,7 +178,12 @@ class _NyListViewState<T> extends NyState<NyListView> {
 
   @override
   boot() async {
-    List<T> data = await widget.data();
+    dynamic data = await widget.data();
+    if (data == null) {
+      _data = [];
+      return;
+    }
+    assert(data is List<T>, "Data must be a List");
     _data = data;
   }
 
