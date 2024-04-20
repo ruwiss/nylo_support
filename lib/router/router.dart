@@ -12,6 +12,7 @@ import '/router/models/nyrouter_options.dart';
 import '/router/models/nyrouter_route.dart';
 import '/router/ui/page_not_found.dart';
 import 'package:page_transition/page_transition.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'models/ny_argument.dart';
 
 /// Type definition for the route view.
@@ -734,7 +735,7 @@ class NyRouter {
       NyRouterRoute route, ArgumentsWrapper argumentsWrapper) {
     bool isIos = false;
 
-    if (Platform.isIOS) {
+    if (!kIsWeb && Platform.isIOS) {
       isIos = true;
     }
 

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import '/event_bus/event_bus_plus.dart';
 import 'package:flutter/material.dart';
 import '/alerts/toast_notification.dart';
@@ -725,7 +726,7 @@ abstract class NyState<T extends StatefulWidget> extends State<T> {
   ///  }, title: "Confirm Action", dismissText: "Cancel");
   confirmAction(Function() action,
       {required String title, String dismissText = "Cancel"}) {
-    if (Platform.isIOS) {
+    if (!kIsWeb && Platform.isIOS) {
       showCupertinoModalPopup(
         context: context,
         builder: (context) => CupertinoActionSheet(

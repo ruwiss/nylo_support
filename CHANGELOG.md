@@ -1,3 +1,7 @@
+## [5.65.1] - 2024-04-20
+
+* Fix `web` builds - https://github.com/nylo-core/nylo/discussions/122
+
 ## [5.65.0] - 2024-04-20
 
 * Update `NyPullToRefresh` validate that the `data` is a List
