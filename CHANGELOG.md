@@ -1,3 +1,21 @@
+## [5.66.0] - 2024-04-25
+
+* Add `updateRouteStack` to Nylo. This method will update the route stack with a new routes.
+``` dart
+  Nylo.updateRouteStack([
+    HomePage.path,
+    SettingPage.path
+    ], dataForRoute: {
+    SettingPage.path: {"name": "John Doe"}
+    });
+```
+* Add `nylo.onDeepLink` to listen for deep link events in your app. 
+``` dart
+  nylo.onDeepLink((String route, dynamic data) {
+    print(data);
+  });
+```
+
 ## [5.65.2] - 2024-04-25
 
 * Update `NyState` to check that `data` is of Type Map before calling `data[key]`

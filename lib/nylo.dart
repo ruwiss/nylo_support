@@ -44,6 +44,7 @@ class Nylo {
   Map<Type, dynamic> _modelDecoders = {};
   Map<Type, dynamic> _controllerDecoders = {};
   Map<Type, dynamic> _singletonControllers = {};
+  Function(String route, dynamic data)? onDeepLinkAction;
 
   /// Create a new Nylo instance.
   Nylo({this.router, bool useNyRouteObserver = true})
@@ -74,6 +75,40 @@ class Nylo {
     if (!Backpack.instance.isNyloInitialized()) {
       Backpack.instance.set("nylo", this);
     }
+  }
+
+  /// Update the stack on the router.
+  /// [routes] is a list of routes to navigate to. E.g. [HomePage.path, SettingPage.path]
+  /// [replace] is a boolean that determines if the current route should be replaced.
+  /// [dataForRoute] is a map of data to pass to the route. E.g. {HomePage.path: {"name": "John Doe"}}
+  /// Example:
+  /// ```dart
+  /// Nylo.updateStack([
+  ///  HomePage.path,
+  ///  SettingPage.path
+  ///  ], replace: true, dataForRoute: {
+  ///  HomePage.path: {"name": "John Doe"}
+  ///  });
+  ///  ```
+  ///  This will navigate to the HomePage and SettingPage with the data passed to the HomePage.
+  static updateRouteStack(List<String> routes,
+      {bool replace = true,
+      bool deepLink = false,
+      Map<String, dynamic>? dataForRoute}) {
+    if (deepLink == true) {
+      routes.removeLast();
+    }
+    NyNavigator.updateStack(routes,
+        replace: replace, dataForRoute: dataForRoute);
+  }
+
+  /// Set the deep link action.
+  /// e.g. nylo.onDeepLink((route, data) {
+  ///  print("Deep link route: $route");
+  ///  print("Deep link data: $data");
+  ///  });
+  onDeepLink(Function(String route, dynamic data) callback) {
+    onDeepLinkAction = callback;
   }
 
   /// Get the toast notification.

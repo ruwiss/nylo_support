@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:nylo_support/nylo.dart';
 import '/helpers/backpack.dart';
 import '/helpers/helper.dart';
 import '/router/errors/route_not_found.dart';
@@ -27,6 +28,39 @@ class NyNavigator {
 
   static final NyNavigator instance = NyNavigator._privateConstructor();
 
+  /// Update the stack on the router.
+  /// [routes] is a list of routes to navigate to. E.g. [HomePage.path, SettingPage.path]
+  /// [replace] is a boolean that determines if the current route should be replaced.
+  /// [dataForRoute] is a map of data to pass to the route. E.g. {HomePage.path: {"name": "John Doe"}}
+  /// Example:
+  /// ```dart
+  /// Nylo.updateStack([
+  ///  HomePage.path,
+  ///  SettingPage.path
+  ///  ], replace: true, dataForRoute: {
+  ///  HomePage.path: {"name": "John Doe"}
+  ///  });
+  ///  ```
+  ///  This will navigate to the HomePage and SettingPage with the data passed to the HomePage.
+  static updateStack(List<String> routes,
+      {bool replace = true, Map<String, dynamic>? dataForRoute}) {
+    for (var route in routes) {
+      dynamic data = null;
+      if (dataForRoute != null && dataForRoute.containsKey(route)) {
+        data = dataForRoute[route];
+      }
+
+      if (routes.first == route && replace == true) {
+        instance.router.navigate(route,
+            navigationType: NavigationType.pushAndForgetAll,
+            args: NyArgument(data));
+        continue;
+      }
+      instance.router.navigate(route,
+          navigationType: NavigationType.push, args: NyArgument(data));
+    }
+  }
+
   /// Prefix routes
   Map<String, String> prefixRoutes = {};
 }
@@ -48,7 +82,7 @@ enum NavigationType {
   pushReplace,
   pushAndRemoveUntil,
   popAndPushNamed,
-  pushAndForgetAll
+  pushAndForgetAll,
 }
 
 /// NyRouterRoute manages routing, registering routes with transitions, navigating to
@@ -565,6 +599,13 @@ class NyRouter {
 
       if (route.pageTransitionSettings == null) {
         route.pageTransitionSettings = PageTransitionSettings();
+      }
+
+      if (Nylo.instance.onDeepLinkAction != null &&
+          queryParameters?.data is Map) {
+        if ((queryParameters?.data as Map).containsKey('deepLink')) {
+          Nylo.instance.onDeepLinkAction!(route.name, queryParameters?.data);
+        }
       }
 
       return PageTransition(
