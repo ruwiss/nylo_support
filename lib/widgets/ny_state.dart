@@ -126,7 +126,8 @@ abstract class NyState<T extends StatefulWidget> extends State<T> {
   ///   data = "Hello World"
   /// }
   stateUpdated(dynamic data) async {
-    if (data['action'] == null) return;
+    if (data is! Map) return;
+    if (data.containsKey('action') || data['action'] == null) return;
 
     dynamic stateData = {};
     if (data['data'] != null) {

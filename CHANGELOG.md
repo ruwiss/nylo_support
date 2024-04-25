@@ -1,3 +1,7 @@
+## [5.65.2] - 2024-04-25
+
+* Update `NyState` to check that `data` is of Type Map before calling `data[key]`
+
 ## [5.65.1] - 2024-04-20
 
 * Fix `web` builds - https://github.com/nylo-core/nylo/discussions/122
