@@ -25,7 +25,7 @@ class ArgumentsWrapper {
         baseArguments: baseArguments ?? this.baseArguments,
         queryParameters: queryParameters ?? this.queryParameters,
         pageTransitionSettings:
-            pageTransitionSettings ?? this.pageTransitionSettings,
+            pageTransitionSettings ?? pageTransitionSettings,
         prefix: prefix,
         pageTransitionType: pageTransitionType ?? this.pageTransitionType);
   }

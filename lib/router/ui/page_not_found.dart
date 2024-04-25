@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '/localization/app_localization.dart';
 
 class PageNotFound extends StatelessWidget {
-  const PageNotFound();
+  const PageNotFound({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -12,20 +12,20 @@ class PageNotFound extends StatelessWidget {
       ),
       body: Center(
         child: Container(
-          margin: EdgeInsets.all(8.0),
+          margin: const EdgeInsets.all(8.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              Icon(
+              const Icon(
                 Icons.info_outline,
                 size: 80.0,
                 color: Colors.black38,
               ),
-              SizedBox(height: 24.0),
+              const SizedBox(height: 24.0),
               Text(
                 'Sorry, the page you have requested is not available.'.tr(),
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 16.0,
                 ),
               ),

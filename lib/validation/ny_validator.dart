@@ -33,7 +33,7 @@ class NyValidator {
       BuildContext? context}) {
     Map<String, Map<String, dynamic>> map = data.map((key, value) {
       if (!rules.containsKey(key)) {
-        throw new Exception('Missing rule: ' + key);
+        throw Exception('Missing rule: $key');
       }
       Map<String, dynamic> tmp = {"data": value, "rule": rules[key]};
       if (messages.containsKey(key)) {
@@ -88,7 +88,7 @@ class NyValidator {
             duration: alertDuration,
           );
         }
-        throw new ValidationException(attribute, validationRule);
+        throw ValidationException(attribute, validationRule);
       }
     }
   }

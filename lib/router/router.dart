@@ -59,9 +59,9 @@ class NyRouter {
     this.options = const NyRouterOptions(),
   }) {
     if (options.navigatorKey != null) {
-      this._navigatorKey = options.navigatorKey;
+      _navigatorKey = options.navigatorKey;
     } else {
-      this._navigatorKey = GlobalKey<NavigatorState>();
+      _navigatorKey = GlobalKey<NavigatorState>();
     }
   }
 
@@ -207,7 +207,7 @@ class NyRouter {
         routeGuards: routeGuards,
         initialRoute: initialRoute,
         authPage: authPage);
-    this._addRoute(nyRouterRoute);
+    _addRoute(nyRouterRoute);
 
     assert(
         _routeNameMappings.entries
@@ -234,7 +234,7 @@ class NyRouter {
         routeGuards: routeGuards,
         initialRoute: initialRoute,
         authPage: authPage);
-    this._addRoute(nyRouterRoute);
+    _addRoute(nyRouterRoute);
 
     assert(
         _routeNameMappings.entries
@@ -312,7 +312,9 @@ class NyRouter {
   /// Add a list of routes at once.
   void addRoutes(List<NyRouterRoute> routes) {
     if (routes.isNotEmpty) {
-      routes.forEach((route) => this._addRoute(route));
+      for (var route in routes) {
+        _addRoute(route);
+      }
     }
     NyNavigator.instance.router = this;
   }
@@ -427,26 +429,25 @@ class NyRouter {
 
     switch (navigationType) {
       case NavigationType.push:
-        return await this
-            .navigatorKey!
+        return await navigatorKey!
             .currentState!
             .pushNamed(pushName ?? name, arguments: argsWrapper);
       case NavigationType.pushReplace:
-        return await this.navigatorKey!.currentState!.pushReplacementNamed(
+        return await navigatorKey!.currentState!.pushReplacementNamed(
             pushName ?? name,
             result: result,
             arguments: argsWrapper);
       case NavigationType.pushAndRemoveUntil:
-        return await this.navigatorKey!.currentState!.pushNamedAndRemoveUntil(
+        return await navigatorKey!.currentState!.pushNamedAndRemoveUntil(
             pushName ?? name, removeUntilPredicate!,
             arguments: argsWrapper);
       case NavigationType.popAndPushNamed:
-        return await this.navigatorKey!.currentState!.popAndPushNamed(
+        return await navigatorKey!.currentState!.popAndPushNamed(
             pushName ?? name,
             result: result,
             arguments: argsWrapper);
       case NavigationType.pushAndForgetAll:
-        return await this.navigatorKey!.currentState!.pushNamedAndRemoveUntil(
+        return await navigatorKey!.currentState!.pushNamedAndRemoveUntil(
               pushName ?? name,
               (_) => false,
               arguments: argsWrapper,
@@ -462,7 +463,7 @@ class NyRouter {
 
   /// Get the current route.
   Route<dynamic>? getCurrentRoute() {
-    if (_routeHistory.length < 1) return null;
+    if (_routeHistory.isEmpty) return null;
     return _routeHistory[_routeHistory.length - 1];
   }
 
@@ -494,11 +495,11 @@ class NyRouter {
     NavigationType navigationType,
   ) {
     if (!_routeNameMappings.containsKey(name)) {
-      if (this.options.handleNameNotFoundUI) {
+      if (options.handleNameNotFoundUI) {
         NyLogger.error("Page not found\n"
             "[Route Name] $name\n"
             "[ARGS] ${args.toString()}");
-        this.navigatorKey!.currentState!.push(
+        navigatorKey!.currentState!.push(
           MaterialPageRoute(builder: (BuildContext context) {
             return PageNotFound();
           }),
@@ -542,9 +543,7 @@ class NyRouter {
         routeName = routeName.replaceFirst(prefix, "");
       }
 
-      if (argumentsWrapper == null) {
-        argumentsWrapper = ArgumentsWrapper();
-      }
+      argumentsWrapper ??= ArgumentsWrapper();
 
       if (uriSettingName != null && uriSettingName.queryParameters.isNotEmpty) {
         argumentsWrapper.queryParameters =
@@ -555,17 +554,13 @@ class NyRouter {
       final NyQueryParameters? queryParameters =
           argumentsWrapper.queryParameters;
 
-      if (argumentsWrapper.pageTransitionSettings == null) {
-        argumentsWrapper.pageTransitionSettings = PageTransitionSettings();
-      }
+      argumentsWrapper.pageTransitionSettings ??= const PageTransitionSettings();
 
       final NyRouterRoute? route = _routeNameMappings[routeName];
 
       if (route == null) return null;
 
-      if (route.pageTransitionSettings == null) {
-        route.pageTransitionSettings = PageTransitionSettings();
-      }
+      route.pageTransitionSettings ??= const PageTransitionSettings();
 
       return PageTransition(
         child: StatefulBuilder(
@@ -605,7 +600,7 @@ class NyRouter {
   /// Used to retrieve the correct Duration value for the [PageTransition] constructor.
   Duration _getPageTransitionDuration(
       NyRouterRoute route, ArgumentsWrapper argumentsWrapper) {
-    Duration duration = this.options.pageTransitionSettings.duration!;
+    Duration duration = options.pageTransitionSettings.duration!;
 
     if (route.pageTransitionSettings?.duration != null) {
       duration = route.pageTransitionSettings!.duration!;
@@ -619,7 +614,7 @@ class NyRouter {
   /// Used to retrieve the correct ReversedDuration value for the [PageTransition] constructor.
   Duration _getPageTransitionReversedDuration(
       NyRouterRoute route, ArgumentsWrapper argumentsWrapper) {
-    Duration duration = this.options.pageTransitionSettings.reverseDuration!;
+    Duration duration = options.pageTransitionSettings.reverseDuration!;
 
     if (route.pageTransitionSettings?.reverseDuration != null) {
       duration = route.pageTransitionSettings!.reverseDuration!;
@@ -633,7 +628,7 @@ class NyRouter {
   /// Used to retrieve the correct ChildCurrent value for the [PageTransition] constructor.
   Widget? _getPageTransitionChildCurrent(
       NyRouterRoute route, ArgumentsWrapper argumentsWrapper) {
-    Widget? widget = this.options.pageTransitionSettings.childCurrent;
+    Widget? widget = options.pageTransitionSettings.childCurrent;
 
     if (route.pageTransitionSettings?.childCurrent != null) {
       widget = route.pageTransitionSettings!.childCurrent;
@@ -647,7 +642,7 @@ class NyRouter {
   /// Used to retrieve the correct Context value for the [PageTransition] constructor.
   BuildContext? _getPageTransitionContext(
       NyRouterRoute route, ArgumentsWrapper argumentsWrapper) {
-    BuildContext? buildContext = this.options.pageTransitionSettings.context;
+    BuildContext? buildContext = options.pageTransitionSettings.context;
 
     if (route.pageTransitionSettings?.context != null) {
       buildContext = route.pageTransitionSettings!.context;
@@ -661,7 +656,7 @@ class NyRouter {
   /// Used to retrieve the correct InheritTheme value for the [PageTransition] constructor.
   bool _getPageTransitionInheritTheme(
       NyRouterRoute route, ArgumentsWrapper argumentsWrapper) {
-    bool boolVal = this.options.pageTransitionSettings.inheritTheme!;
+    bool boolVal = options.pageTransitionSettings.inheritTheme!;
 
     if (route.pageTransitionSettings?.inheritTheme != null) {
       boolVal = route.pageTransitionSettings!.inheritTheme!;
@@ -675,7 +670,7 @@ class NyRouter {
   /// Used to retrieve the correct Curve value for the [PageTransition] constructor.
   Curve _getPageTransitionCurve(
       NyRouterRoute route, ArgumentsWrapper argumentsWrapper) {
-    Curve curve = this.options.pageTransitionSettings.curve!;
+    Curve curve = options.pageTransitionSettings.curve!;
 
     if (route.pageTransitionSettings?.curve != null) {
       curve = route.pageTransitionSettings!.curve!;
@@ -689,7 +684,7 @@ class NyRouter {
   /// Used to retrieve the correct Alignment value for the [PageTransition] constructor.
   Alignment? _getPageTransitionAlignment(
       NyRouterRoute route, ArgumentsWrapper argumentsWrapper) {
-    Alignment? alignment = this.options.pageTransitionSettings.alignment;
+    Alignment? alignment = options.pageTransitionSettings.alignment;
 
     if (route.pageTransitionSettings?.alignment != null) {
       alignment = route.pageTransitionSettings!.alignment;
@@ -704,7 +699,7 @@ class NyRouter {
   bool _getPageTransitionFullscreenDialog(
       NyRouterRoute route, ArgumentsWrapper argumentsWrapper) {
     bool fullscreenDialog =
-        this.options.pageTransitionSettings.fullscreenDialog!;
+        options.pageTransitionSettings.fullscreenDialog!;
 
     if (route.pageTransitionSettings?.fullscreenDialog != null) {
       fullscreenDialog = route.pageTransitionSettings!.fullscreenDialog!;
@@ -719,7 +714,7 @@ class NyRouter {
   /// Used to retrieve the correct Opaque value for the [PageTransition] constructor.
   bool _getPageTransitionOpaque(
       NyRouterRoute route, ArgumentsWrapper argumentsWrapper) {
-    bool opaque = this.options.pageTransitionSettings.opaque!;
+    bool opaque = options.pageTransitionSettings.opaque!;
 
     if (route.pageTransitionSettings?.opaque != null) {
       opaque = route.pageTransitionSettings!.opaque!;
@@ -739,8 +734,8 @@ class NyRouter {
       isIos = true;
     }
 
-    if (this.options.pageTransitionSettings.isIos != null) {
-      isIos = this.options.pageTransitionSettings.isIos!;
+    if (options.pageTransitionSettings.isIos != null) {
+      isIos = options.pageTransitionSettings.isIos!;
     }
 
     if (route.pageTransitionSettings?.isIos != null) {
@@ -757,7 +752,7 @@ class NyRouter {
   PageTransitionsBuilder _getPageTransitionMatchingBuilder(
       NyRouterRoute route, ArgumentsWrapper argumentsWrapper) {
     PageTransitionsBuilder matchingBuilder =
-        this.options.pageTransitionSettings.matchingBuilder!;
+        options.pageTransitionSettings.matchingBuilder!;
 
     if (route.pageTransitionSettings?.matchingBuilder != null) {
       matchingBuilder = route.pageTransitionSettings!.matchingBuilder!;
@@ -775,7 +770,7 @@ class NyRouter {
       return MaterialPageRoute(
         settings: settings,
         builder: (BuildContext context) {
-          return PageNotFound();
+          return const PageNotFound();
         },
       );
     };

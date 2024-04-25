@@ -17,8 +17,8 @@ class NyBaseApiService {
   final Map<Type, dynamic> decoders = {};
 
   NyBaseApiService(BuildContext? context) {
-    this._context = context;
-    this.init();
+    _context = context;
+    init();
   }
 
   /// Set the build context (optional)
@@ -62,7 +62,7 @@ class NyBaseApiService {
         "Content-type": "application/json",
         "Accept": "application/json",
       },
-      connectTimeout: Duration(seconds: 5),
+      connectTimeout: const Duration(seconds: 5),
     );
 
     _api = Dio(baseOptions);

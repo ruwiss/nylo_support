@@ -20,7 +20,7 @@ enum LocaleType { device, asDefined }
 class LocalizedApp extends StatefulWidget {
   final Widget? child;
 
-  LocalizedApp({this.child});
+  const LocalizedApp({super.key, this.child});
 
   /// Reloads the app
   static void restart(BuildContext context) {
@@ -28,22 +28,22 @@ class LocalizedApp extends StatefulWidget {
   }
 
   @override
-  _LocalizedAppState createState() => _LocalizedAppState();
+   createState() => _LocalizedAppState();
 }
 
 class _LocalizedAppState extends State<LocalizedApp> {
-  Key key = new UniqueKey();
+  Key key = UniqueKey();
 
   /// setState the widget and update the [key].
   void restart() {
-    this.setState(() {
-      key = new UniqueKey();
+    setState(() {
+      key = UniqueKey();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return new Container(
+    return Container(
       key: key,
       child: widget.child,
     );
@@ -132,7 +132,7 @@ class NyLocalization {
   /// translates a word
   String translate(String key, [Map<String, String>? arguments]) {
     String value =
-        (_values == null || _values![key] == null) ? '$key' : _values![key];
+        (_values == null || _values![key] == null) ? key : _values![key];
 
     String? returnValue = value;
 
@@ -234,7 +234,7 @@ class NyLocalization {
 
   /// Returns locale code as Locale
   Locale get locale {
-    return _locale ?? Locale('en');
+    return _locale ?? const Locale('en');
   }
 
   /// Returns app delegates.

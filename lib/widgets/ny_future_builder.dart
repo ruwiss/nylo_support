@@ -12,13 +12,12 @@ import 'package:skeletonizer/skeletonizer.dart';
 /// Creates a widget that builds itself from a [Future] snapshot.
 class NyFutureBuilder<T> extends StatelessWidget {
   const NyFutureBuilder(
-      {Key? key,
+      {super.key,
       required this.future,
       required this.child,
       this.loading,
       this.useSkeletonizer,
-      this.onError})
-      : super(key: key);
+      this.onError});
 
   final Future<T>? future;
   final Widget Function(BuildContext context, T? data) child;

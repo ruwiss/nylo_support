@@ -17,8 +17,8 @@ import 'package:skeletonizer/skeletonizer.dart';
 /// })
 /// ```
 class NyPullToRefresh<T> extends StatefulWidget {
-  NyPullToRefresh(
-      {Key? key,
+  const NyPullToRefresh(
+      {super.key,
       this.onRefresh,
       this.beforeRefresh,
       this.afterRefresh,
@@ -56,11 +56,10 @@ class NyPullToRefresh<T> extends StatefulWidget {
         crossAxisCount = null,
         mainAxisSpacing = null,
         crossAxisSpacing = null,
-        separatorBuilder = null,
-        super(key: key);
+        separatorBuilder = null;
 
-  NyPullToRefresh.separated(
-      {Key? key,
+  const NyPullToRefresh.separated(
+      {super.key,
       this.onRefresh,
       this.beforeRefresh,
       this.afterRefresh,
@@ -98,11 +97,10 @@ class NyPullToRefresh<T> extends StatefulWidget {
       : kind = "separated",
         crossAxisCount = null,
         mainAxisSpacing = null,
-        crossAxisSpacing = null,
-        super(key: key);
+        crossAxisSpacing = null;
 
   NyPullToRefresh.grid(
-      {Key? key,
+      {super.key,
       this.crossAxisCount = 2,
       this.mainAxisSpacing = 0,
       this.crossAxisSpacing = 0,
@@ -140,8 +138,7 @@ class NyPullToRefresh<T> extends StatefulWidget {
       this.footerLoadingIcon,
       this.sort})
       : kind = "grid",
-        separatorBuilder = null,
-        super(key: key);
+        separatorBuilder = null;
 
   final String kind;
   final Widget? header;
@@ -246,7 +243,7 @@ class _NyPullToRefreshState<T> extends NyState<NyPullToRefresh> {
   @override
   boot() async {
     _iteration = 1;
-    _refreshController..refreshCompleted(resetFooterState: true);
+    _refreshController.refreshCompleted(resetFooterState: true);
     dynamic data = await widget.data(_iteration);
     if (data == null) {
       _data = [];
@@ -290,9 +287,9 @@ class _NyPullToRefreshState<T> extends NyState<NyPullToRefresh> {
                   } else if (mode == LoadStatus.canLoading) {
                     body = Text("Release to load more".tr());
                   } else {
-                    body = SizedBox.shrink();
+                    body = const SizedBox.shrink();
                   }
-                  return Container(
+                  return SizedBox(
                     height: 55.0,
                     child: Center(child: body),
                   );
@@ -310,7 +307,7 @@ class _NyPullToRefreshState<T> extends NyState<NyPullToRefresh> {
             _data = widget.sort!(_data);
           }
 
-          Widget child = SizedBox.shrink();
+          Widget child = const SizedBox.shrink();
           switch (widget.kind) {
             case "builder":
               {
@@ -370,7 +367,7 @@ class _NyPullToRefreshState<T> extends NyState<NyPullToRefresh> {
                     if (widget.separatorBuilder != null) {
                       return widget.separatorBuilder!(context, index);
                     }
-                    return Divider();
+                    return const Divider();
                   },
                 );
                 break;
@@ -392,7 +389,7 @@ class _NyPullToRefreshState<T> extends NyState<NyPullToRefresh> {
                                   crossAxisCellCount: 1,
                                   child: widget.child(context, item),
                                 ))
-                            .toList(),
+                            ,
                       ]);
                 } else {
                   child = StaggeredGrid.count(
@@ -426,9 +423,9 @@ class _NyPullToRefreshState<T> extends NyState<NyPullToRefresh> {
                 } else if (mode == LoadStatus.canLoading) {
                   body = Text("Release to load more".tr());
                 } else {
-                  body = SizedBox.shrink();
+                  body = const SizedBox.shrink();
                 }
-                return Container(
+                return SizedBox(
                   height: 55.0,
                   child: Center(child: body),
                 );
@@ -448,19 +445,19 @@ class _NyPullToRefreshState<T> extends NyState<NyPullToRefresh> {
     switch (widget.headerStyle) {
       case "ClassicHeader":
         {
-          return ClassicHeader();
+          return const ClassicHeader();
         }
       case "WaterDropHeader":
         {
-          return WaterDropHeader();
+          return const WaterDropHeader();
         }
       case "MaterialClassicHeader":
         {
-          return MaterialClassicHeader();
+          return const MaterialClassicHeader();
         }
       case "WaterDropMaterialHeader":
         {
-          return WaterDropMaterialHeader();
+          return const WaterDropMaterialHeader();
         }
       case "BezierHeader":
         {
@@ -468,7 +465,7 @@ class _NyPullToRefreshState<T> extends NyState<NyPullToRefresh> {
         }
       default:
         {
-          return WaterDropHeader();
+          return const WaterDropHeader();
         }
     }
   }

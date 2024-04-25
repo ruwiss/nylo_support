@@ -40,7 +40,7 @@ class _State extends NyState<NyPage> {
         {
           Function()? _setState = stateData['setState'];
           if (_setState != null) {
-            this.setState(() {
+            setState(() {
               _setState();
             });
             return;
@@ -135,11 +135,6 @@ class _State extends NyState<NyPage> {
   }
 
   @override
-  dispose() {
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     if (_boot != null) {
       if (_loading != null) {
@@ -163,7 +158,7 @@ class NyPage<T extends BaseController> extends NyStatefulWidget<T> {
         super(path);
 
   /// Initialize NyPage with a [path] and [state].
-  NyPage.init(String? path, State state)
+  NyPage.init(String? path, State state, {super.key})
       : child = state,
         super(path);
 
@@ -201,7 +196,7 @@ class NyPage<T extends BaseController> extends NyStatefulWidget<T> {
 
   /// Build your UI
   Widget build(BuildContext context) {
-    return SizedBox.shrink();
+    return const SizedBox.shrink();
   }
 
   /// This widget is used whenever your widget uses the [boot]

@@ -43,7 +43,7 @@ class NyRouterRoute {
       : _initialRoute = initialRoute,
         _authPage = authPage,
         _routeGuards = routeGuards ?? [] {
-    this.builder = (context, arg, queryParameters) {
+    builder = (context, arg, queryParameters) {
       Widget widget = view(context);
       if (widget is NyStatefulWidget) {
         widget.controller.request = NyRequest(
@@ -71,14 +71,14 @@ class NyRouterRoute {
 
   /// Add a transition to the route.
   NyRouterRoute transition(PageTransitionType transition) {
-    this.pageTransitionType = transition;
+    pageTransitionType = transition;
     NyNavigator.instance.router.updateRoute(this);
     return this;
   }
 
   /// Add a transition settings to the route.
   NyRouterRoute transitionSettings(PageTransitionSettings settings) {
-    this.pageTransitionSettings = settings;
+    pageTransitionSettings = settings;
     NyNavigator.instance.router.updateRoute(this);
     return this;
   }

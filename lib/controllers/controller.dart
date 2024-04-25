@@ -70,13 +70,13 @@ abstract class BaseController {
   BaseController({this.context, this.request, this.state = "/"});
 
   /// Returns any data passed through a [Navigator] or [routeTo] method.
-  dynamic data({String? key}) => this.request?.data(key: key);
+  dynamic data({String? key}) => request?.data(key: key);
 
   /// Returns any query parameters passed in a route
   /// e.g. /my-page?hello=world
   /// Result {"hello": "world"}
   dynamic queryParameters({String? key}) =>
-      this.request?.queryParameters(key: key);
+      request?.queryParameters(key: key);
 
   /// Initialize your controller with this method.
   /// It contains same [BuildContext] as the [NyStatefulWidget].

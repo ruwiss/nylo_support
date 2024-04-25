@@ -72,8 +72,8 @@ class NyTextField extends StatefulWidget {
   final EdgeInsetsGeometry? contentPadding;
 
   /// Default Text Field
-  NyTextField({
-    Key? key,
+  const NyTextField({
+    super.key,
     required this.controller,
     this.labelText,
     this.obscureText = false,
@@ -136,12 +136,11 @@ class NyTextField extends StatefulWidget {
     this.enabledBorder,
     this.contentPadding,
     this.labelStyle,
-  })  : type = null,
-        super(key: key);
+  })  : type = null;
 
   /// Compact Text Field
-  NyTextField.compact({
-    Key? key,
+  const NyTextField.compact({
+    super.key,
     this.passwordVisible,
     this.labelText,
     required this.controller,
@@ -204,12 +203,11 @@ class NyTextField extends StatefulWidget {
     this.enabledBorder,
     this.contentPadding,
     this.labelStyle,
-  })  : type = 'compact',
-        super(key: key);
+  })  : type = 'compact';
 
   /// Password Text Field
-  NyTextField.password({
-    Key? key,
+  const NyTextField.password({
+    super.key,
     this.passwordVisible,
     this.labelText,
     required this.controller,
@@ -272,12 +270,11 @@ class NyTextField extends StatefulWidget {
     this.enabledBorder,
     this.contentPadding,
     this.labelStyle,
-  })  : type = 'password',
-        super(key: key);
+  })  : type = 'password';
 
   /// Email Address Text Field
-  NyTextField.emailAddress({
-    Key? key,
+  const NyTextField.emailAddress({
+    super.key,
     this.labelText,
     required this.controller,
     this.obscureText = false,
@@ -340,15 +337,14 @@ class NyTextField extends StatefulWidget {
     this.contentPadding,
     this.labelStyle,
     this.passwordVisible,
-  })  : type = 'email-address',
-        super(key: key);
+  })  : type = 'email-address';
 
   @override
-  _NyTextFieldState createState() => _NyTextFieldState();
+  createState() => _NyTextFieldState();
 }
 
 class _NyTextFieldState extends NyState<NyTextField> {
-  FocusNode _focus = FocusNode();
+  final FocusNode _focus = FocusNode();
   bool? didChange = false;
   bool? _obscured;
 
@@ -423,10 +419,10 @@ class _NyTextFieldState extends NyState<NyTextField> {
           labelText: widget.labelText,
           hintText: widget.hintText,
           hintStyle: widget.hintStyle,
-          focusedBorder: UnderlineInputBorder(
+          focusedBorder: const UnderlineInputBorder(
             borderSide: BorderSide(color: Colors.black54),
           ),
-          errorStyle: TextStyle(fontSize: 12),
+          errorStyle: const TextStyle(fontSize: 12),
           errorMaxLines: 2,
         );
     decoration = decoration.copyWith(errorText: _validate());
@@ -454,20 +450,20 @@ class _NyTextFieldState extends NyState<NyTextField> {
             decoration: decoration.copyWith(
               prefixIcon: widget.prefixIcon,
               labelText: widget.labelText,
-              labelStyle: TextStyle(fontSize: 16, color: Colors.black),
+              labelStyle: const TextStyle(fontSize: 16, color: Colors.black),
               filled: true,
               fillColor: widget.backgroundColor ?? Colors.grey.shade50,
               isDense: true,
               focusedBorder: widget.focusedBorder ??
-                  OutlineInputBorder(
+                  const OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(12)),
                       borderSide: BorderSide(color: Colors.transparent)),
               enabledBorder: widget.enabledBorder ??
-                  OutlineInputBorder(
+                  const OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(12)),
                       borderSide: BorderSide(color: Colors.transparent)),
               contentPadding: widget.contentPadding ??
-                  EdgeInsetsDirectional.symmetric(vertical: 13, horizontal: 13),
+                  const EdgeInsetsDirectional.symmetric(vertical: 13, horizontal: 13),
               border: widget.border ??
                   OutlineInputBorder(
                     borderRadius:
@@ -539,25 +535,25 @@ class _NyTextFieldState extends NyState<NyTextField> {
           return TextField(
             key: widget.key,
             decoration: decoration.copyWith(
-              prefixIcon: widget.prefixIcon ?? Icon(Icons.email_outlined),
+              prefixIcon: widget.prefixIcon ?? const Icon(Icons.email_outlined),
               labelText: widget.labelText ?? "Email Address".tr(),
               labelStyle: widget.labelStyle ??
-                  TextStyle(fontSize: 16, color: Colors.black),
+                  const TextStyle(fontSize: 16, color: Colors.black),
               filled: true,
               fillColor: widget.backgroundColor ?? Colors.grey.shade50,
               isDense: true,
               focusedBorder: widget.focusedBorder ??
-                  OutlineInputBorder(
+                  const OutlineInputBorder(
                     borderRadius: BorderRadius.all(Radius.circular(12)),
                     borderSide: BorderSide(color: Colors.transparent),
                   ),
               enabledBorder: widget.enabledBorder ??
-                  OutlineInputBorder(
+                  const OutlineInputBorder(
                     borderRadius: BorderRadius.all(Radius.circular(12)),
                     borderSide: BorderSide(color: Colors.transparent),
                   ),
               contentPadding: widget.contentPadding ??
-                  EdgeInsetsDirectional.symmetric(vertical: 13, horizontal: 13),
+                  const EdgeInsetsDirectional.symmetric(vertical: 13, horizontal: 13),
               border: widget.border ??
                   OutlineInputBorder(
                     borderRadius:
@@ -629,20 +625,20 @@ class _NyTextFieldState extends NyState<NyTextField> {
           return TextField(
             key: widget.key,
             decoration: decoration.copyWith(
-              prefixIcon: widget.prefixIcon ?? Icon(Icons.lock_rounded),
+              prefixIcon: widget.prefixIcon ?? const Icon(Icons.lock_rounded),
               labelText: widget.labelText ?? "Password".tr(),
-              labelStyle: TextStyle(fontSize: 16, color: Colors.black),
+              labelStyle: const TextStyle(fontSize: 16, color: Colors.black),
               filled: true,
               fillColor: widget.backgroundColor ?? Colors.grey.shade50,
               isDense: true,
               contentPadding: widget.contentPadding ??
-                  EdgeInsetsDirectional.symmetric(vertical: 14, horizontal: 14),
+                  const EdgeInsetsDirectional.symmetric(vertical: 14, horizontal: 14),
               focusedBorder: widget.focusedBorder ??
-                  OutlineInputBorder(
+                  const OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(12)),
                       borderSide: BorderSide(color: Colors.transparent)),
               enabledBorder: widget.enabledBorder ??
-                  OutlineInputBorder(
+                  const OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(12)),
                       borderSide: BorderSide(color: Colors.transparent)),
               border: widget.border ??

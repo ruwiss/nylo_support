@@ -60,12 +60,10 @@ class Nylo {
   /// Nylo.use(CustomPlugin());
   use(NyPlugin plugin) async {
     await plugin.initPackage(this);
-    if (router == null) {
-      router = NyRouter();
-    }
+    router ??= NyRouter();
     router!.setNyRoutes(plugin.routes());
     _events.addAll(plugin.events());
-    NyNavigator.instance.router = this.router!;
+    NyNavigator.instance.router = router!;
   }
 
   /// Set the initial route from a [routeName].
@@ -99,7 +97,7 @@ class Nylo {
     if (controllerValue is NyController) return controllerValue;
 
     dynamic controllerFound = controllerValue();
-    if (!(controllerFound is NyController)) return null;
+    if (controllerFound is! NyController) return null;
 
     if (controllerFound.singleton) {
       _singletonControllers[controller] = controllerFound;
@@ -186,7 +184,7 @@ class Nylo {
 
   /// Set API decoders
   addApiDecoders(Map<Type, dynamic> apiDecoders) {
-    apiDecoders.entries.forEach((apiDecoder) {
+    for (var apiDecoder in apiDecoders.entries) {
       if (apiDecoder.value is NyApiService Function()) {
         _apiDecoders.addAll({apiDecoder.key: apiDecoder.value});
       }
@@ -194,7 +192,7 @@ class Nylo {
       if (apiDecoder.value is NyApiService) {
         _singletonApiDecoders.addAll({apiDecoder.key: apiDecoder.value});
       }
-    });
+    }
   }
 
   /// Get API decoders
@@ -258,7 +256,7 @@ class Nylo {
 
   /// Add Controllers to your Nylo project.
   addControllers(Map<Type, dynamic> controllers) {
-    controllers.entries.forEach((controllerDecoder) {
+    for (var controllerDecoder in controllers.entries) {
       if (controllerDecoder.value is NyController Function()) {
         _controllerDecoders
             .addAll({controllerDecoder.key: controllerDecoder.value});
@@ -268,7 +266,7 @@ class Nylo {
         _singletonControllers
             .addAll({controllerDecoder.key: controllerDecoder.value});
       }
-    });
+    }
 
     if (!Backpack.instance.isNyloInitialized()) {
       Backpack.instance.set("nylo", this);
@@ -326,8 +324,9 @@ class Nylo {
   /// Get api decoders
   static Map<Type, NyApiService> apiDecoders() {
     Map<Type, NyApiService> apiDecoders = {};
-    instance._apiDecoders.entries
-        .forEach((e) => apiDecoders.addAll({e.key: e.value()}));
+    for (var e in instance._apiDecoders.entries) {
+      apiDecoders.addAll({e.key: e.value()});
+    }
     apiDecoders.addAll(instance._singletonApiDecoders);
     return apiDecoders;
   }
@@ -360,7 +359,7 @@ class Nylo {
     List<Map<String, dynamic>> list = [];
     List<Route<dynamic>> history =
         NyNavigator.instance.router.getRouteHistory();
-    history.forEach((route) {
+    for (var route in history) {
       dynamic data = route.settings.arguments;
       if (data is ArgumentsWrapper) {
         data = data.getData();
@@ -373,7 +372,7 @@ class Nylo {
         "arguments": data,
         "route": route,
       });
-    });
+    }
     return list;
   }
 

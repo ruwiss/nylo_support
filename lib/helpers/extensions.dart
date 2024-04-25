@@ -80,7 +80,7 @@ extension NyStr on String? {
   DateTime toDateTime() => DateTime.parse(this ?? "");
 
   /// Attempt to convert a [String] into a model by using your model decoders.
-  T toModel<T>() => dataToModel<T>(data: this.parseJson());
+  T toModel<T>() => dataToModel<T>(data: parseJson());
 }
 
 /// Extensions for [int]
@@ -147,7 +147,7 @@ extension NyDateTime on DateTime? {
   /// Check if the date is still valid.
   bool hasExpired() {
     if (this == null) return true;
-    return this.isInPast();
+    return isInPast();
   }
 
   /// Check if the date is in the morning.
@@ -207,7 +207,7 @@ extension NyDateTime on DateTime? {
   /// Check if [DateTime] is younger than a certain [age]
   bool? isAgeYounger(int age) {
     if (this == null) return null;
-    int? ageCheck = this.toAge();
+    int? ageCheck = toAge();
     if (ageCheck == null) return null;
     return ageCheck < age;
   }
@@ -215,7 +215,7 @@ extension NyDateTime on DateTime? {
   /// Check if [DateTime] is older than a certain [age]
   bool? isAgeOlder(int age) {
     if (this == null) return null;
-    int? ageCheck = this.toAge();
+    int? ageCheck = toAge();
     if (ageCheck == null) return null;
     return ageCheck > age;
   }
@@ -223,7 +223,7 @@ extension NyDateTime on DateTime? {
   /// Check if [DateTime] is between a certain [min] and [max] age
   bool? isAgeBetween(int min, int max) {
     if (this == null) return null;
-    int? ageCheck = this.toAge();
+    int? ageCheck = toAge();
     if (ageCheck == null) return null;
     return ageCheck >= min && ageCheck <= max;
   }
@@ -231,7 +231,7 @@ extension NyDateTime on DateTime? {
   /// Check if [DateTime] is equal to a certain [age]
   isAgeEqualTo(int age) {
     if (this == null) return null;
-    int? ageCheck = this.toAge();
+    int? ageCheck = toAge();
     if (ageCheck == null) return null;
     return ageCheck == age;
   }
@@ -260,7 +260,7 @@ extension NyDateTime on DateTime? {
   /// Check if [DateTime] is tomorrow
   bool isTomorrow() {
     if (this == null) return false;
-    DateTime dateTime = DateTime.now().add(Duration(days: 1));
+    DateTime dateTime = DateTime.now().add(const Duration(days: 1));
     return this!.day == dateTime.day &&
         this!.month == dateTime.month &&
         this!.year == dateTime.year;
@@ -269,7 +269,7 @@ extension NyDateTime on DateTime? {
   /// Check if [DateTime] is yesterday
   bool isYesterday() {
     if (this == null) return false;
-    DateTime dateTime = DateTime.now().subtract(Duration(days: 1));
+    DateTime dateTime = DateTime.now().subtract(const Duration(days: 1));
     return this!.day == dateTime.day &&
         this!.month == dateTime.month &&
         this!.year == dateTime.year;
@@ -404,13 +404,13 @@ extension NyColumn on Column {
     }
 
     return Column(
-      key: this.key,
-      mainAxisAlignment: this.mainAxisAlignment,
-      mainAxisSize: this.mainAxisSize,
-      crossAxisAlignment: this.crossAxisAlignment,
-      textDirection: this.textDirection,
-      verticalDirection: this.verticalDirection,
-      textBaseline: this.textBaseline,
+      key: key,
+      mainAxisAlignment: mainAxisAlignment,
+      mainAxisSize: mainAxisSize,
+      crossAxisAlignment: crossAxisAlignment,
+      textDirection: textDirection,
+      verticalDirection: verticalDirection,
+      textBaseline: textBaseline,
       children: newChildren,
     );
   }
@@ -427,10 +427,10 @@ extension NyColumn on Column {
   ///  ```
   Flexible flexible({Key? key, int flex = 1, FlexFit fit = FlexFit.loose}) {
     return Flexible(
-      child: this,
       key: key,
       flex: flex,
       fit: fit,
+      child: this,
     );
   }
 
@@ -446,9 +446,9 @@ extension NyColumn on Column {
   ///  ```
   Expanded expanded({Key? key, int flex = 1}) {
     return Expanded(
-      child: this,
       key: key,
       flex: flex,
+      child: this,
     );
   }
 }
@@ -457,27 +457,27 @@ extension NyColumn on Column {
 extension NyImage on Image {
   /// Get the image from public/assets/images
   Image localAsset() {
-    assert(this.image is AssetImage, "Image must be an AssetImage");
-    if (this.image is AssetImage) {
-      AssetImage assetImage = (this.image as AssetImage);
+    assert(image is AssetImage, "Image must be an AssetImage");
+    if (image is AssetImage) {
+      AssetImage assetImage = (image as AssetImage);
       return Image.asset(
         getImageAsset(assetImage.assetName),
-        fit: this.fit,
-        width: this.width,
-        height: this.height,
-        alignment: this.alignment,
-        centerSlice: this.centerSlice,
-        color: this.color,
-        colorBlendMode: this.colorBlendMode,
-        excludeFromSemantics: this.excludeFromSemantics,
-        filterQuality: this.filterQuality,
-        frameBuilder: this.frameBuilder,
-        gaplessPlayback: this.gaplessPlayback,
-        matchTextDirection: this.matchTextDirection,
-        repeat: this.repeat,
-        semanticLabel: this.semanticLabel,
-        errorBuilder: this.errorBuilder,
-        isAntiAlias: this.isAntiAlias,
+        fit: fit,
+        width: width,
+        height: height,
+        alignment: alignment,
+        centerSlice: centerSlice,
+        color: color,
+        colorBlendMode: colorBlendMode,
+        excludeFromSemantics: excludeFromSemantics,
+        filterQuality: filterQuality,
+        frameBuilder: frameBuilder,
+        gaplessPlayback: gaplessPlayback,
+        matchTextDirection: matchTextDirection,
+        repeat: repeat,
+        semanticLabel: semanticLabel,
+        errorBuilder: errorBuilder,
+        isAntiAlias: isAntiAlias,
         package: assetImage.package,
       );
     }
@@ -496,7 +496,7 @@ extension NyImage on Image {
   }) {
     return CircleAvatar(
       radius: radius,
-      backgroundImage: this.image,
+      backgroundImage: image,
       backgroundColor: Colors.transparent,
       onBackgroundImageError: onBackgroundImageError,
       onForegroundImageError: onForegroundImageError,
@@ -529,10 +529,10 @@ extension NySingleChildRenderObjectWidget on SingleChildRenderObjectWidget {
             pageTransition: pageTransition,
             onPop: onPop);
       },
-      child: this,
       splashColor: Colors.transparent,
       hoverColor: Colors.transparent,
       focusColor: Colors.transparent,
+      child: this,
     );
   }
 
@@ -542,10 +542,10 @@ extension NySingleChildRenderObjectWidget on SingleChildRenderObjectWidget {
       onTap: () async {
         await action();
       },
-      child: this,
       splashColor: Colors.transparent,
       hoverColor: Colors.transparent,
       focusColor: Colors.transparent,
+      child: this,
     );
   }
 
@@ -581,13 +581,13 @@ extension NyString on String {
   /// [tag] is optional.
   /// [alwaysPrint] is optional.
   dump({String? tag, bool alwaysPrint = false}) {
-    NyLogger.dump(this.toString(), tag, alwaysPrint: alwaysPrint);
+    NyLogger.dump(toString(), tag, alwaysPrint: alwaysPrint);
   }
 
   /// dump the value to the console and exit the app.
   /// [tag] is optional.
   dd({String? tag}) {
-    NyLogger.dump(this.toString(), tag);
+    NyLogger.dump(toString(), tag);
     exit(0);
   }
 }
@@ -616,10 +616,10 @@ extension NyStatelessWidget on StatelessWidget {
             pageTransition: pageTransition,
             onPop: onPop);
       },
-      child: this,
       splashColor: Colors.transparent,
       hoverColor: Colors.transparent,
       focusColor: Colors.transparent,
+      child: this,
     );
   }
 
@@ -629,10 +629,10 @@ extension NyStatelessWidget on StatelessWidget {
       onTap: () async {
         await action();
       },
-      child: this,
       splashColor: Colors.transparent,
       hoverColor: Colors.transparent,
       focusColor: Colors.transparent,
+      child: this,
     );
   }
 
@@ -720,46 +720,46 @@ extension NyStatelessWidget on StatelessWidget {
   ///  ```
   Flexible flexible({Key? key, int flex = 1, FlexFit fit = FlexFit.loose}) {
     return Flexible(
-      child: this,
       key: key,
       flex: flex,
       fit: fit,
+      child: this,
     );
   }
 
   /// Make gradient background for the widget.
   NyFader faderBottom(int strength, {Color color = Colors.black}) {
     return NyFader.bottom(
-      child: this,
       strength: strength,
       color: color,
+      child: this,
     );
   }
 
   /// Make gradient background for the widget.
   NyFader faderTop(int strength, {Color color = Colors.black}) {
     return NyFader.top(
-      child: this,
       strength: strength,
       color: color,
+      child: this,
     );
   }
 
   /// Make gradient background for the widget.
   NyFader faderLeft(int strength, {Color color = Colors.black}) {
     return NyFader.left(
-      child: this,
       strength: strength,
       color: color,
+      child: this,
     );
   }
 
   /// Make gradient background for the widget.
   NyFader faderRight(int strength, {Color color = Colors.black}) {
     return NyFader.right(
-      child: this,
       strength: strength,
       color: color,
+      child: this,
     );
   }
 
@@ -768,10 +768,10 @@ extension NyStatelessWidget on StatelessWidget {
       {Color color = Colors.black,
       required List<AlignmentGeometry> alignment}) {
     return NyFader(
-      child: this,
       strength: strength,
       color: color,
       alignment: alignment,
+      child: this,
     );
   }
 }
@@ -790,7 +790,6 @@ extension NyWidget on Widget {
     TextBoneBorderRadius? textBoneBorderRadius,
   }) {
     return Skeletonizer(
-      child: this,
       ignoreContainers: ignoreContainers,
       enabled: enabled,
       effect: effect,
@@ -798,6 +797,7 @@ extension NyWidget on Widget {
       justifyMultiLineText: justifyMultiLineText,
       containersColor: containersColor,
       ignorePointers: ignorePointers,
+      child: this,
     );
   }
 }
@@ -815,46 +815,46 @@ extension NyStateful on StatefulWidget {
   ///  ```
   Flexible flexible({Key? key, int flex = 1, FlexFit fit = FlexFit.loose}) {
     return Flexible(
-      child: this,
       key: key,
       flex: flex,
       fit: fit,
+      child: this,
     );
   }
 
   /// Make gradient fader from the bottom of the widget.
   NyFader faderBottom(int strength, {Color color = Colors.black}) {
     return NyFader.bottom(
-      child: this,
       strength: strength,
       color: color,
+      child: this,
     );
   }
 
   /// Make gradient fader from the top of the widget.
   NyFader faderTop(int strength, {Color color = Colors.black}) {
     return NyFader.top(
-      child: this,
       strength: strength,
       color: color,
+      child: this,
     );
   }
 
   /// Make gradient fader from the left of the widget.
   NyFader faderLeft(int strength, {Color color = Colors.black}) {
     return NyFader.left(
-      child: this,
       strength: strength,
       color: color,
+      child: this,
     );
   }
 
   /// Make gradient fader from the right of the widget.
   NyFader faderRight(int strength, {Color color = Colors.black}) {
     return NyFader.right(
-      child: this,
       strength: strength,
       color: color,
+      child: this,
     );
   }
 
@@ -866,10 +866,10 @@ extension NyStateful on StatefulWidget {
         Alignment.bottomCenter
       ]}) {
     return NyFader(
-      child: this,
       strength: strength,
       color: color,
       alignment: alignment,
+      child: this,
     );
   }
 }
@@ -953,13 +953,13 @@ extension NyRow on Row {
     }
 
     return Row(
-      key: this.key,
-      mainAxisAlignment: this.mainAxisAlignment,
-      mainAxisSize: this.mainAxisSize,
-      crossAxisAlignment: this.crossAxisAlignment,
-      textDirection: this.textDirection,
-      verticalDirection: this.verticalDirection,
-      textBaseline: this.textBaseline,
+      key: key,
+      mainAxisAlignment: mainAxisAlignment,
+      mainAxisSize: mainAxisSize,
+      crossAxisAlignment: crossAxisAlignment,
+      textDirection: textDirection,
+      verticalDirection: verticalDirection,
+      textBaseline: textBaseline,
       children: newChildren,
     );
   }
@@ -999,13 +999,13 @@ extension NyRow on Row {
 
     return IntrinsicHeight(
       child: Row(
-        key: this.key,
-        mainAxisAlignment: this.mainAxisAlignment,
-        mainAxisSize: this.mainAxisSize,
-        crossAxisAlignment: this.crossAxisAlignment,
-        textDirection: this.textDirection,
-        verticalDirection: this.verticalDirection,
-        textBaseline: this.textBaseline,
+        key: key,
+        mainAxisAlignment: mainAxisAlignment,
+        mainAxisSize: mainAxisSize,
+        crossAxisAlignment: crossAxisAlignment,
+        textDirection: textDirection,
+        verticalDirection: verticalDirection,
+        textBaseline: textBaseline,
         children: newChildren,
       ),
     );
@@ -1019,7 +1019,7 @@ extension NyText on Text {
     if (style == null) {
       return copyWith(style: Theme.of(context).textTheme.displayLarge);
     }
-    return this.setStyle(Theme.of(context).textTheme.displayLarge);
+    return setStyle(Theme.of(context).textTheme.displayLarge);
   }
 
   /// Set the Style to use [displayMedium].
@@ -1027,7 +1027,7 @@ extension NyText on Text {
     if (style == null) {
       return copyWith(style: Theme.of(context).textTheme.displayMedium);
     }
-    return this.setStyle(Theme.of(context).textTheme.displayMedium);
+    return setStyle(Theme.of(context).textTheme.displayMedium);
   }
 
   /// Set the Style to use [displaySmall].
@@ -1035,7 +1035,7 @@ extension NyText on Text {
     if (style == null) {
       return copyWith(style: Theme.of(context).textTheme.displaySmall);
     }
-    return this.setStyle(Theme.of(context).textTheme.displaySmall);
+    return setStyle(Theme.of(context).textTheme.displaySmall);
   }
 
   /// Set the Style to use [headlineLarge].
@@ -1043,7 +1043,7 @@ extension NyText on Text {
     if (style == null) {
       return copyWith(style: Theme.of(context).textTheme.headlineLarge);
     }
-    return this.setStyle(Theme.of(context).textTheme.headlineLarge);
+    return setStyle(Theme.of(context).textTheme.headlineLarge);
   }
 
   /// Set the Style to use [headlineMedium].
@@ -1051,7 +1051,7 @@ extension NyText on Text {
     if (style == null) {
       return copyWith(style: Theme.of(context).textTheme.headlineMedium);
     }
-    return this.setStyle(Theme.of(context).textTheme.headlineMedium);
+    return setStyle(Theme.of(context).textTheme.headlineMedium);
   }
 
   /// Set the Style to use [headlineSmall].
@@ -1059,7 +1059,7 @@ extension NyText on Text {
     if (style == null) {
       return copyWith(style: Theme.of(context).textTheme.headlineSmall);
     }
-    return this.setStyle(Theme.of(context).textTheme.headlineSmall);
+    return setStyle(Theme.of(context).textTheme.headlineSmall);
   }
 
   /// Set the Style to use [titleLarge].
@@ -1067,7 +1067,7 @@ extension NyText on Text {
     if (style == null) {
       return copyWith(style: Theme.of(context).textTheme.titleLarge);
     }
-    return this.setStyle(Theme.of(context).textTheme.titleLarge);
+    return setStyle(Theme.of(context).textTheme.titleLarge);
   }
 
   /// Set the Style to use [titleMedium].
@@ -1075,7 +1075,7 @@ extension NyText on Text {
     if (style == null) {
       return copyWith(style: Theme.of(context).textTheme.titleMedium);
     }
-    return this.setStyle(Theme.of(context).textTheme.titleMedium);
+    return setStyle(Theme.of(context).textTheme.titleMedium);
   }
 
   /// Set the Style to use [titleSmall].
@@ -1083,7 +1083,7 @@ extension NyText on Text {
     if (style == null) {
       return copyWith(style: Theme.of(context).textTheme.titleSmall);
     }
-    return this.setStyle(Theme.of(context).textTheme.titleSmall);
+    return setStyle(Theme.of(context).textTheme.titleSmall);
   }
 
   /// Set the Style to use [bodyLarge].
@@ -1091,7 +1091,7 @@ extension NyText on Text {
     if (style == null) {
       return copyWith(style: Theme.of(context).textTheme.bodyLarge);
     }
-    return this.setStyle(Theme.of(context).textTheme.bodyLarge);
+    return setStyle(Theme.of(context).textTheme.bodyLarge);
   }
 
   /// Set the Style to use [bodyMedium].
@@ -1099,7 +1099,7 @@ extension NyText on Text {
     if (style == null) {
       return copyWith(style: Theme.of(context).textTheme.bodyMedium);
     }
-    return this.setStyle(Theme.of(context).textTheme.bodyMedium);
+    return setStyle(Theme.of(context).textTheme.bodyMedium);
   }
 
   /// Set the Style to use [bodySmall].
@@ -1107,17 +1107,17 @@ extension NyText on Text {
     if (style == null) {
       return copyWith(style: Theme.of(context).textTheme.bodySmall);
     }
-    return this.setStyle(Theme.of(context).textTheme.bodySmall);
+    return setStyle(Theme.of(context).textTheme.bodySmall);
   }
 
   /// Make the font bold.
   Text fontWeightBold() {
-    return copyWith(style: TextStyle(fontWeight: FontWeight.bold));
+    return copyWith(style: const TextStyle(fontWeight: FontWeight.bold));
   }
 
   /// Make the font light.
   Text fontWeightLight() {
-    return copyWith(style: TextStyle(fontWeight: FontWeight.w300));
+    return copyWith(style: const TextStyle(fontWeight: FontWeight.w300));
   }
 
   /// Change the [style].
@@ -1166,7 +1166,7 @@ extension NyText on Text {
     if (style == null) {
       return copyWith(style: TextStyle(fontSize: fontSize));
     }
-    return this.setStyle(TextStyle(fontSize: fontSize));
+    return setStyle(TextStyle(fontSize: fontSize));
   }
 
   /// Helper to apply changes.
@@ -1183,7 +1183,7 @@ extension NyText on Text {
       String? semanticsLabel,
       TextWidthBasis? textWidthBasis,
       TextStyle? style}) {
-    return Text(this.data ?? "",
+    return Text(data ?? "",
         key: key ?? this.key,
         strutStyle: strutStyle ?? this.strutStyle,
         textAlign: textAlign ?? this.textAlign,

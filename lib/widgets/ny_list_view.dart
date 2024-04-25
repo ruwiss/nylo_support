@@ -55,10 +55,10 @@ class NyListView<T> extends StatefulWidget {
   final dynamic Function(List<T> items)? sort;
 
   @override
-  _NyListViewState<T> createState() => _NyListViewState<T>(stateName);
+  createState() => _NyListViewState<T>(stateName);
 
-  NyListView(
-      {Key? key,
+  const NyListView(
+      {super.key,
       required this.child,
       required this.data,
       this.transform,
@@ -91,11 +91,10 @@ class NyListView<T> extends StatefulWidget {
         separatorBuilder = null,
         crossAxisCount = null,
         mainAxisSpacing = null,
-        crossAxisSpacing = null,
-        super(key: key);
+        crossAxisSpacing = null;
 
-  NyListView.separated(
-      {Key? key,
+  const NyListView.separated(
+      {super.key,
       required this.data,
       this.transform,
       required this.child,
@@ -128,11 +127,10 @@ class NyListView<T> extends StatefulWidget {
       : kind = "separated",
         crossAxisCount = null,
         mainAxisSpacing = null,
-        crossAxisSpacing = null,
-        super(key: key);
+        crossAxisSpacing = null;
 
-  NyListView.grid(
-      {Key? key,
+  const NyListView.grid(
+      {super.key,
       this.crossAxisCount = 2,
       this.mainAxisSpacing = 1.0,
       this.crossAxisSpacing = 1.0,
@@ -165,8 +163,7 @@ class NyListView<T> extends StatefulWidget {
       this.header,
       this.sort})
       : kind = "grid",
-        separatorBuilder = null,
-        super(key: key);
+        separatorBuilder = null;
 }
 
 class _NyListViewState<T> extends NyState<NyListView> {
@@ -273,7 +270,7 @@ class _NyListViewState<T> extends NyState<NyListView> {
                     if (widget.separatorBuilder != null) {
                       return widget.separatorBuilder!(context, index);
                     }
-                    return Divider();
+                    return const Divider();
                   },
                 );
               }
@@ -313,7 +310,7 @@ class _NyListViewState<T> extends NyState<NyListView> {
                                       crossAxisCellCount: 1,
                                       child: widget.child(context, item),
                                     ))
-                                .toList(),
+                                ,
                           ]),
                     ],
                   );

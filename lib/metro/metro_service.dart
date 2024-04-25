@@ -20,8 +20,8 @@ class MetroService {
 
     List<String> argumentSplit = arguments[0].split(":");
 
-    if (argumentSplit.length == 0 || argumentSplit.length <= 1) {
-      MetroConsole.writeInBlack('Invalid arguments ' + arguments.toString());
+    if (argumentSplit.isEmpty || argumentSplit.length <= 1) {
+      MetroConsole.writeInBlack('Invalid arguments $arguments');
       exit(2);
     }
 
@@ -32,7 +32,7 @@ class MetroService {
         (command) => type == command?.category && command?.name == action);
 
     if (nyCommand == null) {
-      MetroConsole.writeInBlack('Invalid arguments ' + arguments.toString());
+      MetroConsole.writeInBlack('Invalid arguments $arguments');
       exit(1);
     }
 
@@ -157,7 +157,7 @@ final Map<Type, BaseController> controllers = {${reg.allMatches(file).map((e) =>
       String? prefix,
       String? creationPath}) {
     if (prefix != null) {
-      prefix = "_" + prefix;
+      prefix = "_$prefix";
     } else {
       prefix = "";
     }
@@ -246,8 +246,9 @@ import '/resources/themes/${nameReCase.snakeCase}_theme.dart';""";
 
     RegExp reg = RegExp(
         r'final List<BaseThemeConfig<ColorStyles>> appThemes = \[([^}]*)\];');
-    if (reg.allMatches(originalFile).map((e) => e.group(1)).toList().isEmpty)
+    if (reg.allMatches(originalFile).map((e) => e.group(1)).toList().isEmpty) {
       return "";
+    }
 
     String temp =
         """final List<BaseThemeConfig<ColorStyles>> appThemes = [${reg.allMatches(originalFile).map((e) => e.group(1)).toList()[0]} $template
@@ -260,7 +261,7 @@ import '/resources/themes/${nameReCase.snakeCase}_theme.dart';""";
     );
 
     // Add import
-    newFile = classesToAdd + "\n" + newFile;
+    newFile = "$classesToAdd\n$newFile";
 
     // save new file
     final File file = File(filePath);
@@ -657,7 +658,7 @@ final Map<Type, NyApiService> apiDecoders = {${reg.allMatches(file).map((e) => e
     }
 
     // Add import
-    fileCreated = classImport + "\n" + fileCreated;
+    fileCreated = "$classImport\n$fileCreated";
 
     // save new file
     final File file = File(filePath);
@@ -681,7 +682,7 @@ final Map<Type, NyApiService> apiDecoders = {${reg.allMatches(file).map((e) => e
     }
 
     // Add import
-    fileCreated = classImport + "\n" + fileCreated;
+    fileCreated = "$classImport\n$fileCreated";
 
     // save new file
     final File file = File(filePath);
@@ -692,7 +693,7 @@ final Map<Type, NyApiService> apiDecoders = {${reg.allMatches(file).map((e) => e
 
   /// Load an asset from the project using an [assetPath].
   static Future<String> loadAsset(String assetPath) async {
-    File file = new File(assetPath);
+    File file = File(assetPath);
     if ((await file.exists()) == false) {
       return "";
     }

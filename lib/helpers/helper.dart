@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import '/event_bus/event_bus_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -80,7 +81,7 @@ TextTheme getAppTextTheme(TextStyle appThemeFont, TextTheme textTheme) {
 
 /// Extensions for String
 extension StringExtension on String {
-  String capitalize() => "${this[0].toUpperCase()}${this.substring(1)}";
+  String capitalize() => "${this[0].toUpperCase()}${substring(1)}";
 }
 
 /// Nylo's Model class
@@ -149,7 +150,7 @@ abstract class Model {
 
 /// Storage manager for Nylo.
 class StorageManager {
-  static final storage = new FlutterSecureStorage();
+  static const storage = FlutterSecureStorage();
 }
 
 /// Base class to help manage local storage
@@ -164,7 +165,7 @@ class NyStorage {
       Backpack.instance.set(key, object);
     }
 
-    if (!(object is Model)) {
+    if (object is! Model) {
       return await StorageManager.storage
           .write(key: key, value: object.toString());
     }
@@ -431,7 +432,7 @@ bool _isInteger(String? s) {
     return false;
   }
 
-  RegExp regExp = new RegExp(
+  RegExp regExp = RegExp(
     r"^-?[0-9]+$",
     caseSensitive: false,
     multiLine: false,
@@ -446,7 +447,7 @@ bool _isDouble(String? s) {
     return false;
   }
 
-  RegExp regExp = new RegExp(
+  RegExp regExp = RegExp(
     r"^[0-9]{1,13}([.]?[0-9]*)?$",
     caseSensitive: false,
     multiLine: false,
@@ -507,15 +508,19 @@ class NyLogger {
     if (showLog) {
       Backpack.instance.set('SHOW_LOG', false);
     }
+    String? message;
     try {
       if (Nylo.instance.shouldShowDateTimeInLogs()) {
         String dateTimeFormatted = "${DateTime.now().toDateTimeString()}";
-        print('[$dateTimeFormatted] ${type != null ? "$type : " : ""}$message');
+        message = '[$dateTimeFormatted] ${type != null ? "$type : " : ""}$message';
         return;
       }
-      print('${type != null ? "$type : " : ""}$message');
+      message = '${type != null ? "$type : " : ""}$message';
     } on Exception catch (_) {
-      print('${type != null ? "$type : " : ""}$message');
+      message = '${type != null ? "$type : " : ""}$message';
+    }
+    if (kDebugMode) {
+      print(message);
     }
   }
 }
@@ -691,7 +696,7 @@ T nyColorStyle<T>(BuildContext context, {String? themeId}) {
 Color nyHexColor(String hexColor) {
   hexColor = hexColor.toUpperCase().replaceAll("#", "");
   if (hexColor.length == 6) {
-    hexColor = "FF" + hexColor;
+    hexColor = "FF$hexColor";
   }
   return Color(int.parse(hexColor, radix: 16));
 }
@@ -995,7 +1000,7 @@ class StateAction {
 /// This class is used to schedule tasks to run at a later time.
 class NyScheduler {
   /// The prefix for the scheduler
-  static final prefix = "ny_scheduler_";
+  static const prefix = "ny_scheduler_";
 
   /// The secure storage key
   static String key(String name) => prefix + name;
@@ -1040,7 +1045,7 @@ class NyScheduler {
   ///  The above example will only execute once.
   ///  The next time you call NyScheduler.once("myFunction", () {}) it will not execute.
   static taskOnce(String name, Function() callback) async {
-    String key = name + "_once";
+    String key = "${name}_once";
     bool alreadyExecuted = await readBool(key);
     if (!alreadyExecuted) {
       await writeBool(key, true);
@@ -1065,7 +1070,7 @@ class NyScheduler {
       return;
     }
 
-    String key = name + "_daily";
+    String key = "${name}_daily";
     String? lastTime = await readValue(key);
 
     if (lastTime == null || lastTime.isEmpty) {
@@ -1108,10 +1113,10 @@ class NyScheduler {
     if (!date.isInPast()) {
       return;
     }
-    String key = name + "_after_date_" + date.toString();
+    String key = "${name}_after_date_$date";
 
     /// Check if we have already executed the task
-    String keyExecuted = key + "_executed";
+    String keyExecuted = "${key}_executed";
     bool alreadyExecuted = await readBool(keyExecuted);
 
     if (!alreadyExecuted) {
@@ -1125,7 +1130,7 @@ class NyScheduler {
 /// This class is used to monitor app usage.
 class NyAppUsage {
   /// The prefix for the app usage
-  static final prefix = "ny_app_usage_";
+  static const prefix = "ny_app_usage_";
 
   /// The secure storage key
   static String key(String name) => prefix + name;

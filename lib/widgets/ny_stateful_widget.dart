@@ -16,13 +16,13 @@ abstract class NyStatefulWidget<T extends BaseController>
   /// Child state
   final State? child;
 
-  NyStatefulWidget(String? path, {Key? key, this.child})
-      : state = path,
-        super(key: key) {
+  NyStatefulWidget(String? path, {super.key, this.child})
+      : state = path {
     Nylo nylo = Backpack.instance.nylo();
     controller = nylo.getController(T) ?? NyController();
   }
 
+  @override
   StatefulElement createElement() => StatefulElement(this);
 
   @override

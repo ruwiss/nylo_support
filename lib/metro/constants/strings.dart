@@ -35,15 +35,15 @@ const String langFolder = 'lang';
 
 // import paths
 String makeImportPathModel(String name, {String creationPath = ""}) =>
-    "import '/app/models/${creationPath != "" ? creationPath + "/" : ""}$name.dart';";
+    "import '/app/models/${creationPath != "" ? "$creationPath/" : ""}$name.dart';";
 String makeImportPathApiService(String name, {String creationPath = ""}) =>
-    "import '/app/networking/${creationPath != "" ? creationPath + "/" : ""}${name}_api_service.dart';";
+    "import '/app/networking/${creationPath != "" ? "$creationPath/" : ""}${name}_api_service.dart';";
 String makeImportPathEvent(String name, {String creationPath = ""}) =>
-    "import '/app/events/${creationPath != "" ? creationPath + "/" : ""}${name}_event.dart';";
+    "import '/app/events/${creationPath != "" ? "$creationPath/" : ""}${name}_event.dart';";
 String makeImportPathProviders(String name, {String creationPath = ""}) =>
-    "import '/app/providers/${creationPath != "" ? creationPath + "/" : ""}${name}_provider.dart';";
+    "import '/app/providers/${creationPath != "" ? "$creationPath/" : ""}${name}_provider.dart';";
 String makeImportPathConfigs(String name, {String creationPath = ""}) =>
-    "import '/config/${creationPath != "" ? creationPath + "/" : ""}$name.dart';";
+    "import '/config/${creationPath != "" ? "$creationPath/" : ""}$name.dart';";
 String makeImportPathBootstrap(String name) =>
     "import '/bootstrap/$name.dart';";
 String makeImportPathInterceptor(String name) =>

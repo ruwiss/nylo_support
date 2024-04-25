@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 class NyFader extends StatelessWidget {
   /// NyFader default constructor
   NyFader(
-      {Key? key,
+      {super.key,
       required this.child,
       this.strength = 1,
       this.color = Colors.black,
@@ -17,7 +17,7 @@ class NyFader extends StatelessWidget {
 
   /// NyFader from bottom to top
   NyFader.bottom(
-      {required this.child,
+      {super.key, required this.child,
       this.color = Colors.black,
       this.strength = 1,
       this.alignment = const [Alignment.topCenter, Alignment.bottomCenter]}) {
@@ -28,7 +28,7 @@ class NyFader extends StatelessWidget {
 
   /// NyFader from top to bottom
   NyFader.top(
-      {required this.child,
+      {super.key, required this.child,
       this.color = Colors.black,
       this.strength = 1,
       this.alignment = const [Alignment.bottomCenter, Alignment.topCenter]}) {
@@ -39,7 +39,7 @@ class NyFader extends StatelessWidget {
 
   /// NyFader from left to right
   NyFader.left(
-      {required this.child,
+      {super.key, required this.child,
       this.color = Colors.black,
       this.strength = 1,
       this.alignment = const [Alignment.centerLeft, Alignment.centerRight]}) {
@@ -50,7 +50,7 @@ class NyFader extends StatelessWidget {
 
   /// NyFader from right to left
   NyFader.right(
-      {required this.child,
+      {super.key, required this.child,
       this.color = Colors.black,
       this.strength = 1,
       this.alignment = const [Alignment.centerRight, Alignment.topLeft]}) {
@@ -124,7 +124,7 @@ class NyFader extends StatelessWidget {
           ),
           Positioned.fill(
             child: Container(
-              padding: EdgeInsets.all(10.0),
+              padding: const EdgeInsets.all(10.0),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: colors,

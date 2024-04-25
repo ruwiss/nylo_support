@@ -5,7 +5,7 @@ import '/nylo.dart';
 abstract class NyProvider {
   /// Boot method is used for initializing code in your application.
   Future<Nylo?> boot(Nylo nylo) async => null;
-  Future<void> afterBoot(Nylo nylo) async => null;
+  Future<void> afterBoot(Nylo nylo) async {}
 }
 
 /// Boots application providers.

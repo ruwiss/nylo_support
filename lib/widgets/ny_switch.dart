@@ -3,8 +3,7 @@ import 'package:flutter/cupertino.dart';
 /// NySwitch allows you to switch between the [widgets] provided by passing in
 /// a [indexSelected].
 class NySwitch extends StatelessWidget {
-  NySwitch({Key? key, this.indexSelected = 0, required this.widgets})
-      : super(key: key);
+  const NySwitch({super.key, this.indexSelected = 0, required this.widgets});
 
   final int indexSelected;
   final List<Widget> widgets;

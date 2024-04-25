@@ -27,8 +27,8 @@ import 'package:flutter/services.dart';
 /// NyLanguageSwitcher.storeLanguage(object: {"en": "English"});
 /// ```
 class NyLanguageSwitcher extends StatefulWidget {
-  NyLanguageSwitcher(
-      {Key? key,
+  const NyLanguageSwitcher(
+      {super.key,
       this.icon,
       this.iconEnabledColor,
       this.dropdownBgColor,
@@ -44,8 +44,7 @@ class NyLanguageSwitcher extends StatefulWidget {
       this.iconSize = 24,
       this.elevation = 8,
       this.langPath = 'lang',
-      this.textStyle = const TextStyle(color: Colors.black)})
-      : super(key: key);
+      this.textStyle = const TextStyle(color: Colors.black)});
 
   final Widget? icon;
   final Widget? hint;
@@ -68,25 +67,19 @@ class NyLanguageSwitcher extends StatefulWidget {
 
   /// Get the current language
   static Future<Map<String, dynamic>?> currentLanguage({String? key}) async {
-    if (key == null) {
-      key = state;
-    }
+    key ??= state;
     return await NyStorage.readJson(key);
   }
 
   /// Store the language in the storage
   static storeLanguage({String? key, Map<String, dynamic>? object}) {
-    if (key == null) {
-      key = state;
-    }
+    key ??= state;
     return NyStorage.storeJson(key, object);
   }
 
   /// Clear the language from the storage
   static clearLanguage({String? key}) {
-    if (key == null) {
-      key = state;
-    }
+    key ??= state;
     return NyStorage.delete(key);
   }
 
@@ -119,7 +112,7 @@ class NyLanguageSwitcher extends StatefulWidget {
                       }
                       return ListTile(
                         title: Text(data.value),
-                        trailing: isChecked ? Icon(Icons.check) : null,
+                        trailing: isChecked ? const Icon(Icons.check) : null,
                         onTap: () async {
                           await NyLocalization.instance
                               .setLanguage(context, language: data.key);
@@ -793,9 +786,9 @@ class _NyLanguageSwitcherState extends NyState<NyLanguageSwitcher> {
         }
         return DropdownMenuItem<String>(
           value: item.key,
-          child: child,
           onTap: widget.dropdownOnTap,
           alignment: widget.dropdownAlignment,
+          child: child,
         );
       }).toList(),
     );

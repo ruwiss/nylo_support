@@ -36,7 +36,7 @@ class DioApiService {
   int retry = 0;
 
   /// how long should the request wait before retrying
-  Duration retryDelay = Duration(seconds: 1);
+  Duration retryDelay = const Duration(seconds: 1);
 
   /// should the request retry if the [retryIf] callback returns true
   bool Function(DioException dioException)? retryIf;
@@ -52,7 +52,7 @@ class DioApiService {
       this.baseOptions = baseOptions(baseOptionsFinal);
       if (this.baseOptions?.baseUrl == null ||
           this.baseOptions?.baseUrl == '') {
-        this.baseOptions?.baseUrl = this.baseUrl;
+        this.baseOptions?.baseUrl = baseUrl;
       }
     } else {
       this.baseOptions = BaseOptions(
@@ -61,7 +61,7 @@ class DioApiService {
           "Content-type": "application/json",
           "Accept": "application/json",
         },
-        connectTimeout: Duration(seconds: 5),
+        connectTimeout: const Duration(seconds: 5),
       );
     }
     init();
@@ -186,9 +186,7 @@ class DioApiService {
       Duration? receiveTimeout,
       Duration? sendTimeout,
       Map<String, dynamic>? headers}) async {
-    if (headers == null) {
-      headers = {};
-    }
+    headers ??= {};
     try {
       Map<String, dynamic> oldHeader = _api.options.headers;
       Map<String, dynamic> newValuesToAddToHeader = {};
@@ -368,7 +366,7 @@ extension NyRequestHeaders on RequestHeaders {
 
   /// Get the bearer token from the request headers.
   String? getBearerToken() {
-    if (this.containsKey("Authorization")) {
+    if (containsKey("Authorization")) {
       String? auth = this["Authorization"];
       if (auth != null) {
         return auth.replaceFirst("Bearer ", "");
@@ -385,6 +383,6 @@ extension NyRequestHeaders on RequestHeaders {
 
   /// Add a new header value to the request headers.
   bool hasHeader(String key) {
-    return this.containsKey(key);
+    return containsKey(key);
   }
 }

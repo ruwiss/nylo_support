@@ -267,7 +267,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "5.65.0"
+    version: "5.65.1"
   page_transition:
     dependency: transitive
     description:

@@ -13,8 +13,8 @@ import 'package:flutter/services.dart';
 /// )
 /// ```
 class NyRichText extends StatelessWidget {
-  NyRichText(
-      {Key? key,
+  const NyRichText(
+      {super.key,
       required this.children,
       this.style,
       this.onEnter,
@@ -24,8 +24,7 @@ class NyRichText extends StatelessWidget {
       this.textAlign = TextAlign.start,
       this.textDirection,
       this.maxLines,
-      this.overflow = TextOverflow.clip})
-      : super(key: key);
+      this.overflow = TextOverflow.clip});
 
   final bool? spellOut;
   final TextStyle? style;
