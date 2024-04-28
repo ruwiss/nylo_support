@@ -725,15 +725,65 @@ abstract class NyState<T extends StatefulWidget> extends State<T> {
   /// confirmAction(() {
   ///  ... perform action
   ///  }, title: "Confirm Action", dismissText: "Cancel");
-  confirmAction(Function() action,
-      {required String title, String dismissText = "Cancel"}) {
+  confirmAction(
+    Function() action, {
+    required String title,
+    String dismissText = "Cancel",
+    CupertinoThemeData? cupertinoThemeData,
+    ThemeData? themeData,
+    Color barrierColor = kCupertinoModalBarrierColor,
+    bool barrierDismissible = true,
+    bool useRootNavigator = true,
+    bool semanticsDismissible = false,
+    RouteSettings? routeSettings,
+    Offset? anchorPoint,
+  }) {
     if (!kIsWeb && Platform.isIOS) {
       showCupertinoModalPopup(
-        context: context,
-        builder: (context) => CupertinoActionSheet(
+          barrierColor: barrierColor,
+          barrierDismissible: barrierDismissible,
+          useRootNavigator: useRootNavigator,
+          semanticsDismissible: semanticsDismissible,
+          routeSettings: routeSettings,
+          anchorPoint: anchorPoint,
+          context: context,
+          builder: (context) {
+            CupertinoActionSheet cupertinoActionSheet = CupertinoActionSheet(
+              actions: [
+                CupertinoActionSheetAction(
+                  isDefaultAction: true,
+                  onPressed: () {
+                    Navigator.pop(context);
+                    action();
+                  },
+                  child: Text(
+                    title,
+                  ),
+                ),
+              ],
+              cancelButton: CupertinoActionSheetAction(
+                child: Text(
+                  dismissText.tr(),
+                ),
+                onPressed: () => Navigator.pop(context),
+              ),
+            );
+            if (cupertinoThemeData != null) {
+              return CupertinoTheme(
+                  data: cupertinoThemeData, child: cupertinoActionSheet);
+            }
+            return cupertinoActionSheet;
+          });
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        AlertDialog alertDialog = AlertDialog(
+          title: Text(title),
           actions: [
-            CupertinoActionSheetAction(
-              isDefaultAction: true,
+            TextButton(
               onPressed: () {
                 Navigator.pop(context);
                 action();
@@ -742,40 +792,19 @@ abstract class NyState<T extends StatefulWidget> extends State<T> {
                 title,
               ),
             ),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                dismissText.tr(),
+              ),
+            ),
           ],
-          cancelButton: CupertinoActionSheetAction(
-            child: Text(
-              dismissText.tr(),
-            ),
-            onPressed: () => Navigator.pop(context),
-          ),
-        ),
-      );
-      return;
-    }
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              action();
-            },
-            child: Text(
-              title,
-            ),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              dismissText.tr(),
-            ),
-          ),
-        ],
-      ),
+        );
+        if (themeData != null) {
+          return Theme(data: themeData, child: alertDialog);
+        }
+        return alertDialog;
+      },
     );
   }
 }

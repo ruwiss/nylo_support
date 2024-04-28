@@ -1,3 +1,7 @@
+## [5.67.0] - 2024-04-28
+
+* Update `confirmAction` method in `NyState` to support more options
+
 ## [5.66.0] - 2024-04-25
 
 * Add `updateRouteStack` to Nylo. This method will update the route stack with a new routes.
