@@ -1,3 +1,7 @@
+## [5.67.1] - 2024-04-29
+
+* Update pubspec.yaml
+
 ## [5.67.0] - 2024-04-28
 
 * Update `confirmAction` method in `NyState` to support more options
