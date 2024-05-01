@@ -1,3 +1,4 @@
+import 'package:error_stack/error_stack.dart';
 import 'package:intl/intl.dart';
 import '/controllers/ny_controller.dart';
 import '/event_bus/event_bus_plus.dart';
@@ -29,6 +30,8 @@ class Nylo {
   NyRouter? router;
   bool? _monitorAppUsage;
   bool? _showDateTimeInLogs;
+  bool? _enableErrorStack;
+  ErrorStackLogLevel? _errorNetLogLevel;
   Map<Type, NyEvent> _events = {};
   Map<String, dynamic> _validationRules = {};
   final Map<Type, NyApiService Function()> _apiDecoders = {};
@@ -190,6 +193,13 @@ class Nylo {
     _monitorAppUsage = true;
   }
 
+  /// Use ErrorStack
+  /// [level] is the log level for ErrorStack
+  useErrorStack({ErrorStackLogLevel level = ErrorStackLogLevel.minimal}) {
+    _enableErrorStack = true;
+    _errorNetLogLevel = level;
+  }
+
   /// Check if the app should monitor app usage
   bool shouldMonitorAppUsage() => _monitorAppUsage ?? false;
 
@@ -326,6 +336,12 @@ class Nylo {
       if (setupFinished != null) {
         await setupFinished(_nylo);
       }
+      if (_nylo._enableErrorStack == true) {
+        ErrorStack.init(
+          level: _nylo._errorNetLogLevel ?? ErrorStackLogLevel.minimal,
+          initialRoute: _nylo.getInitialRoute(),
+        );
+      }
       return _nylo;
     }
 
@@ -333,6 +349,12 @@ class Nylo {
 
     if (setupFinished != null) {
       await setupFinished(_nylo);
+    }
+    if (_nylo._enableErrorStack == true) {
+      ErrorStack.init(
+        level: _nylo._errorNetLogLevel ?? ErrorStackLogLevel.minimal,
+        initialRoute: _nylo.getInitialRoute(),
+      );
     }
     return _nylo;
   }

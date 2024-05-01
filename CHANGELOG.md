@@ -1,3 +1,9 @@
+## [5.68.0] - 2024-05-01
+
+* Add `ErrorStack` to the library
+* New `useErrorStack` helper added to Nylo. This will enable [ErrorStack](https://github.com/nylo-core/error-stack) in your application.
+* Update pubspec.yaml
+
 ## [5.67.1] - 2024-04-29
 
 * Update pubspec.yaml
