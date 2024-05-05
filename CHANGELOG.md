@@ -1,3 +1,7 @@
+## [5.68.1] - 2024-05-05
+
+* Update pubspec.yaml
+
 ## [5.68.0] - 2024-05-01
 
 * Add `ErrorStack` to the library
