@@ -1,3 +1,11 @@
+## [5.69.0] - 2024-05-11
+
+* Fix `NyState` not receiving state updates
+* New `stateReset` method added to `NyListView` and `NyPullToRefresh`
+* Add `StateAction.setState` method
+* Update `flutter_secure_storage`
+* Update pubspec.yaml
+
 ## [5.68.1] - 2024-05-05
 
 * Update pubspec.yaml

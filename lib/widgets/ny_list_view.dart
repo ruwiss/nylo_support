@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:nylo_support/helpers/helper.dart';
 import '/localization/app_localization.dart';
 import '/nylo.dart';
 import '/widgets/ny_state.dart';
@@ -167,6 +168,11 @@ class NyListView<T> extends StatefulWidget {
       : kind = "grid",
         separatorBuilder = null,
         super(key: key);
+
+  /// Resets the state
+  static stateReset(String stateName) {
+    updateState(stateName, data: {"action": "reset", "data": {}});
+  }
 }
 
 class _NyListViewState<T> extends NyState<NyListView> {
@@ -175,6 +181,19 @@ class _NyListViewState<T> extends NyState<NyListView> {
   }
 
   List<T> _data = [];
+
+  @override
+  stateUpdated(dynamic data) {
+    super.stateUpdated(data);
+
+    if (data is! Map) return;
+    if (!data.containsKey('action') || data['action'] == null) return;
+
+    if (data["action"] == "reset") {
+      _data = [];
+      reboot();
+    }
+  }
 
   @override
   boot() async {

@@ -842,8 +842,14 @@ sleep(int seconds) async {
 
 /// [StateAction] class
 class StateAction {
+  /// Refresh the page
   static refreshPage(String state, {Function()? setState}) {
     _updateState(state, "refresh-page", {"setState": setState});
+  }
+
+  /// Set the state of the page
+  static setState(String state, Function() setState) {
+    _updateState(state, "set-state", {"setState": setState});
   }
 
   /// Pop the page

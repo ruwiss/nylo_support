@@ -32,6 +32,11 @@ class NyController extends BaseController {
     updatePageState("refresh-page", {"setState": () {}});
   }
 
+  /// Set the state of the page
+  setState({required Function() setState}) {
+    updatePageState("set-state", {"setState": setState});
+  }
+
   /// Pop the page
   pop({dynamic result}) {
     updatePageState("pop", {"result": result});

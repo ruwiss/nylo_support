@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:nylo_support/helpers/helper.dart';
 import '/localization/app_localization.dart';
 import '/nylo.dart';
 import '/widgets/ny_state.dart';
@@ -182,6 +183,11 @@ class NyPullToRefresh<T> extends StatefulWidget {
   final double? crossAxisSpacing;
   final List<dynamic> Function(dynamic items)? sort;
 
+  /// Resets the state
+  static stateReset(String stateName) {
+    updateState(stateName, data: {"action": "reset", "data": {}});
+  }
+
   @override
   _NyPullToRefreshState<T> createState() => _NyPullToRefreshState<T>(stateName);
 }
@@ -196,6 +202,20 @@ class _NyPullToRefreshState<T> extends NyState<NyPullToRefresh> {
 
   final RefreshController _refreshController =
       RefreshController(initialRefresh: false);
+
+  @override
+  stateUpdated(dynamic data) {
+    super.stateUpdated(data);
+
+    if (data is! Map) return;
+    if (!data.containsKey('action') || data['action'] == null) return;
+
+    if (data["action"] == "reset") {
+      _data = [];
+      _iteration = 1;
+      reboot();
+    }
+  }
 
   /// Refresh the list
   _onRefresh() async {
