@@ -1,3 +1,7 @@
+## [5.69.1] - 2024-05-12
+
+* Downgrade `flutter_secure_storage` to 9.0.0
+
 ## [5.69.0] - 2024-05-11
 
 * Fix `NyState` not receiving state updates
