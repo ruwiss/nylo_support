@@ -1,3 +1,7 @@
+## [5.69.2] - 2024-05-12
+
+* Update pubspec.yaml
+
 ## [5.69.1] - 2024-05-12
 
 * Downgrade `flutter_secure_storage` to 9.0.0
