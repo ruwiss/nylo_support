@@ -1,3 +1,8 @@
+## [5.70.0] - 2024-06-05
+
+* Update `NotEmptyRule` Validation rules to include `null`, `Map` and `List` types
+* Update pubspec.yaml
+
 ## [5.69.5] - 2024-05-22
 
 * Update pubspec.yaml

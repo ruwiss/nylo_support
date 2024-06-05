@@ -148,7 +148,17 @@ class NotEmptyRule extends ValidationRule {
   @override
   bool handle(Map<String, dynamic> info) {
     super.handle(info);
-    return info['data'] != "";
+    dynamic data = info['data'];
+    if (data == null) {
+      return false;
+    }
+    if (data is List) {
+      return data.isNotEmpty;
+    }
+    if (data is Map) {
+      return data.isNotEmpty;
+    }
+    return (data.toString() != "");
   }
 }
 
