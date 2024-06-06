@@ -821,6 +821,17 @@ class NyRouter {
       );
     };
   }
+
+  /// Check if the router contains the [routes].
+  bool containsRoutes(List<String> routes) {
+    List<String> allRouteNames = getRegisteredRouteNames();
+    for (var route in routes) {
+      if (!allRouteNames.contains(route)) {
+        return false;
+      }
+    }
+    return true;
+  }
 }
 
 /// Navigate to a new route.

@@ -562,4 +562,14 @@ class Nylo {
   static Future<void> wipeAllStorageData() async {
     await NyStorage.deleteAll(andFromBackpack: true);
   }
+
+  /// Check if the router contains specific [routes]
+  static bool containsRoutes(List<String> routes) {
+    return NyNavigator.instance.router.containsRoutes(routes);
+  }
+
+  /// Check if the router contains specific [route]
+  static bool containsRoute(String route) {
+    return NyNavigator.instance.router.containsRoutes([route]);
+  }
 }

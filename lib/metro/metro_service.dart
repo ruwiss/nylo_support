@@ -730,16 +730,20 @@ final Map<Type, NyApiService> apiDecoders = {${reg.allMatches(file).map((e) => e
     }
 
     for (var template in templates) {
+      String templateName = template.name;
       switch (template.saveTo) {
         case controllersFolder:
           {
-            await makeController(template.name, template.stub,
+            if (templateName.contains("_controller")) {
+              templateName = templateName.replaceAll("_controller", "");
+            }
+            await makeController(templateName, template.stub,
                 forceCreate: (hasForceFlag ?? false));
             break;
           }
         case widgetsFolder:
           {
-            await makeStatelessWidget(template.name, template.stub,
+            await makeStatelessWidget(templateName, template.stub,
                 forceCreate: (hasForceFlag ?? false));
             break;
           }
@@ -753,7 +757,10 @@ final Map<Type, NyApiService> apiDecoders = {${reg.allMatches(file).map((e) => e
             if (template.options.containsKey('is_initial_page')) {
               isInitialPage = template.options['is_initial_page'];
             }
-            await makePage(template.name, template.stub,
+            if (templateName.contains("_page")) {
+              templateName = templateName.replaceAll("_page", "");
+            }
+            await makePage(templateName, template.stub,
                 forceCreate: (hasForceFlag ?? false),
                 addToRoute: true,
                 isAuthPage: isAuthPage,
@@ -762,37 +769,52 @@ final Map<Type, NyApiService> apiDecoders = {${reg.allMatches(file).map((e) => e
           }
         case modelsFolder:
           {
-            await makeModel(template.name, template.stub,
+            await makeModel(templateName, template.stub,
                 forceCreate: (hasForceFlag ?? false), addToConfig: true);
             break;
           }
         case themesFolder:
           {
-            await makeTheme(template.name, template.stub,
+            if (templateName.contains("_theme")) {
+              templateName = templateName.replaceAll("_theme", "");
+            }
+            await makeTheme(templateName, template.stub,
                 forceCreate: (hasForceFlag ?? false));
             break;
           }
         case providerFolder:
           {
-            await makeProvider(template.name, template.stub,
+            if (templateName.contains("_provider")) {
+              templateName = templateName.replaceAll("_provider", "");
+            }
+            await makeProvider(templateName, template.stub,
                 forceCreate: (hasForceFlag ?? false), addToConfig: true);
             break;
           }
         case eventsFolder:
           {
-            await makeEvent(template.name, template.stub,
+            if (templateName.contains("_event")) {
+              templateName = templateName.replaceAll("_event", "");
+            }
+            await makeEvent(templateName, template.stub,
                 forceCreate: (hasForceFlag ?? false), addToConfig: true);
             break;
           }
         case networkingFolder:
           {
-            await makeApiService(template.name, template.stub,
+            if (templateName.contains("_api_service")) {
+              templateName = templateName.replaceAll("_api_service", "");
+            }
+            await makeApiService(templateName, template.stub,
                 forceCreate: (hasForceFlag ?? false), addToConfig: true);
             break;
           }
         case themeColorsFolder:
           {
-            await makeThemeColors(template.name, template.stub,
+            if (templateName.contains("_theme_colors")) {
+              templateName = templateName.replaceAll("_theme_colors", "");
+            }
+            await makeThemeColors(templateName, template.stub,
                 forceCreate: (hasForceFlag ?? false));
             break;
           }
