@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'package:dio/dio.dart';
+import 'package:flutter/services.dart';
 import '/event_bus/event_bus_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -1302,5 +1303,16 @@ class NyAction {
       return;
     }
     await perform();
+  }
+}
+
+/// Load a json file from the assets folder.
+dynamic loadJson(String fileName, {bool cache = true}) async {
+  try {
+    String data = await rootBundle.loadString(fileName, cache: cache);
+    return jsonDecode(data);
+  } on Exception catch (e) {
+    NyLogger.error(e.toString());
+    return null;
   }
 }

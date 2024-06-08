@@ -1,3 +1,7 @@
+## [5.72.0] - 2024-06-08
+
+* Added `loadJson` method to helpers to load a json file
+ 
 ## [5.71.0] - 2024-06-06
 
 * Added `containsRoutes` method to `Nylo` class. Now you can check if a route exists in your app. E.g. `Nylo.containsRoutes(["/home", "/settings"])`
