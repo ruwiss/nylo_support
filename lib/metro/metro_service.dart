@@ -172,7 +172,7 @@ final Map<Type, BaseController> controllers = {${reg.allMatches(file).map((e) =>
       bool isInitialPage = false,
       bool isAuthPage = false,
       String? creationPath}) async {
-    String name = className.replaceAll(RegExp(r'(_?page)'), "");
+    String name = className.snakeCase.replaceAll(RegExp(r'(_?page)'), "");
 
     // create missing directories in the project
     await createDirectoriesFromCreationPath(creationPath, folderPath);
@@ -180,7 +180,7 @@ final Map<Type, BaseController> controllers = {${reg.allMatches(file).map((e) =>
     // create file path
     String filePath = createPathForDartFile(
         folderPath: folderPath,
-        className: className,
+        className: name,
         prefix: "page",
         creationPath: creationPath);
 
@@ -294,9 +294,7 @@ import '/resources/themes/${nameReCase.snakeCase}_theme.dart';""";
 
     // create file path
     String filePath = createPathForDartFile(
-        folderPath: folderPath,
-        className: className,
-        creationPath: creationPath);
+        folderPath: folderPath, className: name, creationPath: creationPath);
 
     if (skipIfExist == true) {
       if (await hasFile(filePath)) return;
@@ -310,14 +308,12 @@ import '/resources/themes/${nameReCase.snakeCase}_theme.dart';""";
 
     String classImport = makeImportPathModel(nameReCase.snakeCase,
         creationPath: creationPath ?? "");
+
     await MetroService.addToConfig(
         configName: "decoders",
         classImport: classImport,
         createTemplate: (file) {
           String modelName = nameReCase.pascalCase;
-          if (file.contains(modelName)) {
-            return "";
-          }
 
           RegExp reg =
               RegExp(r'final Map<Type, dynamic> modelDecoders = \{([^}]*)\};');
@@ -352,7 +348,7 @@ final Map<Type, dynamic> modelDecoders = {${reg.allMatches(file).map((e) => e.gr
     // create file path
     String filePath = createPathForDartFile(
         folderPath: folderPath,
-        className: className,
+        className: name,
         prefix: "widget",
         creationPath: creationPath);
 
@@ -376,9 +372,7 @@ final Map<Type, dynamic> modelDecoders = {${reg.allMatches(file).map((e) => e.gr
 
     // create file path
     String filePath = createPathForDartFile(
-        folderPath: folderPath,
-        className: configName,
-        creationPath: creationPath);
+        folderPath: folderPath, className: name, creationPath: creationPath);
 
     await _checkIfFileExists(filePath, shouldForceCreate: forceCreate);
     await _createNewFile(filePath, value, onSuccess: () {
@@ -400,7 +394,7 @@ final Map<Type, dynamic> modelDecoders = {${reg.allMatches(file).map((e) => e.gr
     // create file path
     String filePath = createPathForDartFile(
         folderPath: folderPath,
-        className: className,
+        className: name,
         prefix: 'widget',
         creationPath: creationPath);
 
@@ -425,7 +419,7 @@ final Map<Type, dynamic> modelDecoders = {${reg.allMatches(file).map((e) => e.gr
     // create file path
     String filePath = createPathForDartFile(
         folderPath: folderPath,
-        className: className,
+        className: name,
         prefix: 'interceptor',
         creationPath: creationPath);
 
@@ -477,9 +471,6 @@ final Map<Type, dynamic> modelDecoders = {${reg.allMatches(file).map((e) => e.gr
         classImport: classImport,
         createTemplate: (file) {
           String providerName = "${name.pascalCase}Provider";
-          if (file.contains(providerName)) {
-            return "";
-          }
 
           RegExp reg =
               RegExp(r'final Map<Type, NyProvider> providers = \{([^}]*)\};');
@@ -533,9 +524,6 @@ final Map<Type, NyProvider> providers = {${reg.allMatches(file).map((e) => e.gro
         classImport: classImport,
         createTemplate: (file) {
           String eventName = "${name.pascalCase}Event";
-          if (file.contains(eventName)) {
-            return "";
-          }
 
           RegExp reg =
               RegExp(r'final Map<Type, NyEvent> events = \{([^}]*)\};');
@@ -574,9 +562,6 @@ final Map<Type, NyProvider> providers = {${reg.allMatches(file).map((e) => e.gro
         classImport: classImport,
         createTemplate: (file) {
           String apiServiceName = "${name.pascalCase}ApiService";
-          if (file.contains(apiServiceName)) {
-            return "";
-          }
 
           if (file.contains("final Map<Type, dynamic> apiDecoders =")) {
             RegExp reg =
@@ -649,6 +634,10 @@ final Map<Type, NyApiService> apiDecoders = {${reg.allMatches(file).map((e) => e
     // add it to the decoder config
     String filePath = "lib/config/$configName.dart";
     String originalFile = await loadAsset(filePath);
+
+    if (originalFile.contains(classImport)) {
+      return;
+    }
 
     // create new file
     String fileCreated = createTemplate(originalFile);

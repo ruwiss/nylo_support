@@ -1,3 +1,7 @@
+## [5.73.1] - 2024-06-11
+
+* Fix `MetroService` not properly suffixing the file names
+
 ## [5.73.0] - 2024-06-11
 
 * Added `StorageConfig` class to the library. This will allow you to set the storage configuration for your app.
