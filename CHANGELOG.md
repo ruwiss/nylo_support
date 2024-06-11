@@ -1,3 +1,7 @@
+## [5.72.1] - 2024-06-11
+
+* Update pubspec.yaml
+
 ## [5.72.0] - 2024-06-08
 
 * Added `loadJson` method to helpers to load a json file

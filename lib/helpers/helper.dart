@@ -1307,10 +1307,14 @@ class NyAction {
 }
 
 /// Load a json file from the assets folder.
-dynamic loadJson(String fileName, {bool cache = true}) async {
+Future<T?> loadJson<T>(String fileName, {bool cache = true}) async {
   try {
     String data = await rootBundle.loadString(fileName, cache: cache);
-    return jsonDecode(data);
+    dynamic dataJson = jsonDecode(data);
+    if (!([String, int, double, dynamic].contains(T))) {
+      return dataToModel<T>(data: dataJson);
+    }
+    return dataJson;
   } on Exception catch (e) {
     NyLogger.error(e.toString());
     return null;
