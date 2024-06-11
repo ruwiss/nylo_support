@@ -1,3 +1,16 @@
+## [5.73.0] - 2024-06-11
+
+* Added `StorageConfig` class to the library. This will allow you to set the storage configuration for your app.
+``` dart
+StorageConfig.init(
+   androidOptions: AndroidOptions(
+      resetOnError: true,
+      encryptedSharedPreferences: false
+   )
+);
+```
+* Set `NyRichText` style color to `Colors.black` by default
+
 ## [5.72.1] - 2024-06-11
 
 * Update pubspec.yaml

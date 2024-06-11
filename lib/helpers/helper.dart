@@ -148,16 +148,71 @@ abstract class Model {
   }
 }
 
+/// Storage configuration for Nylo.
+/// You can set the storage options for each platform.
+/// E.g. AndroidOptions, IOSOptions, LinuxOptions, WindowsOptions, WebOptions, MacOsOptions
+class StorageConfig {
+  IOSOptions iosOptions = IOSOptions.defaultOptions;
+  AndroidOptions androidOptions = AndroidOptions.defaultOptions;
+  LinuxOptions linuxOptions = LinuxOptions.defaultOptions;
+  WindowsOptions windowsOptions = WindowsOptions.defaultOptions;
+  WebOptions webOptions = WebOptions.defaultOptions;
+  MacOsOptions macOsOptions = MacOsOptions.defaultOptions;
+
+  StorageConfig({
+    this.iosOptions = IOSOptions.defaultOptions,
+    this.androidOptions = AndroidOptions.defaultOptions,
+    this.linuxOptions = LinuxOptions.defaultOptions,
+    this.windowsOptions = WindowsOptions.defaultOptions,
+    this.webOptions = WebOptions.defaultOptions,
+    this.macOsOptions = MacOsOptions.defaultOptions,
+  });
+
+  StorageConfig._privateConstructor();
+
+  /// Initialize the storage configuration.
+  static init({
+    IOSOptions? iosOptions,
+    AndroidOptions? androidOptions,
+    LinuxOptions? linuxOptions,
+    WindowsOptions? windowsOptions,
+    WebOptions? webOptions,
+    MacOsOptions? macOsOptions,
+  }) {
+    StorageConfig storageConfig = StorageConfig.instance;
+    storageConfig.iosOptions = iosOptions ?? IOSOptions.defaultOptions;
+    storageConfig.androidOptions =
+        androidOptions ?? AndroidOptions.defaultOptions;
+    storageConfig.linuxOptions = linuxOptions ?? LinuxOptions.defaultOptions;
+    storageConfig.windowsOptions =
+        windowsOptions ?? WindowsOptions.defaultOptions;
+    storageConfig.webOptions = webOptions ?? WebOptions.defaultOptions;
+    storageConfig.macOsOptions = macOsOptions ?? MacOsOptions.defaultOptions;
+  }
+
+  /// Returns the instance.
+  static final StorageConfig instance = StorageConfig._privateConstructor();
+}
+
 /// Storage manager for Nylo.
 class StorageManager {
-  static final storage = new FlutterSecureStorage();
+  /// Returns the storage instance.
+  static FlutterSecureStorage storage() {
+    StorageConfig storageConfig = StorageConfig.instance;
+    return FlutterSecureStorage(
+      iOptions: storageConfig.iosOptions,
+      aOptions: storageConfig.androidOptions,
+      lOptions: storageConfig.linuxOptions,
+      wOptions: storageConfig.windowsOptions,
+      webOptions: storageConfig.webOptions,
+      mOptions: storageConfig.macOsOptions,
+    );
+  }
 }
 
 /// Base class to help manage local storage
 class NyStorage {
-  static FlutterSecureStorage manager() {
-    return StorageManager.storage;
-  }
+  static FlutterSecureStorage manager() => StorageManager.storage();
 
   /// Saves an [object] to local storage.
   static Future store(String key, object, {bool inBackpack = false}) async {
@@ -166,14 +221,12 @@ class NyStorage {
     }
 
     if (!(object is Model)) {
-      return await StorageManager.storage
-          .write(key: key, value: object.toString());
+      return await manager().write(key: key, value: object.toString());
     }
 
     try {
       Map<String, dynamic> json = object.toJson();
-      return await StorageManager.storage
-          .write(key: key, value: jsonEncode(json));
+      return await manager().write(key: key, value: jsonEncode(json));
     } on NoSuchMethodError catch (_) {
       NyLogger.error(
           '[NyStorage.store] ${object.runtimeType.toString()} model needs to implement the toJson() method.');
@@ -187,8 +240,7 @@ class NyStorage {
     }
 
     try {
-      return await StorageManager.storage
-          .write(key: key, value: jsonEncode(object));
+      return await manager().write(key: key, value: jsonEncode(object));
     } on Exception catch (e) {
       NyLogger.error(e.toString());
       NyLogger.error(
@@ -199,7 +251,7 @@ class NyStorage {
   /// Read a value from the local storage
   static Future<dynamic> read<T>(String key,
       {dynamic defaultValue, Map<Type, dynamic>? modelDecoders}) async {
-    String? data = await StorageManager.storage.read(key: key);
+    String? data = await manager().read(key: key);
     if (data == null) {
       return defaultValue;
     }
@@ -238,7 +290,7 @@ class NyStorage {
 
   /// Read a JSON value from the local storage
   static Future<dynamic> readJson<T>(String key, {dynamic defaultValue}) async {
-    String? data = await StorageManager.storage.read(key: key);
+    String? data = await manager().read(key: key);
     if (data == null) {
       return defaultValue;
     }
@@ -256,7 +308,7 @@ class NyStorage {
     if (andFromBackpack == true) {
       Backpack.instance.deleteAll();
     }
-    await StorageManager.storage.deleteAll();
+    await manager().deleteAll();
   }
 
   /// Update a value in the local storage by [index].
@@ -283,14 +335,14 @@ class NyStorage {
 
   /// Decrypts and returns all keys with associated values.
   static Future<Map<String, String>> readAll() async =>
-      await StorageManager.storage.readAll();
+      await manager().readAll();
 
   /// Deletes associated value for the given [key].
   static Future delete(String key, {bool andFromBackpack = false}) async {
     if (andFromBackpack == true) {
       Backpack.instance.delete(key);
     }
-    return await StorageManager.storage.delete(key: key);
+    return await manager().delete(key: key);
   }
 
   /// Deletes a collection from the given [key].
