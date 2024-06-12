@@ -1,3 +1,9 @@
+## [5.74.0] - 2024-06-12
+
+* Small refactor to `NyRichText` widget
+* Add `_errorStackErrorWidget` to `Nylo` class
+* Update pubspec.yaml
+
 ## [5.73.1] - 2024-06-11
 
 * Fix `MetroService` not properly suffixing the file names
