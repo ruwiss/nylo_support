@@ -1,3 +1,7 @@
+## [5.75.0] - 2024-06-13
+
+* Add new extensions `labelSmall`, `labelMedium` and `labelLarge` to `Text` widget
+ 
 ## [5.74.0] - 2024-06-12
 
 * Small refactor to `NyRichText` widget

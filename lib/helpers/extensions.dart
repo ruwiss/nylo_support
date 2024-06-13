@@ -1110,6 +1110,30 @@ extension NyText on Text {
     return this.setStyle(Theme.of(context).textTheme.bodySmall);
   }
 
+  /// Set the Style to use [labelLarge].
+  Text labelLarge(BuildContext context) {
+    if (style == null) {
+      return copyWith(style: Theme.of(context).textTheme.labelLarge);
+    }
+    return this.setStyle(Theme.of(context).textTheme.labelLarge);
+  }
+
+  /// Set the Style to use [labelMedium].
+  Text labelMedium(BuildContext context) {
+    if (style == null) {
+      return copyWith(style: Theme.of(context).textTheme.labelMedium);
+    }
+    return this.setStyle(Theme.of(context).textTheme.labelMedium);
+  }
+
+  /// Set the Style to use [labelSmall].
+  Text labelSmall(BuildContext context) {
+    if (style == null) {
+      return copyWith(style: Theme.of(context).textTheme.labelSmall);
+    }
+    return this.setStyle(Theme.of(context).textTheme.labelSmall);
+  }
+
   /// Make the font bold.
   Text fontWeightBold() {
     return copyWith(style: TextStyle(fontWeight: FontWeight.bold));
