@@ -1,3 +1,7 @@
+## [5.75.1] - 2024-06-14
+
+* Update pubspec.yaml
+
 ## [5.75.0] - 2024-06-13
 
 * Add new extensions `labelSmall`, `labelMedium` and `labelLarge` to `Text` widget
