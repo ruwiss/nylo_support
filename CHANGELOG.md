@@ -1,3 +1,8 @@
+## [5.75.2] - 2024-06-14
+
+* Update Error Stack to use `ErrorStackLogLevel.verbose` (default)
+* Update pubspec.yaml
+
 ## [5.75.1] - 2024-06-14
 
 * Update pubspec.yaml

@@ -196,8 +196,9 @@ class Nylo {
 
   /// Use ErrorStack
   /// [level] is the log level for ErrorStack
+  /// [errorWidget] is a custom error widget
   useErrorStack(
-      {ErrorStackLogLevel level = ErrorStackLogLevel.minimal,
+      {ErrorStackLogLevel level = ErrorStackLogLevel.verbose,
       Widget Function(FlutterErrorDetails errorDetails)? errorWidget}) {
     _enableErrorStack = true;
     _errorStackLogLevel = level;
@@ -342,7 +343,7 @@ class Nylo {
       }
       if (_nylo._enableErrorStack == true) {
         ErrorStack.init(
-            level: _nylo._errorStackLogLevel ?? ErrorStackLogLevel.minimal,
+            level: _nylo._errorStackLogLevel ?? ErrorStackLogLevel.verbose,
             initialRoute: _nylo.getInitialRoute(),
             errorWidget: _nylo._errorStackErrorWidget);
       }
@@ -356,7 +357,7 @@ class Nylo {
     }
     if (_nylo._enableErrorStack == true) {
       ErrorStack.init(
-          level: _nylo._errorStackLogLevel ?? ErrorStackLogLevel.minimal,
+          level: _nylo._errorStackLogLevel ?? ErrorStackLogLevel.verbose,
           initialRoute: _nylo.getInitialRoute(),
           errorWidget: _nylo._errorStackErrorWidget);
     }
