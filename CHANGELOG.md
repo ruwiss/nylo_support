@@ -1,3 +1,7 @@
+## [5.75.3] - 2024-06-14
+
+* Add await to `ErrorStack.init`
+
 ## [5.75.2] - 2024-06-14
 
 * Update Error Stack to use `ErrorStackLogLevel.verbose` (default)

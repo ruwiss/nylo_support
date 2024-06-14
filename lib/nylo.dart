@@ -342,7 +342,7 @@ class Nylo {
         await setupFinished(_nylo);
       }
       if (_nylo._enableErrorStack == true) {
-        ErrorStack.init(
+        await ErrorStack.init(
             level: _nylo._errorStackLogLevel ?? ErrorStackLogLevel.verbose,
             initialRoute: _nylo.getInitialRoute(),
             errorWidget: _nylo._errorStackErrorWidget);
@@ -356,7 +356,7 @@ class Nylo {
       await setupFinished(_nylo);
     }
     if (_nylo._enableErrorStack == true) {
-      ErrorStack.init(
+      await ErrorStack.init(
           level: _nylo._errorStackLogLevel ?? ErrorStackLogLevel.verbose,
           initialRoute: _nylo.getInitialRoute(),
           errorWidget: _nylo._errorStackErrorWidget);
