@@ -14,7 +14,7 @@ abstract class NyStatefulWidget<T extends BaseController>
   final String? state;
 
   /// Child state
-  final State? child;
+  final dynamic child;
 
   NyStatefulWidget(String? path, {Key? key, this.child})
       : state = path,
@@ -27,8 +27,18 @@ abstract class NyStatefulWidget<T extends BaseController>
 
   @override
   State<StatefulWidget> createState() {
-    if (child != null) {
+    if (child == null) {
+      throw UnimplementedError();
+    }
+    if (child is State) {
       return child!;
+    }
+    if (child is Function) {
+      dynamic child = this.child();
+      assert(child is State, "Child must be a State");
+      if (child is State) {
+        return child;
+      }
     }
     throw UnimplementedError();
   }

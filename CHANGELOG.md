@@ -1,3 +1,8 @@
+## [5.76.0] - 2024-06-16
+
+* Add support for the `child` parameter in NyStatefulWidget to be a Function that returns a State.
+* Update pubspec.yaml
+ 
 ## [5.75.3] - 2024-06-14
 
 * Add await to `ErrorStack.init`
