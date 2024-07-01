@@ -1,7 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '/exceptions/validation_exception.dart';
+import 'package:nylo_support/nylo.dart';
 import '/localization/app_localization.dart';
 import '/validation/ny_validator.dart';
 import '/widgets/ny_state.dart';
@@ -70,74 +70,85 @@ class NyTextField extends StatefulWidget {
   final InputBorder? focusedBorder;
   final InputBorder? enabledBorder;
   final EdgeInsetsGeometry? contentPadding;
+  final bool? passwordViewable;
+  final bool? validateOnFocusChange;
 
   /// Default Text Field
-  NyTextField({
-    Key? key,
-    required this.controller,
-    this.labelText,
-    this.obscureText = false,
-    this.autoFocus = false,
-    this.keyboardType = TextInputType.text,
-    this.textAlign,
-    this.maxLines = 1,
-    this.handleValidationError,
-    this.minLines,
-    this.enableSuggestions = true,
-    this.hintText,
-    this.hintStyle,
-    this.focusNode,
-    this.validationRules,
-    this.dummyData,
-    this.onChanged,
-    this.style,
-    this.strutStyle,
-    this.textInputAction,
-    this.readOnly = false,
-    this.showCursor,
-    this.maxLength,
-    this.enabled,
-    this.dragStartBehavior = DragStartBehavior.start,
-    this.cursorHeight,
-    this.cursorRadius,
-    this.cursorColor,
-    this.onTap,
-    this.onTapOutside,
-    this.validationErrorMessage,
-    this.mouseCursor,
-    this.textCapitalization = TextCapitalization.none,
-    this.maxLengthEnforcement,
-    this.cursorWidth = 2.0,
-    this.onAppPrivateCommand,
-    this.inputFormatters,
-    this.expands = false,
-    this.textAlignVertical,
-    this.textDirection,
-    this.obscuringCharacter = '•',
-    this.autocorrect = true,
-    this.smartDashesType,
-    this.smartQuotesType,
-    this.decoration,
-    this.onEditingComplete,
-    this.keyboardAppearance,
-    this.scrollPadding = const EdgeInsets.all(20.0),
-    this.selectionControls,
-    this.onSubmitted,
-    this.scrollController,
-    this.scrollPhysics,
-    this.autofillHints = const <String>[],
-    this.clipBehavior = Clip.hardEdge,
-    this.passwordVisible,
-    this.prefixIcon,
-    this.backgroundColor,
-    this.borderRadius,
-    this.border,
-    this.focusedBorder,
-    this.enabledBorder,
-    this.contentPadding,
-    this.labelStyle,
-  })  : type = null,
-        super(key: key);
+  NyTextField(
+      {Key? key,
+      required this.controller,
+      this.labelText,
+      this.obscureText = false,
+      this.autoFocus = false,
+      this.keyboardType = TextInputType.text,
+      this.textAlign,
+      this.maxLines = 1,
+      this.validateOnFocusChange = false,
+      this.handleValidationError,
+      this.minLines,
+      this.enableSuggestions = true,
+      this.hintText,
+      this.hintStyle,
+      this.focusNode,
+      this.validationRules,
+      this.dummyData,
+      this.onChanged,
+      this.style,
+      this.strutStyle,
+      this.textInputAction,
+      this.readOnly = false,
+      this.showCursor,
+      this.maxLength,
+      this.enabled,
+      this.dragStartBehavior = DragStartBehavior.start,
+      this.cursorHeight,
+      this.cursorRadius,
+      this.cursorColor,
+      this.onTap,
+      this.onTapOutside,
+      this.validationErrorMessage,
+      this.mouseCursor,
+      this.textCapitalization = TextCapitalization.none,
+      this.maxLengthEnforcement,
+      this.cursorWidth = 2.0,
+      this.onAppPrivateCommand,
+      this.inputFormatters,
+      this.expands = false,
+      this.textAlignVertical,
+      this.textDirection,
+      this.obscuringCharacter = '•',
+      this.autocorrect = true,
+      this.smartDashesType,
+      this.smartQuotesType,
+      this.decoration,
+      this.onEditingComplete,
+      this.keyboardAppearance,
+      this.scrollPadding = const EdgeInsets.all(20.0),
+      this.selectionControls,
+      this.onSubmitted,
+      this.scrollController,
+      this.scrollPhysics,
+      this.autofillHints = const <String>[],
+      this.clipBehavior = Clip.hardEdge,
+      this.passwordVisible,
+      this.passwordViewable,
+      this.prefixIcon,
+      this.backgroundColor,
+      this.borderRadius,
+      this.border,
+      this.focusedBorder,
+      this.enabledBorder,
+      this.contentPadding,
+      this.labelStyle,
+      this.type = null})
+      : super(key: key) {
+    if (Nylo.isEnvDeveloping()) {
+      String dummyDataValue = dummyData ?? "";
+      if (controller.text.isEmpty && dummyDataValue.isNotEmpty) {
+        controller.text = dummyDataValue;
+      }
+    }
+  }
 
   /// Compact Text Field
   NyTextField.compact({
@@ -149,6 +160,7 @@ class NyTextField extends StatefulWidget {
     this.autoFocus = false,
     this.keyboardType = TextInputType.text,
     this.textAlign,
+    this.validateOnFocusChange = false,
     this.maxLines = 1,
     this.handleValidationError,
     this.minLines,
@@ -204,8 +216,16 @@ class NyTextField extends StatefulWidget {
     this.enabledBorder,
     this.contentPadding,
     this.labelStyle,
-  })  : type = 'compact',
-        super(key: key);
+    this.type = 'compact',
+  })  : passwordViewable = false,
+        super(key: key) {
+    if (Nylo.isEnvDeveloping()) {
+      String dummyDataValue = dummyData ?? "";
+      if (controller.text.isEmpty && dummyDataValue.isNotEmpty) {
+        controller.text = dummyDataValue;
+      }
+    }
+  }
 
   /// Password Text Field
   NyTextField.password({
@@ -218,6 +238,7 @@ class NyTextField extends StatefulWidget {
     this.keyboardType = TextInputType.text,
     this.textAlign,
     this.maxLines = 1,
+    this.validateOnFocusChange = false,
     this.handleValidationError,
     this.minLines,
     this.enableSuggestions = true,
@@ -262,6 +283,7 @@ class NyTextField extends StatefulWidget {
     this.onSubmitted,
     this.scrollController,
     this.scrollPhysics,
+    this.passwordViewable,
     this.autofillHints = const <String>[],
     this.clipBehavior = Clip.hardEdge,
     this.prefixIcon,
@@ -272,8 +294,15 @@ class NyTextField extends StatefulWidget {
     this.enabledBorder,
     this.contentPadding,
     this.labelStyle,
-  })  : type = 'password',
-        super(key: key);
+    this.type = 'password',
+  }) : super(key: key) {
+    if (Nylo.isEnvDeveloping()) {
+      String dummyDataValue = dummyData ?? "";
+      if (controller.text.isEmpty && dummyDataValue.isNotEmpty) {
+        controller.text = dummyDataValue;
+      }
+    }
+  }
 
   /// Email Address Text Field
   NyTextField.emailAddress({
@@ -284,6 +313,7 @@ class NyTextField extends StatefulWidget {
     this.autoFocus = true,
     this.keyboardType = TextInputType.emailAddress,
     this.textAlign,
+    this.validateOnFocusChange = false,
     this.maxLines = 1,
     this.handleValidationError,
     this.minLines,
@@ -320,6 +350,7 @@ class NyTextField extends StatefulWidget {
     this.obscuringCharacter = '•',
     this.autocorrect = true,
     this.smartDashesType,
+    this.passwordViewable,
     this.smartQuotesType,
     this.decoration,
     this.onEditingComplete,
@@ -340,8 +371,155 @@ class NyTextField extends StatefulWidget {
     this.contentPadding,
     this.labelStyle,
     this.passwordVisible,
-  })  : type = 'email-address',
-        super(key: key);
+    this.type = 'email-address',
+  }) : super(key: key) {
+    if (Nylo.isEnvDeveloping()) {
+      String dummyDataValue = dummyData ?? "";
+      if (controller.text.isEmpty && dummyDataValue.isNotEmpty) {
+        controller.text = dummyDataValue;
+      }
+    }
+  }
+
+  /// Copy with method
+  NyTextField copyWith({
+    String? labelText,
+    TextStyle? labelStyle,
+    TextEditingController? controller,
+    bool? obscureText,
+    int? maxLines,
+    int? minLines,
+    TextInputType? keyboardType,
+    bool? autoFocus,
+    TextAlign? textAlign,
+    bool? enableSuggestions,
+    FocusNode? focusNode,
+    String? hintText,
+    TextStyle? hintStyle,
+    String? validationRules,
+    String? dummyData,
+    Function(String value)? onChanged,
+    TextInputAction? textInputAction,
+    TextStyle? style,
+    StrutStyle? strutStyle,
+    TextAlignVertical? textAlignVertical,
+    TextDirection? textDirection,
+    String? obscuringCharacter,
+    bool? autocorrect,
+    SmartDashesType? smartDashesType,
+    SmartQuotesType? smartQuotesType,
+    bool? expands,
+    bool? readOnly,
+    bool? showCursor,
+    int? maxLength,
+    bool? passwordViewable,
+    bool? validateOnFocusChange,
+    MouseCursor? mouseCursor,
+    String? validationErrorMessage,
+    TextCapitalization? textCapitalization,
+    MaxLengthEnforcement? maxLengthEnforcement,
+    AppPrivateCommandCallback? onAppPrivateCommand,
+    List<TextInputFormatter>? inputFormatters,
+    bool? enabled,
+    double? cursorWidth,
+    double? cursorHeight,
+    Radius? cursorRadius,
+    Color? cursorColor,
+    Brightness? keyboardAppearance,
+    EdgeInsets? scrollPadding,
+    TextSelectionControls? selectionControls,
+    DragStartBehavior? dragStartBehavior,
+    GestureTapCallback? onTap,
+    TapRegionCallback? onTapOutside,
+    InputDecoration? decoration,
+    VoidCallback? onEditingComplete,
+    ValueChanged<String>? onSubmitted,
+    ScrollController? scrollController,
+    ScrollPhysics? scrollPhysics,
+    Iterable<String>? autofillHints,
+    Clip? clipBehavior,
+    Function(String handleError)? handleValidationError,
+    bool? passwordVisible,
+    String? type,
+    Widget? prefixIcon,
+    Color? backgroundColor,
+    BorderRadius? borderRadius,
+    InputBorder? border,
+    InputBorder? focusedBorder,
+    InputBorder? enabledBorder,
+    EdgeInsetsGeometry? contentPadding,
+  }) {
+    return NyTextField(
+      type: type ?? this.type,
+      labelText: labelText ?? this.labelText,
+      labelStyle: labelStyle ?? this.labelStyle,
+      controller: controller ?? this.controller,
+      obscureText: obscureText ?? this.obscureText,
+      maxLines: maxLines ?? this.maxLines,
+      minLines: minLines ?? this.minLines,
+      keyboardType: keyboardType ?? this.keyboardType,
+      autoFocus: autoFocus ?? this.autoFocus,
+      validateOnFocusChange:
+          validateOnFocusChange ?? this.validateOnFocusChange,
+      textAlign: textAlign ?? this.textAlign,
+      enableSuggestions: enableSuggestions ?? this.enableSuggestions,
+      focusNode: focusNode ?? this.focusNode,
+      hintText: hintText ?? this.hintText,
+      passwordViewable: passwordViewable ?? this.passwordViewable,
+      hintStyle: hintStyle ?? this.hintStyle,
+      validationRules: validationRules ?? this.validationRules,
+      dummyData: dummyData ?? this.dummyData,
+      onChanged: onChanged ?? this.onChanged,
+      textInputAction: textInputAction ?? this.textInputAction,
+      style: style ?? this.style,
+      strutStyle: strutStyle ?? this.strutStyle,
+      textAlignVertical: textAlignVertical ?? this.textAlignVertical,
+      textDirection: textDirection ?? this.textDirection,
+      obscuringCharacter: obscuringCharacter ?? this.obscuringCharacter,
+      autocorrect: autocorrect ?? this.autocorrect,
+      smartDashesType: smartDashesType ?? this.smartDashesType,
+      smartQuotesType: smartQuotesType ?? this.smartQuotesType,
+      expands: expands ?? this.expands,
+      readOnly: readOnly ?? this.readOnly,
+      showCursor: showCursor ?? this.showCursor,
+      maxLength: maxLength ?? this.maxLength,
+      mouseCursor: mouseCursor ?? this.mouseCursor,
+      validationErrorMessage:
+          validationErrorMessage ?? this.validationErrorMessage,
+      textCapitalization: textCapitalization ?? this.textCapitalization,
+      maxLengthEnforcement: maxLengthEnforcement ?? this.maxLengthEnforcement,
+      onAppPrivateCommand: onAppPrivateCommand ?? this.onAppPrivateCommand,
+      inputFormatters: inputFormatters ?? this.inputFormatters,
+      enabled: enabled ?? this.enabled,
+      cursorWidth: cursorWidth ?? this.cursorWidth,
+      cursorHeight: cursorHeight ?? this.cursorHeight,
+      cursorRadius: cursorRadius ?? this.cursorRadius,
+      cursorColor: cursorColor ?? this.cursorColor,
+      keyboardAppearance: keyboardAppearance ?? this.keyboardAppearance,
+      scrollPadding: scrollPadding ?? this.scrollPadding,
+      selectionControls: selectionControls ?? this.selectionControls,
+      dragStartBehavior: dragStartBehavior ?? this.dragStartBehavior,
+      onTap: onTap ?? this.onTap,
+      onTapOutside: onTapOutside ?? this.onTapOutside,
+      decoration: decoration ?? this.decoration,
+      onEditingComplete: onEditingComplete ?? this.onEditingComplete,
+      onSubmitted: onSubmitted ?? this.onSubmitted,
+      scrollController: scrollController ?? this.scrollController,
+      scrollPhysics: scrollPhysics ?? this.scrollPhysics,
+      autofillHints: autofillHints ?? this.autofillHints,
+      clipBehavior: clipBehavior ?? this.clipBehavior,
+      handleValidationError:
+          handleValidationError ?? this.handleValidationError,
+      passwordVisible: passwordVisible ?? this.passwordVisible,
+      prefixIcon: prefixIcon ?? this.prefixIcon,
+      backgroundColor: backgroundColor ?? this.backgroundColor,
+      borderRadius: borderRadius ?? this.borderRadius,
+      border: border ?? this.border,
+      focusedBorder: focusedBorder ?? this.focusedBorder,
+      enabledBorder: enabledBorder ?? this.enabledBorder,
+      contentPadding: contentPadding ?? this.contentPadding,
+    );
+  }
 
   @override
   _NyTextFieldState createState() => _NyTextFieldState();
@@ -351,6 +529,7 @@ class _NyTextFieldState extends NyState<NyTextField> {
   FocusNode _focus = FocusNode();
   bool? didChange = false;
   bool? _obscured;
+  bool _passwordVisible = false;
 
   @override
   init() async {
@@ -360,12 +539,6 @@ class _NyTextFieldState extends NyState<NyTextField> {
       _obscured = true;
     }
     _focus.addListener(_onFocusChange);
-    await whenEnv('developing', perform: () {
-      String dummyData = widget.dummyData ?? "";
-      if (widget.controller.text == "" && dummyData.isNotEmpty) {
-        widget.controller.text = dummyData;
-      }
-    });
   }
 
   @override
@@ -375,12 +548,17 @@ class _NyTextFieldState extends NyState<NyTextField> {
     _focus.dispose();
   }
 
+  /// handle focus change
   void _onFocusChange() {
-    if (_focus.hasFocus == false) {
+    if (_focus.hasFocus == true) {
+      didChange = !(widget.validateOnFocusChange ?? false);
+    } else {
+      didChange = true;
       setState(() {});
     }
   }
 
+  /// toggle obscured text
   void _toggleObscured() {
     if (_obscured == null) return;
     setState(() {
@@ -392,10 +570,10 @@ class _NyTextFieldState extends NyState<NyTextField> {
 
   /// validate the users input
   String? _validate() {
-    if (didChange == false) return null;
     if (widget.validationRules == null) {
       return null;
     }
+    if (didChange == false) return null;
 
     String attributeKey = (widget.labelText ?? "");
     try {
@@ -430,6 +608,12 @@ class _NyTextFieldState extends NyState<NyTextField> {
           errorMaxLines: 2,
         );
     decoration = decoration.copyWith(errorText: _validate());
+    if (widget.backgroundColor != null) {
+      decoration = decoration.copyWith(
+        filled: true,
+        fillColor: widget.backgroundColor,
+      );
+    }
     if (widget.passwordVisible == true) {
       decoration = decoration.copyWith(
         suffixIcon: Padding(
@@ -491,11 +675,6 @@ class _NyTextFieldState extends NyState<NyTextField> {
             focusNode: widget.focusNode ?? _focus,
             enableSuggestions: widget.enableSuggestions,
             onChanged: (String value) {
-              if (didChange == false) {
-                setState(() {
-                  didChange = true;
-                });
-              }
               setState(() {});
               if (widget.onChanged != null) {
                 widget.onChanged!(value);
@@ -581,11 +760,6 @@ class _NyTextFieldState extends NyState<NyTextField> {
             focusNode: widget.focusNode ?? _focus,
             enableSuggestions: widget.enableSuggestions,
             onChanged: (String value) {
-              if (didChange == false) {
-                setState(() {
-                  didChange = true;
-                });
-              }
               setState(() {});
               if (widget.onChanged != null) {
                 widget.onChanged!(value);
@@ -635,6 +809,21 @@ class _NyTextFieldState extends NyState<NyTextField> {
               filled: true,
               fillColor: widget.backgroundColor ?? Colors.grey.shade50,
               isDense: true,
+              suffixIcon: widget.passwordViewable == true
+                  ? IconButton(
+                      icon: Icon(
+                        _passwordVisible
+                            ? Icons.visibility
+                            : Icons.visibility_off,
+                        color: Theme.of(context).primaryColorDark,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _passwordVisible = !_passwordVisible;
+                        });
+                      },
+                    )
+                  : null,
               contentPadding: widget.contentPadding ??
                   EdgeInsetsDirectional.symmetric(vertical: 14, horizontal: 14),
               focusedBorder: widget.focusedBorder ??
@@ -661,15 +850,12 @@ class _NyTextFieldState extends NyState<NyTextField> {
             keyboardType: widget.keyboardType,
             onTap: widget.onTap,
             textCapitalization: widget.textCapitalization,
-            obscureText: _obscured ?? false,
+            obscureText: widget.passwordViewable == true
+                ? !_passwordVisible
+                : _obscured ?? false,
             focusNode: widget.focusNode ?? _focus,
             enableSuggestions: widget.enableSuggestions,
             onChanged: (String value) {
-              if (didChange == false) {
-                setState(() {
-                  didChange = true;
-                });
-              }
               setState(() {});
               if (widget.onChanged != null) {
                 widget.onChanged!(value);
@@ -726,11 +912,6 @@ class _NyTextFieldState extends NyState<NyTextField> {
             focusNode: widget.focusNode ?? _focus,
             enableSuggestions: widget.enableSuggestions,
             onChanged: (String value) {
-              if (didChange == false) {
-                setState(() {
-                  didChange = true;
-                });
-              }
               setState(() {});
               if (widget.onChanged != null) {
                 widget.onChanged!(value);

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:nylo_support/widgets/ny_form.dart';
 import '/event_bus/event_bus_plus.dart';
 import 'package:flutter/material.dart';
 import '/alerts/toast_notification.dart';
@@ -70,6 +71,8 @@ abstract class NyState<T extends StatefulWidget> extends State<T> {
   /// Contains a map for all the locked states.
   Map<String, bool> _lockMap = {};
 
+  bool _postFrameCallback = false;
+
   @override
   void initState() {
     super.initState();
@@ -80,6 +83,9 @@ abstract class NyState<T extends StatefulWidget> extends State<T> {
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      setState(() {
+        _postFrameCallback = true;
+      });
       if (allowStateUpdates) {
         List<EventBusHistoryEntry> eventHistory = eventBus!.history
             .where((element) =>
@@ -308,6 +314,9 @@ abstract class NyState<T extends StatefulWidget> extends State<T> {
 
   @override
   Widget build(BuildContext context) {
+    if (_postFrameCallback == false) {
+      return Scaffold(body: SizedBox.shrink());
+    }
     if (showInitialLoader) {
       if (initialLoad == true || isLoading()) {
         try {
@@ -472,7 +481,21 @@ abstract class NyState<T extends StatefulWidget> extends State<T> {
     Map<String, dynamic> finalData = {};
     Map<String, dynamic> finalMessages = messages ?? {};
 
-    rules.forEach((key, value) {
+    for (MapEntry rule in rules.entries) {
+      String key = rule.key;
+      dynamic value = rule.value;
+
+      if (value is FormValidator) {
+        FormValidator formValidator = value;
+        if (formValidator.rules == null) continue;
+        finalRules[key] = formValidator.rules;
+        finalData[key] = formValidator.data;
+        if (formValidator.message != null) {
+          finalMessages[key] = formValidator.message;
+        }
+        continue;
+      }
+
       if (value is List) {
         assert(value.length < 4,
             'Validation rules can contain a maximum of 3 items. E.g. "email": [emailData, "add|validation|rules", "my message"]');
@@ -484,7 +507,7 @@ abstract class NyState<T extends StatefulWidget> extends State<T> {
       } else {
         finalRules[key] = value;
       }
-    });
+    }
 
     if (data != null) {
       data.forEach((key, value) {

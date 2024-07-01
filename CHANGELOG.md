@@ -1,3 +1,22 @@
+## [5.77.0] - 2024-07-02
+
+* New `NyForm` widget! Designed to help you create forms easier in your app. 
+* Fix password_v1 & password_v2 validation rule not working in all cases
+* Update NyTextField to support different types of text fields
+* Add `makeForm` to `MetroService` class to create a form
+* Update `EmailRule`, `URLRule` to support `null` values
+* Rename `PhoneNumberUsaRule` to `PhoneNumberUsRule`
+* Update `textFieldMessage` on some validation rules
+* Small refactor of `NyTextField` widget. The `copyWith` contains new parameters.
+  * New `passwordViewable` parameter added to `NyTextField` widget
+  * New `validateOnFocusChange` parameter added to `NyTextField` widget
+* Update `NyState` to check when post frame is complete for a better user experience
+* New `NyFormPicker` Widget added to the library - This will create a bottom modal with a picker. It can be used in NyForm's and as a standalone widget.
+* New `NyForm.login` method added to `NyForm` class - This will create a login form
+* Ability to add custom form casts to `NyForm` class via Nylo. E.g. `Nylo.addFormCasts({"my_cast": (value) => value.toString()});`
+* Update docs
+* Update pubspec.yaml
+
 ## [5.76.0] - 2024-06-16
 
 * Add support for the `child` parameter in NyStatefulWidget to be a Function that returns a State.
@@ -593,7 +612,7 @@ StorageConfig.init(
 ## [5.11.0] - 2023-10-17
 
 * Improve regex to auto add classes and routes
-* New `NyPage` widget - Learn more [here](https://nylo.dev/docs/5.x/ny-page)
+* New `NyPage` widget - Learn more [here](https://nylo.dev/docs/5.20.0/ny-page)
 * New helper for the Nylo class - `addControllers`
 * Improve Metro to auto add controllers when created
 * Add more docs

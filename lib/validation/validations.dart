@@ -1,7 +1,7 @@
 import '/validation/rules.dart';
 
 /// Default validation rules for Nylo
-/// https://nylo.dev/docs/5.x/validation#validation-rules
+/// https://nylo.dev/docs/5.20.0/validation#validation-rules
 final Map<String, dynamic> nyDefaultValidations = {
   "email": (attribute) => EmailRule(attribute),
   "boolean": (attribute) => BooleanRule(attribute),
@@ -24,7 +24,7 @@ final Map<String, dynamic> nyDefaultValidations = {
   "date_in_past": (attribute) => DateInPastRule(attribute),
   "date_in_future": (attribute) => DateInFutureRule(attribute),
   "numeric": (attribute) => NumericRule(attribute),
-  "phone_number_us": (attribute) => PhoneNumberUsaRule(attribute),
+  "phone_number_us": (attribute) => PhoneNumberUsRule(attribute),
   "phone_number_uk": (attribute) => PhoneNumberUkRule(attribute),
   "zipcode_us": (attribute) => ZipCodeUsRule(attribute),
   "postcode_uk": (attribute) => PostCodeUkRule(attribute),

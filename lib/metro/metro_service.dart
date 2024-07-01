@@ -499,6 +499,20 @@ final Map<Type, NyProvider> providers = {${reg.allMatches(file).map((e) => e.gro
     });
   }
 
+  /// Creates a new Form.
+  static makeForm(String className, String value,
+      {String folderPath = formsFolder, bool forceCreate = false}) async {
+    String name = className.replaceAll(RegExp(r'(_?form)'), "");
+
+    String filePath = '$folderPath/${name.snakeCase}_form.dart';
+
+    await _makeDirectory(folderPath);
+    await _checkIfFileExists(filePath, shouldForceCreate: forceCreate);
+    await _createNewFile(filePath, value, onSuccess: () {
+      MetroConsole.writeInGreen('[Form] ${name.snakeCase} created 🎉');
+    });
+  }
+
   /// Creates a new Director.
   static makeDirectory(String folderPath) async =>
       await _makeDirectory(folderPath);

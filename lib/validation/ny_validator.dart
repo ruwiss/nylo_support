@@ -21,7 +21,7 @@ class NyValidator {
   ///   print(e.validationRule.description);
   ///   print(e.toString());
   /// }
-  /// See more https://nylo.dev/docs/5.x/validation
+  /// See more https://nylo.dev/docs/5.20.0/validation
   static check(
       {required Map<String, String> rules,
       required Map<String, dynamic> data,

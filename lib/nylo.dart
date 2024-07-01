@@ -35,6 +35,7 @@ class Nylo {
   Widget Function(FlutterErrorDetails errorDetails)? _errorStackErrorWidget;
   Map<Type, NyEvent> _events = {};
   Map<String, dynamic> _validationRules = {};
+  Map<String, dynamic> _formCasts = {};
   final Map<Type, NyApiService Function()> _apiDecoders = {};
   final Map<Type, NyApiService> _singletonApiDecoders = {};
   List<BaseThemeConfig> _appThemes = [];
@@ -265,6 +266,14 @@ class Nylo {
 
   /// Get [validators] from Nylo
   Map<String, dynamic> getValidationRules() => _validationRules;
+
+  /// Add form casts to Nylo
+  addFormCasts(Map<String, dynamic> formTypes) {
+    _formCasts.addAll(formTypes);
+  }
+
+  /// Get form types from Nylo
+  Map<String, dynamic> getFormCasts() => _formCasts;
 
   /// Add [modelDecoders] to Nylo
   addModelDecoders(Map<Type, dynamic> modelDecoders) {

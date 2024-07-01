@@ -4,7 +4,7 @@ import '/helpers/extensions.dart';
 import '/helpers/helper.dart';
 
 /// Authentication class
-/// Learn more: https://nylo.dev/docs/5.x/authentication
+/// Learn more: https://nylo.dev/docs/5.20.0/authentication
 class Auth {
   /// Set the auth user
   static Future<void> set(dynamic auth, {String? key}) async =>
