@@ -1,3 +1,7 @@
+## [5.78.0] - 2024-07-03
+
+* Remove `deepLink` required parameter for deep linking
+
 ## [5.77.0] - 2024-07-02
 
 * New `NyForm` widget! Designed to help you create forms easier in your app. 

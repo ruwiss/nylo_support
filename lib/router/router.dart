@@ -601,11 +601,8 @@ class NyRouter {
         route.pageTransitionSettings = PageTransitionSettings();
       }
 
-      if (Nylo.instance.onDeepLinkAction != null &&
-          queryParameters?.data is Map) {
-        if ((queryParameters?.data as Map).containsKey('deepLink')) {
-          Nylo.instance.onDeepLinkAction!(route.name, queryParameters?.data);
-        }
+      if (Nylo.instance.onDeepLinkAction != null) {
+        Nylo.instance.onDeepLinkAction!(route.name, queryParameters?.data);
       }
 
       return PageTransition(
