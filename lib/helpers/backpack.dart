@@ -48,7 +48,7 @@ class Backpack {
 
   /// Delete all values from [Backpack].
   void deleteAll() {
-    _values = {};
+    _values.removeWhere((key, value) => key != 'nylo');
   }
 
   /// Returns an instance of Nylo.

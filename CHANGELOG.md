@@ -1,3 +1,7 @@
+## [5.78.1] - 2024-07-05
+
+* Fix `deleteAll()` method in Backpack to not remove the `nylo` key
+
 ## [5.78.0] - 2024-07-03
 
 * Remove `deepLink` required parameter for deep linking
