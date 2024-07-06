@@ -505,7 +505,9 @@ abstract class NyState<T extends StatefulWidget> extends State<T> {
           finalMessages[key] = value[2];
         }
       } else {
-        finalRules[key] = value;
+        if (value != null) {
+          finalRules[key] = value;
+        }
       }
     }
 

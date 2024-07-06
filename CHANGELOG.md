@@ -1,3 +1,8 @@
+## [5.79.1] - 2024-07-06
+
+* Fix slight issue with NyForm when handling validation rules
+* Update `validate` helper in NyState to skip null values
+
 ## [5.79.0] - 2024-07-06
 
 * Add new Forms

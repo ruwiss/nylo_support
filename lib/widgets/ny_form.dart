@@ -367,6 +367,10 @@ class NyFormData {
         _validate[formField.key] = validate.value;
       });
 
+      if (!_validate.containsKey(formField.key)) {
+        _validate[formField.key] = null;
+      }
+
       // Check if the field has a dummy data
       if (formField.dummyData != null) {
         _dummyData[formField.key] = formField.dummyData;
@@ -377,6 +381,10 @@ class NyFormData {
         _dummyData[formField.key] = dummyData.value;
       });
 
+      if (!_dummyData.containsKey(formField.key)) {
+        _dummyData[formField.key] = null;
+      }
+
       // Check if the field has a style
       if (formField.style != null) {
         _style[formField.key] = formField.style;
@@ -386,6 +394,10 @@ class NyFormData {
           .forEach((style) {
         _style[formField.key] = style.value;
       });
+
+      if (!_style.containsKey(formField.key)) {
+        _style[formField.key] = null;
+      }
     }
 
     this.setData(allData);
@@ -983,7 +995,9 @@ class _NyFormState extends NyState<NyForm> {
       Map<String, dynamic> dummyData = widget.form.getDummyData;
       if (dummyData.containsKey(field.key)) {
         dummyDataValue = dummyData[field.key];
-        widget.form.setField(field.key, dummyDataValue);
+        if (dummyDataValue != null) {
+          widget.form.setField(field.key, dummyDataValue);
+        }
       }
 
       Field nyField = Field(field.key, value: value, cast: fieldCast);
@@ -1036,8 +1050,6 @@ class _NyFormState extends NyState<NyForm> {
           }
 
           rules[field.key] = formValidator;
-        } else {
-          rules[field.key] = [field.value, rules[field.key]];
         }
       }
     });
