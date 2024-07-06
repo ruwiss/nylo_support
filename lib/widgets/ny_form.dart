@@ -4,17 +4,18 @@ import 'package:date_field/date_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
 import 'package:intl/intl.dart';
-import 'package:nylo_support/helpers/currency_input_matcher.dart';
-import 'package:nylo_support/helpers/extensions.dart';
-import 'package:nylo_support/helpers/helper.dart';
-import 'package:nylo_support/localization/app_localization.dart';
-import 'package:nylo_support/nylo.dart';
-import 'package:nylo_support/validation/ny_validator.dart';
-import 'package:nylo_support/widgets/fields/form_picker.dart';
-import 'package:nylo_support/widgets/ny_list_view.dart';
-import 'package:nylo_support/widgets/ny_state.dart';
-import 'package:nylo_support/widgets/ny_text_field.dart';
+import '/helpers/currency_input_matcher.dart';
+import '/helpers/extensions.dart';
+import '/helpers/helper.dart';
+import '/nylo.dart';
+import '/validation/ny_validator.dart';
+import '/widgets/fields/form_date_time_picker.dart';
+import '/widgets/fields/form_picker.dart';
+import '/widgets/ny_list_view.dart';
+import '/widgets/ny_state.dart';
+import '/widgets/ny_text_field.dart';
 import '/forms/ny_login_form.dart';
+import 'fields/form_checkbox.dart';
 
 /// TextAreaSize is an enum that helps in managing textarea sizes
 enum TextAreaSize { sm, md, lg }
@@ -22,12 +23,85 @@ enum TextAreaSize { sm, md, lg }
 /// FormCast is a class that helps in managing form casts
 class FormCast {
   String? type;
+  dynamic metaData;
 
   FormCast({this.type = "capitalize-sentences"});
+
+  /// Cast to text
+  FormCast.text() {
+    this.type = "text";
+  }
 
   /// Cast to a currency
   FormCast.currency(String currency) {
     this.type = "currency:$currency";
+  }
+
+  /// Cast to a checkbox
+  FormCast.checkbox({
+    MouseCursor? mouseCursor,
+    Color? activeColor,
+    Color? fillColor,
+    Color? checkColor,
+    Color? hoverColor,
+    Color? overlayColor,
+    double? splashRadius,
+    MaterialTapTargetSize? materialTapTargetSize,
+    VisualDensity? visualDensity,
+    FocusNode? focusNode,
+    bool autofocus = false,
+    ShapeBorder? shape,
+    BorderSide? side,
+    bool isError = false,
+    bool? enabled,
+    Color? tileColor,
+    Widget? title,
+    Widget? subtitle,
+    bool isThreeLine = false,
+    bool? dense,
+    Widget? secondary,
+    bool selected = false,
+    ListTileControlAffinity controlAffinity = ListTileControlAffinity.platform,
+    EdgeInsetsGeometry? contentPadding,
+    bool tristate = false,
+    ShapeBorder? checkboxShape,
+    Color? selectedTileColor,
+    ValueChanged<bool?>? onFocusChange,
+    bool? enableFeedback,
+    String? checkboxSemanticLabel,
+  }) {
+    this.type = "checkbox";
+    this.metaData = {};
+    this.metaData['mouseCursor'] = mouseCursor;
+    this.metaData['activeColor'] = activeColor;
+    this.metaData['fillColor'] = fillColor;
+    this.metaData['checkColor'] = checkColor;
+    this.metaData['hoverColor'] = hoverColor;
+    this.metaData['overlayColor'] = overlayColor;
+    this.metaData['splashRadius'] = splashRadius;
+    this.metaData['materialTapTargetSize'] = materialTapTargetSize;
+    this.metaData['visualDensity'] = visualDensity;
+    this.metaData['focusNode'] = focusNode;
+    this.metaData['autofocus'] = autofocus;
+    this.metaData['shape'] = shape;
+    this.metaData['side'] = side;
+    this.metaData['isError'] = isError;
+    this.metaData['enabled'] = enabled;
+    this.metaData['tileColor'] = tileColor;
+    this.metaData['title'] = title;
+    this.metaData['subtitle'] = subtitle;
+    this.metaData['isThreeLine'] = isThreeLine;
+    this.metaData['dense'] = dense;
+    this.metaData['secondary'] = secondary;
+    this.metaData['selected'] = selected;
+    this.metaData['controlAffinity'] = controlAffinity;
+    this.metaData['contentPadding'] = contentPadding;
+    this.metaData['tristate'] = tristate;
+    this.metaData['checkboxShape'] = checkboxShape;
+    this.metaData['selectedTileColor'] = selectedTileColor;
+    this.metaData['onFocusChange'] = onFocusChange;
+    this.metaData['enableFeedback'] = enableFeedback;
+    this.metaData['checkboxSemanticLabel'] = checkboxSemanticLabel;
   }
 
   /// Cast to capitalize words
@@ -41,8 +115,11 @@ class FormCast {
   }
 
   /// Cast to a number
-  FormCast.number() {
+  FormCast.number({bool decimal = false}) {
     this.type = "number";
+    if (decimal) {
+      this.type = "number:decimal";
+    }
   }
 
   /// Cast to phone number
@@ -55,14 +132,58 @@ class FormCast {
     this.type = "email";
   }
 
+  /// Cast to a url
+  FormCast.url() {
+    this.type = "url";
+  }
+
   /// Cast to datetime
-  FormCast.datetime() {
+  FormCast.datetime({
+    TextStyle? style,
+    VoidCallback? onTap,
+    FocusNode? focusNode,
+    bool autofocus = false,
+    bool? enableFeedback,
+    EdgeInsetsGeometry? padding,
+    bool hideDefaultSuffixIcon = false,
+    DateTime? initialPickerDateTime,
+    CupertinoDatePickerOptions? cupertinoDatePickerOptions,
+    MaterialDatePickerOptions? materialDatePickerOptions,
+    MaterialTimePickerOptions? materialTimePickerOptions,
+    InputDecoration? decoration,
+    DateFormat? dateFormat,
+    DateTime? firstDate,
+    DateTime? lastDate,
+    DateTimeFieldPickerMode mode = DateTimeFieldPickerMode.dateAndTime,
+    DateTimeFieldPickerPlatform pickerPlatform =
+        DateTimeFieldPickerPlatform.adaptive,
+  }) {
     this.type = "datetime";
+    this.metaData = {};
+    this.metaData['style'] = style;
+    this.metaData['onTap'] = onTap;
+    this.metaData['focusNode'] = focusNode;
+    this.metaData['autofocus'] = autofocus;
+    this.metaData['enableFeedback'] = enableFeedback;
+    this.metaData['padding'] = padding;
+    this.metaData['hideDefaultSuffixIcon'] = hideDefaultSuffixIcon;
+    this.metaData['initialPickerDateTime'] = initialPickerDateTime;
+    this.metaData['cupertinoDatePickerOptions'] = cupertinoDatePickerOptions;
+    this.metaData['materialDatePickerOptions'] = materialDatePickerOptions;
+    this.metaData['materialTimePickerOptions'] = materialTimePickerOptions;
+    this.metaData['decoration'] = decoration;
+    this.metaData['dateFormat'] = dateFormat;
+    this.metaData['firstDate'] = firstDate;
+    this.metaData['lastDate'] = lastDate;
+    this.metaData['mode'] = mode;
+    this.metaData['pickerPlatform'] = pickerPlatform;
   }
 
   /// Cast to a picker
-  FormCast.picker() {
+  FormCast.picker({required List<dynamic> options}) {
     this.type = "picker";
+    this.metaData = {};
+    this.metaData['options'] = options;
   }
 
   /// Cast to a textarea
@@ -99,8 +220,14 @@ class FormCast {
 
 /// Field is a class that helps in managing form fields
 class Field {
-  Field(this.key, {this.value, String? selected, this.options = const []})
-      : _selected = selected;
+  Field(this.key,
+      {this.value,
+      FormCast? cast,
+      this.validate,
+      this.autofocus = false,
+      this.dummyData,
+      this.style})
+      : cast = cast ?? FormCast();
 
   /// The key of the field
   String key;
@@ -108,25 +235,29 @@ class Field {
   /// The value of the field
   dynamic value;
 
-  /// The selected value
-  String? _selected;
+  /// The cast for the field
+  FormCast cast;
 
-  /// Options for the field
-  List<dynamic> options;
+  /// The validator for the field
+  FormValidator? validate;
+
+  /// The autofocus for the field
+  bool autofocus;
+
+  /// The dummy data for the field
+  String? dummyData;
+
+  /// The style for the field
+  String? style;
 
   /// Get the name of the field
   String get name => key;
-
-  /// Get the selected value
-  String? get selected => _selected;
 
   /// Convert the [Field] to a Map
   Map<String, dynamic> toJson() {
     return {
       "key": key,
       "value": value,
-      "selected": _selected,
-      "options": options
     };
   }
 }
@@ -148,6 +279,16 @@ class FormValidator {
   String? message;
 
   FormValidator(this.rules, {this.message, this.data});
+
+  /// Validate a password with a strength of 1 or 2
+  /// [strength] 1: 1 uppercased letter, 1 digit, 8 characters
+  /// [strength] 2: 1 uppercased letter, 1 digit, 1 special character, 8 characters
+  /// [message] The message to display if the password is invalid
+  FormValidator.password({int strength = 1, this.message}) {
+    assert(strength > 0 && strength < 3,
+        "Password strength must be between 1 and 2");
+    this.rules = "password_v$strength";
+  }
 
   /// Set the data for the form validator
   setData(dynamic data) {
@@ -187,21 +328,72 @@ class NyFormData {
       if (formField is List) {
         for (Field field in formField) {
           allData.addAll(fieldData(field));
+          _cast[field.key] = field.cast;
+          _validate[field.key] = field.validate;
+          _dummyData[field.key] = field.dummyData;
+          _style[field.key] = field.style;
         }
         _groupedItems.add([for (Field field in formField) field.key]);
         continue;
       }
 
+      if (!(formField is Field)) {
+        continue;
+      }
+
       allData.addAll(fieldData(formField));
       _groupedItems.add([formField.key]);
+
+      Map<String, dynamic> formCast = cast();
+      Map<String, dynamic> formValidate = validate();
+      Map<String, dynamic> formDummyData = dummyData();
+      Map<String, dynamic> formStyle = style();
+
+      _cast[formField.key] = formField.cast;
+
+      formCast.entries
+          .where((test) => test.key == formField.key)
+          .forEach((cast) {
+        _cast[formField.key] = cast.value;
+      });
+
+      // Check if the field has a validate
+      if (formField.validate != null) {
+        _validate[formField.key] = formField.validate;
+      }
+      formValidate.entries
+          .where((test) => test.key == formField.key)
+          .forEach((validate) {
+        _validate[formField.key] = validate.value;
+      });
+
+      // Check if the field has a dummy data
+      if (formField.dummyData != null) {
+        _dummyData[formField.key] = formField.dummyData;
+      }
+      formDummyData.entries
+          .where((test) => test.key == formField.key)
+          .forEach((dummyData) {
+        _dummyData[formField.key] = dummyData.value;
+      });
+
+      // Check if the field has a style
+      if (formField.style != null) {
+        _style[formField.key] = formField.style;
+      }
+      formStyle.entries
+          .where((test) => test.key == formField.key)
+          .forEach((style) {
+        _style[formField.key] = style.value;
+      });
     }
 
     this.setData(allData);
     if (getEnv('APP_ENV') != 'developing') {
       return;
     }
-    Map<String, dynamic> dummyData = this.dummyData();
-    dummyData.entries.forEach((data) {
+    Map<String, dynamic> allDummyData = this.getDummyData;
+    allDummyData.entries.forEach((data) {
       if (data.value != null) {
         this.setField(data.key, data.value);
       }
@@ -220,35 +412,50 @@ class NyFormData {
   /// The grouped items for the form
   List<List> _groupedItems = [];
 
-  /// The options for the form
-  Map<String, List<dynamic>> _options = {};
+  /// The cast for the form
+  Map<String, FormCast?> _cast = {};
 
-  /// The selected value for the form
-  Map<String, String?> _selected = {};
+  /// The validator for the form
+  Map<String, FormValidator?> _validate = {};
+
+  /// The dummy data for the form
+  Map<String, String?> _dummyData = {};
+
+  /// The style for the form
+  Map<String, String?> _style = {};
 
   /// Get the grouped items for the form
   List<List> get groupedItems => _groupedItems;
 
-  /// Get the grouped items for the form
-  Map<String, List<dynamic>> get options => _options;
+  /// Get the cast data for the form
+  Map<String, FormCast?> get getCast => _cast;
+
+  /// Get the validate data for the form
+  Map<String, FormValidator?> get getValidate => _validate;
+
+  /// Get the dummy data for the form
+  Map<String, String?> get getDummyData => _dummyData;
+
+  /// Get the style data for the form
+  Map<String, String?> get getStyle => _style;
 
   /// StreamController for the form
   final StreamController<dynamic>? updated = StreamController<dynamic>();
 
   /// Validate the form
-  Map<String, dynamic> validate() => {};
+  Map<String, dynamic> validate() => _validate;
 
   /// Returns the fields for the form
   dynamic fields() => {};
 
   /// Returns the cast for the form
-  Map<String, dynamic> cast() => {};
+  Map<String, dynamic> cast() => _cast;
 
   /// Returns the dummy data for the form
-  Map<String, dynamic> dummyData() => {};
+  Map<String, dynamic> dummyData() => _dummyData;
 
   /// Returns the style for the form
-  Map<String, dynamic> style() => {};
+  Map<String, dynamic> style() => _style;
 
   /// Set the value for a field in the form
   /// If the field does not exist, it will throw an exception
@@ -264,14 +471,9 @@ class NyFormData {
     _data = data;
   }
 
-  /// Set the selected value for the form
-  setSelected(Map<String, String> selected) {
-    _selected = selected;
-  }
-
   /// Check if the form passes validation
   bool isValid() {
-    Map<String, dynamic> rules = validate();
+    Map<String, dynamic> rules = getValidate;
 
     Map<String, dynamic> ruleMap = {};
     Map<String, dynamic> dataMap = {};
@@ -294,16 +496,8 @@ class NyFormData {
   /// Get the data for a field
   Map<String, dynamic> fieldData(Field field) {
     Map<String, dynamic> json = field.toJson();
-    dynamic selectedValue =
-        json.containsKey("selected") ? json["selected"] : null;
-    dynamic value = json["value"];
-    if (value is List) {
-      _options[json["key"]] = value;
-      value = null;
-    }
-    _selected[json["key"]] =
-        json.containsKey("selected") ? json["selected"] : null;
-    return {json["key"]: selectedValue ??= value};
+
+    return {json["key"]: json["value"]};
   }
 
   /// Returns the data for the form
@@ -315,35 +509,13 @@ class NyFormData {
     return _data;
   }
 
-  /// Returns the selected value for the form
-  dynamic getSelected({String? key}) {
-    if (key == null) {
-      return _selected.values;
-    }
-    if (_selected.containsKey(key)) {
-      return _selected[key];
-    }
-    return null;
-  }
-
-  /// Returns the options for the form
-  dynamic getOptions({String? key}) {
-    if (key == null) {
-      return _options.values;
-    }
-    if (_options.containsKey(key)) {
-      return _options[key];
-    }
-    return [];
-  }
-
   /// Submit the form
   /// If the form is valid, it will call the [onSuccess] function
   submit(
       {required Function(dynamic value) onSuccess,
       Function(Exception exception)? onFailure,
       bool showToastError = true}) {
-    Map<String, dynamic> rules = validate();
+    Map<String, dynamic> rules = getValidate;
     if (rules.isEmpty) {
       onSuccess(data());
       return;
@@ -374,7 +546,6 @@ class NyFormItem extends StatelessWidget {
       this.validateOnFocusChange = false,
       this.onChanged,
       this.fieldStyle,
-      this.fieldType,
       this.style,
       this.updated,
       this.autoFocusField});
@@ -384,7 +555,6 @@ class NyFormItem extends StatelessWidget {
   final String? validationMessage;
   final String? dummyData;
   final String? fieldStyle;
-  final String? fieldType;
   final String? autoFocusField;
   final TextEditingController controller = TextEditingController();
   final Function(dynamic value)? onChanged;
@@ -410,60 +580,63 @@ class NyFormItem extends StatelessWidget {
       this.onChanged!(value);
     };
 
-    if (fieldType != null &&
-        !([
-          "datetime",
-          "text",
-          "email",
-          "password",
-          "password:viewable",
-          "textarea",
-          "textarea:sm",
-          "textarea:md",
-          "textarea:lg",
-          "number",
-          "phone_number",
-          ...[
-            for (String currency in CurrencyInputMatcher.currencies)
-              "currency:$currency"
-          ],
-          "capitalize-words",
-          "capitalize-sentences",
-          "uppercase",
-          "lowercase",
-        ].contains(fieldType))) {
+    if (!([
+      "datetime",
+      "text",
+      "url",
+      "email",
+      "checkbox",
+      "password",
+      "password:viewable",
+      "textarea",
+      "textarea:sm",
+      "textarea:md",
+      "textarea:lg",
+      "number",
+      "number:decimal",
+      "phone_number",
+      ...[
+        for (String currency in CurrencyInputMatcher.currencies)
+          "currency:$currency"
+      ],
+      "capitalize-words",
+      "capitalize-sentences",
+      "uppercase",
+      "lowercase",
+    ].contains(field.cast.type))) {
       // check if field exists on Nylo instance
       Map<String, dynamic> nyloFormTypes = Nylo.instance.getFormCasts();
-      if (nyloFormTypes.containsKey(fieldType)) {
-        return nyloFormTypes[fieldType]!(field, onChanged);
+      if (nyloFormTypes.containsKey(field.cast.type)) {
+        return nyloFormTypes[field.cast.type]!(field, onChanged);
       }
     }
 
     // check if the field is a datetime field
-    if (fieldType == "datetime") {
-      return DateTimeFormField(
-        decoration: InputDecoration(
-          labelText: 'Enter Date'.tr(),
-        ),
-        dateFormat: DateFormat.yMd(),
-        mode: DateTimeFieldPickerMode.date,
-        firstDate: DateTime(1950, 8, 31),
-        lastDate: DateTime.now().add(Duration(days: 365)),
-        initialPickerDateTime: DateTime.now(),
-        onChanged: onChanged,
+    if (field.cast.type == "datetime") {
+      return NyFormDateTimePicker.fromField(
+        field,
+        onChanged,
       );
     }
 
     // check if the field is a picker field
-    if (fieldType == "picker") {
+    if (field.cast.type == "picker") {
       return NyFormPicker.fromField(
         field,
         onChanged,
       );
     }
 
+    // check if the field is a checkbox field
+    if (field.cast.type == "checkbox") {
+      return NyFormCheckbox.fromField(
+        field,
+        onChanged,
+      );
+    }
+
     TextCapitalization textCapitalization = TextCapitalization.none;
-    switch (fieldType) {
+    switch (field.cast.type) {
       case "capitalize-words":
         textCapitalization = TextCapitalization.words;
         break;
@@ -490,7 +663,7 @@ class NyFormItem extends StatelessWidget {
           hintText: field.name,
           textCapitalization: textCapitalization,
           onChanged:
-              ((fieldType ?? "").contains("currency")) ? null : onChanged,
+              ((field.cast.type ?? "").contains("currency")) ? null : onChanged,
           autoFocus: autoFocusField == field.name,
           validationRules: validationRules,
           validationErrorMessage: validationMessage,
@@ -504,8 +677,9 @@ class NyFormItem extends StatelessWidget {
             controller: textEditingController,
             hintText: field.name,
             textCapitalization: textCapitalization,
-            onChanged:
-                ((fieldType ?? "").contains("currency")) ? null : onChanged,
+            onChanged: ((field.cast.type ?? "").contains("currency"))
+                ? null
+                : onChanged,
             autoFocus: autoFocusField == field.name,
             validationRules: validationRules,
             validateOnFocusChange: validateOnFocusChange,
@@ -520,23 +694,28 @@ class NyFormItem extends StatelessWidget {
     }
 
     // check if the field is an email field
-    if (fieldType == "email") {
-      nyTextField = nyTextField.copyWith(type: "email-address");
+    if (field.cast.type == "email") {
+      nyTextField = nyTextField.copyWith(
+          type: "email-address", keyboardType: TextInputType.emailAddress);
     }
 
     // check if the field is a password field
-    if ((fieldType ?? "").contains("password")) {
+    if ((field.cast.type ?? "").contains("password")) {
       nyTextField = nyTextField.copyWith(
         type: "password",
-        passwordViewable: (fieldType ?? "").contains("viewable"),
+        obscureText: true,
+        keyboardType: (field.cast.type ?? "").contains("viewable")
+            ? TextInputType.visiblePassword
+            : TextInputType.text,
+        passwordViewable: (field.cast.type ?? "").contains("viewable"),
       );
     }
 
     // check if the field is a textarea field
-    if ((fieldType ?? "").contains("textarea")) {
+    if ((field.cast.type ?? "").contains("textarea")) {
       nyTextField = nyTextField.copyWith(
         minLines: match(
-            fieldType,
+            field.cast.type,
             () => {
                   "textarea": 1,
                   "textarea:sm": 2,
@@ -545,7 +724,7 @@ class NyFormItem extends StatelessWidget {
                 },
             defaultValue: 1),
         maxLines: match(
-            fieldType,
+            field.cast.type,
             () => {
                   "textarea": 3,
                   "textarea:sm": 4,
@@ -560,43 +739,45 @@ class NyFormItem extends StatelessWidget {
     // Update the nyTextField onChanged function
     nyTextField = nyTextField.copyWith(
       onChanged: (String? value) {
-        if (fieldType == "capitalize-words") {
+        if (field.cast.type == "capitalize-words") {
           value = value?.split(" ").map((String word) {
             if (word.isEmpty) return word;
             return word[0].toUpperCase() + word.substring(1);
           }).join(" ");
         }
 
-        if (fieldType == "capitalize-sentences") {
+        if (field.cast.type == "capitalize-sentences") {
           value = value?.split(".").map((String word) {
             if (word.isEmpty) return word;
             return word[0].toUpperCase() + word.substring(1);
           }).join(".");
         }
 
-        if (fieldType == "uppercase") {
+        if (field.cast.type == "uppercase") {
           value = value?.toUpperCase();
         }
 
-        if (fieldType == "lowercase") {
+        if (field.cast.type == "lowercase") {
           value = value?.toLowerCase();
         }
 
-        if (!((fieldType ?? "").contains("currency"))) {
+        if (!((field.cast.type ?? "").contains("currency"))) {
           onChanged(value);
         }
       },
     );
 
     // check if the field is a currency field
-    if (fieldType?.contains("currency") ?? false) {
+    if (field.cast.type?.contains("currency") ?? false) {
       CurrencyMeta currencyMeta = CurrencyInputMatcher.getCurrencyMeta(
-          fieldType!,
+          field.cast.type!,
           value: field.value ?? "0",
           onChanged: onChanged);
       textEditingController.text = currencyMeta.initialValue;
       nyTextField = nyTextField.copyWith(
         onChanged: null,
+        type: fieldStyle,
+        keyboardType: TextInputType.numberWithOptions(decimal: true),
         inputFormatters: [
           currencyMeta.formatter,
         ],
@@ -604,7 +785,7 @@ class NyFormItem extends StatelessWidget {
     }
 
     // check if the field is a phone number field
-    if (fieldType == "phone_number") {
+    if (field.cast.type == "phone_number") {
       nyTextField = nyTextField.copyWith(
         keyboardType: TextInputType.phone,
         inputFormatters: [PhoneInputFormatter()],
@@ -613,8 +794,22 @@ class NyFormItem extends StatelessWidget {
     }
 
     // check if the field is a number field
-    if (fieldType == "number") {
-      nyTextField = nyTextField.copyWith(type: "number");
+    if (field.cast.type == "url") {
+      nyTextField = nyTextField.copyWith(
+          type: fieldStyle, keyboardType: TextInputType.url);
+    }
+
+    // check if the field is a number field
+    if (field.cast.type == "number") {
+      nyTextField = nyTextField.copyWith(
+          type: fieldStyle, keyboardType: TextInputType.number);
+    }
+
+    // check if the field is a number field
+    if (field.cast.type == "number:decimal") {
+      nyTextField = nyTextField.copyWith(
+          type: fieldStyle,
+          keyboardType: TextInputType.numberWithOptions(decimal: true));
     }
 
     return nyTextField;
@@ -710,23 +905,18 @@ class _NyFormState extends NyState<NyForm> {
       dynamic value = field.value;
 
       String? fieldStyle = null;
-      String? fieldType = null;
+      FormCast? fieldCast;
 
       // check what to cast the field to
-      Map<String, dynamic> casts = widget.form.cast();
+      Map<String, dynamic> casts = widget.form.getCast;
 
       if (casts.containsKey(field.key)) {
-        dynamic cast = casts[field.key];
-        if (cast is FormCast) {
-          fieldType = cast.type;
-        } else {
-          fieldType = cast;
-        }
+        fieldCast = casts[field.key];
       }
 
       // check if there is a style for the field
       NyTextField Function(NyTextField nyTextField)? style;
-      Map<String, dynamic> styles = widget.form.style();
+      Map<String, dynamic> styles = widget.form.getStyle;
       if (styles.containsKey(field.key)) {
         dynamic styleItem = styles[field.key];
         if (styleItem is NyTextField Function(NyTextField nyTextField)) {
@@ -738,27 +928,27 @@ class _NyFormState extends NyState<NyForm> {
         }
       }
 
-      if (fieldType == null) {
+      if (fieldCast == null) {
         if (value is DateTime ||
             field.value.runtimeType.toString() == "DateTime") {
-          fieldType = "datetime";
+          fieldCast = FormCast.datetime();
         }
 
         if (value is String || field.value.runtimeType.toString() == "String") {
-          fieldType = "text";
+          fieldCast = FormCast();
         }
 
         if (value is int || field.value.runtimeType.toString() == "int") {
-          fieldType = "number";
+          fieldCast = FormCast.number();
         }
 
         if (value is double || field.value.runtimeType.toString() == "double") {
-          fieldType = "number";
+          fieldCast = FormCast.number(decimal: true);
         }
       }
 
-      if (fieldType == null) {
-        fieldType = "text";
+      if (fieldCast == null) {
+        fieldCast = FormCast();
       }
 
       if (value is double || value is int) {
@@ -767,7 +957,7 @@ class _NyFormState extends NyState<NyForm> {
 
       String? validationRules = null;
       String? validationMessage = null;
-      Map<String, dynamic> formRules = widget.form.validate();
+      Map<String, dynamic> formRules = widget.form.getValidate;
       if (formRules.containsKey(field.key)) {
         dynamic rule = formRules[field.key];
         if (rule is String) {
@@ -790,16 +980,13 @@ class _NyFormState extends NyState<NyForm> {
       }
 
       String? dummyDataValue = null;
-      Map<String, dynamic> dummyData = widget.form.dummyData();
+      Map<String, dynamic> dummyData = widget.form.getDummyData;
       if (dummyData.containsKey(field.key)) {
         dummyDataValue = dummyData[field.key];
         widget.form.setField(field.key, dummyDataValue);
       }
 
-      Field nyField = Field(field.key,
-          value: value,
-          selected: widget.form.getSelected(key: field.key),
-          options: widget.form.getOptions(key: field.key));
+      Field nyField = Field(field.key, value: value, cast: fieldCast);
 
       NyFormItem formItem = NyFormItem(
           field: nyField,
@@ -807,7 +994,6 @@ class _NyFormState extends NyState<NyForm> {
           validationMessage: validationMessage,
           validateOnFocusChange: widget.validateOnFocusChange,
           dummyData: dummyDataValue,
-          fieldType: fieldType,
           fieldStyle: fieldStyle,
           style: style,
           updated: widget.form.updated,
@@ -829,7 +1015,7 @@ class _NyFormState extends NyState<NyForm> {
 
     // Get the rules, onSuccess and onFailure functions
     Map<String, dynamic> rules =
-        data.containsKey("rules") ? data["rules"] : widget.form.validate();
+        data.containsKey("rules") ? data["rules"] : widget.form.getValidate;
     Function(dynamic value) onSuccess = data["onSuccess"];
     Function(Exception error)? onFailure;
     bool showToastError = data["showToastError"];

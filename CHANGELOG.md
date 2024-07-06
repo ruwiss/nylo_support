@@ -1,3 +1,11 @@
+## [5.79.0] - 2024-07-06
+
+* Add new Forms
+  * `NyFormCheckbox` - This will create a checkbox form field
+  * `NyFormDateTimePicker` - This will create a date time picker form field
+* Refactor `NyFormData` class
+* pubspec.yaml dependency updates
+
 ## [5.78.1] - 2024-07-05
 
 * Fix `deleteAll()` method in Backpack to not remove the `nylo` key

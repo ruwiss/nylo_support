@@ -11,7 +11,8 @@ class NyFormPicker extends StatefulWidget {
       required List<String> options,
       String? selectedValue,
       Function(dynamic value)? onChanged})
-      : field = Field(name, options: options, selected: selectedValue),
+      : field = Field(name, value: selectedValue)
+          ..cast = FormCast.picker(options: options),
         onChanged = onChanged;
 
   /// Creates a [NyFormPicker] widget from a [Field]
@@ -37,8 +38,9 @@ class _NyFormPickerState extends State<NyFormPicker> {
   void initState() {
     super.initState();
 
-    if (widget.field.selected != null) {
-      currentValue = widget.field.selected;
+    dynamic fieldValue = widget.field.value;
+    if (fieldValue is String && fieldValue.isNotEmpty) {
+      currentValue = fieldValue;
     }
   }
 
@@ -126,10 +128,18 @@ class _NyFormPickerState extends State<NyFormPicker> {
     });
   }
 
+  /// Get the list of options from the field
+  List<String> getOptions() {
+    if (widget.field.cast.metaData == null) {
+      return [];
+    }
+    return List<String>.from(widget.field.cast.metaData!["options"]);
+  }
+
   /// Select a value from the list of options
   _selectValue(BuildContext context) {
     // get the list of values
-    List<String> values = widget.field.options as List<String>;
+    List<String> values = getOptions();
 
     // show modal bottom sheet
     showModalBottomSheet<void>(
