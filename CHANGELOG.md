@@ -1,3 +1,7 @@
+## [5.80.0] - 2024-07-07
+
+* Ability to create forms using slate packages
+
 ## [5.79.1] - 2024-07-06
 
 * Fix slight issue with NyForm when handling validation rules

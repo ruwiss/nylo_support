@@ -821,6 +821,15 @@ final Map<Type, NyApiService> apiDecoders = {${reg.allMatches(file).map((e) => e
                 forceCreate: (hasForceFlag ?? false));
             break;
           }
+        case formsFolder:
+          {
+            if (templateName.contains("_form")) {
+              templateName = templateName.replaceAll("_form", "");
+            }
+            await makeForm(templateName, template.stub,
+                forceCreate: (hasForceFlag ?? false));
+            break;
+          }
         default:
           {
             continue;

@@ -331,7 +331,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "5.79.0"
+    version: "5.80.0"
   page_transition:
     dependency: transitive
     description:
