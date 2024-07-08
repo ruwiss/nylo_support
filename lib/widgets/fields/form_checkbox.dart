@@ -107,6 +107,10 @@ class _NyFormCheckboxState extends State<NyFormCheckbox> {
     if (fieldValue is bool) {
       currentValue = fieldValue;
     }
+
+    if (currentValue == null) {
+      currentValue = false;
+    }
   }
 
   @override

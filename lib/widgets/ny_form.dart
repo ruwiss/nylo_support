@@ -270,7 +270,7 @@ class Field {
 ///
 ///  @override
 ///   Map<String, dynamic> validate() => {
-///     "Email": FormValidator("email", message: "Invalid email")
+///     "Email": FormValidator.rule("email", message: "Invalid email")
 ///   };
 ///```
 class FormValidator {
@@ -278,7 +278,11 @@ class FormValidator {
   dynamic rules;
   String? message;
 
-  FormValidator(this.rules, {this.message, this.data});
+  /// Create a new form validator with [message] and [data]
+  FormValidator({this.message, this.data});
+
+  /// Create a new form validator with [rules]
+  FormValidator.rule(this.rules, {this.message, this.data});
 
   /// Validate a password with a strength of 1 or 2
   /// [strength] 1: 1 uppercased letter, 1 digit, 8 characters
@@ -288,6 +292,191 @@ class FormValidator {
     assert(strength > 0 && strength < 3,
         "Password strength must be between 1 and 2");
     this.rules = "password_v$strength";
+  }
+
+  /// Validate an email
+  /// [message] The message to display if the email is invalid
+  FormValidator.email({this.message}) {
+    this.rules = "email";
+  }
+
+  /// Validate an email
+  FormValidator email() {
+    _addRule("email");
+    return this;
+  }
+
+  /// Validate a UK phone number
+  FormValidator phoneNumberUk() {
+    _addRule("phone_number_uk");
+    return this;
+  }
+
+  /// Validate a US phone number
+  FormValidator phoneNumberUs() {
+    _addRule("phone_number_us");
+    return this;
+  }
+
+  /// Validate a URL
+  FormValidator url() {
+    _addRule("url");
+    return this;
+  }
+
+  /// Validate the value contains one of the [values]
+  FormValidator contains(List<String> values) {
+    _addRule("contains:${values.join(",")}");
+    return this;
+  }
+
+  /// Validate a value is a boolean
+  FormValidator boolean() {
+    _addRule("boolean");
+    return this;
+  }
+
+  /// Validate that the value is a minimum of [value] characters
+  FormValidator minLength(int value) {
+    _addRule("min:$value");
+    return this;
+  }
+
+  /// Validate that the value is a minimum size of [value]
+  FormValidator minSize(int value) {
+    _addRule("min:$value");
+    return this;
+  }
+
+  /// Validate that the value is a minimum of [value]
+  FormValidator minValue(int value) {
+    _addRule("min:$value");
+    return this;
+  }
+
+  /// Validate that the value is a maximum of [value] characters
+  FormValidator maxLength(int value) {
+    _addRule("max:$value");
+    return this;
+  }
+
+  /// Validate that the value is a maximum size of [value]
+  FormValidator maxSize(int value) {
+    _addRule("max:$value");
+    return this;
+  }
+
+  /// Validate that the value is a maximum of [value]
+  FormValidator maxValue(int value) {
+    _addRule("max:$value");
+    return this;
+  }
+
+  /// Validate that the value is not empty
+  FormValidator notEmpty() {
+    _addRule("not_empty");
+    return this;
+  }
+
+  /// Validate that the value is numeric
+  FormValidator numeric() {
+    _addRule("numeric");
+    return this;
+  }
+
+  /// Validate that the value is a date
+  FormValidator date() {
+    _addRule("date");
+    return this;
+  }
+
+  /// Validate that the value is capitalized
+  FormValidator capitalized() {
+    _addRule("capitalized");
+    return this;
+  }
+
+  /// Validate that the value is lowercase
+  FormValidator lowercase() {
+    _addRule("lowercase");
+    return this;
+  }
+
+  /// Validate that the value is uppercase
+  FormValidator uppercase() {
+    _addRule("uppercase");
+    return this;
+  }
+
+  /// Validate that the value is a valid zipcode for the US
+  FormValidator zipcodeUs() {
+    _addRule("zipcode_us");
+    return this;
+  }
+
+  /// Validate that the value is a valid postcode for the UK
+  FormValidator postcodeUk() {
+    _addRule("postcode_uk");
+    return this;
+  }
+
+  /// Validate that the value matches a [regex] pattern
+  FormValidator regex(String regex) {
+    _addRule(r'regex:' + regex);
+    return this;
+  }
+
+  /// Validate that the date is younger than [age]
+  FormValidator dateAgeIsYounger(int age) {
+    _addRule("date_age_is_younger:$age");
+    return this;
+  }
+
+  /// Validate that the date is older than [age]
+  FormValidator dateAgeIsOlder(int age) {
+    _addRule("date_age_is_older:$age");
+    return this;
+  }
+
+  /// Validate that the date is in the past
+  FormValidator dateInPast() {
+    _addRule("date_in_past");
+    return this;
+  }
+
+  /// Validate that the date is in the future
+  FormValidator dateInFuture() {
+    _addRule("date_in_future");
+    return this;
+  }
+
+  /// Validate that the value is true
+  FormValidator isTrue() {
+    _addRule("is_true");
+    return this;
+  }
+
+  /// Validate that the value is false
+  FormValidator isFalse() {
+    _addRule("is_false");
+    return this;
+  }
+
+  /// Validate that the value is a password
+  FormValidator password({required int strength}) {
+    assert(strength > 0 && strength < 3,
+        "Password strength must be between 1 and 2");
+    _addRule("password_v$strength");
+    return this;
+  }
+
+  /// Add a rule to the form validator
+  void _addRule(String rule) {
+    if (this.rules == null) {
+      this.rules = rule;
+      return;
+    }
+    this.rules = this.rules += "|$rule";
   }
 
   /// Set the data for the form validator
@@ -332,6 +521,13 @@ class NyFormData {
           _validate[field.key] = field.validate;
           _dummyData[field.key] = field.dummyData;
           _style[field.key] = field.style;
+          if (field.autofocus == true) {
+            if (_getAutoFocusedField != null) {
+              throw Exception(
+                  "Only one field can be set to autofocus in a form");
+            }
+            _getAutoFocusedField = field.key;
+          }
         }
         _groupedItems.add([for (Field field in formField) field.key]);
         continue;
@@ -398,6 +594,13 @@ class NyFormData {
       if (!_style.containsKey(formField.key)) {
         _style[formField.key] = null;
       }
+
+      if (formField.autofocus == true) {
+        if (_getAutoFocusedField != null) {
+          throw Exception("Only one field can be set to autofocus in a form");
+        }
+        _getAutoFocusedField = formField.key;
+      }
     }
 
     this.setData(allData);
@@ -450,6 +653,11 @@ class NyFormData {
 
   /// Get the style data for the form
   Map<String, String?> get getStyle => _style;
+
+  /// Get the autofocus field for the form
+  String? get getAutoFocusedField => _getAutoFocusedField;
+
+  String? _getAutoFocusedField = null;
 
   /// StreamController for the form
   final StreamController<dynamic>? updated = StreamController<dynamic>();
@@ -667,7 +875,6 @@ class NyFormItem extends StatelessWidget {
     }
 
     NyTextField? nyTextField;
-
     switch (fieldStyle) {
       case "compact":
         nyTextField = NyTextField.compact(
@@ -676,7 +883,7 @@ class NyFormItem extends StatelessWidget {
           textCapitalization: textCapitalization,
           onChanged:
               ((field.cast.type ?? "").contains("currency")) ? null : onChanged,
-          autoFocus: autoFocusField == field.name,
+          autoFocus: field.autofocus,
           validationRules: validationRules,
           validationErrorMessage: validationMessage,
           validateOnFocusChange: validateOnFocusChange,
@@ -692,7 +899,7 @@ class NyFormItem extends StatelessWidget {
             onChanged: ((field.cast.type ?? "").contains("currency"))
                 ? null
                 : onChanged,
-            autoFocus: autoFocusField == field.name,
+            autoFocus: field.autofocus,
             validationRules: validationRules,
             validateOnFocusChange: validateOnFocusChange,
             dummyData: dummyData,
@@ -829,6 +1036,38 @@ class NyFormItem extends StatelessWidget {
 }
 
 /// NyForm is a class that helps in managing forms
+/// To create a form, you need to extend the [NyFormData] class
+/// Example:
+/// ```dart
+/// class RegisterForm extends NyFormData {
+///  @override
+///  fields() => [
+///     Field("Name", value: "", cast: FormCast.text(), validate: FormValidator.notEmpty()),
+///     Field("Email", value: "", cast: FormCast.email(), validate: FormValidator.email()),
+///  ];
+/// }
+///
+/// RegisterForm form = RegisterForm();
+///
+/// NyForm(
+///  form: form,
+/// );
+/// ```
+///
+/// To submit the form, you can call the [submit] method
+/// Example:
+/// ```dart
+/// form.submit(onSuccess: (data) {});
+/// // or
+/// NyForm.submit("RegisterForm", onSuccess: (data) {});
+/// ```
+///
+/// To get the data from the form, you can call the [data] method
+/// Example:
+/// ```dart
+/// form.data();
+/// ```
+/// Learn more: https://nylo.dev/docs/5.20.0/forms
 class NyForm extends StatefulWidget {
   const NyForm(
       {super.key,
@@ -915,6 +1154,7 @@ class _NyFormState extends NyState<NyForm> {
     Map<String, dynamic> fields = widget.form.data();
     _children = fields.entries.map((field) {
       dynamic value = field.value;
+      bool autofocus = widget.form.getAutoFocusedField == field.key;
 
       String? fieldStyle = null;
       FormCast? fieldCast;
@@ -1000,7 +1240,12 @@ class _NyFormState extends NyState<NyForm> {
         }
       }
 
-      Field nyField = Field(field.key, value: value, cast: fieldCast);
+      Field nyField = Field(
+        field.key,
+        value: value,
+        cast: fieldCast,
+        autofocus: autofocus,
+      );
 
       NyFormItem formItem = NyFormItem(
           field: nyField,

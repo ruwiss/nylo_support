@@ -1,3 +1,10 @@
+## [5.81.0] - 2024-07-08
+
+* Refactor `FormValidator` class.
+  * To set a validation rule, you must now use `FormValidator.rule("email")` instead of `FormValidator("email")`
+  * You can now join multiple validation rules. E.g. `FormValidator().minLength(5).uppercase()` will check if the value is at least 5 characters long and has an uppercase letter.
+* Fix autofocus on `Field`'s in `NyForm`
+
 ## [5.80.0] - 2024-07-07
 
 * Ability to create forms using slate packages

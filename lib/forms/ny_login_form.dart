@@ -38,42 +38,22 @@ class NyLoginForm extends NyFormData {
 
   @override
   fields() => [
-        Field("Email", value: ""),
-        Field("Password", value: ""),
+        Field("Email",
+            cast: FormCast.email(),
+            validate: FormValidator.rule(emailValidationRule ?? "email",
+                message: emailValidationMessage),
+            style: _style),
+        Field("Password",
+            cast: FormCast.password(viewable: passwordViewable),
+            validate: FormValidator.rule(
+                passwordValidationRule ?? "password_v1",
+                message: passwordValidationMessage),
+            style: _style),
       ];
-
-  /// Cast the fields to their respective types
-  /// All available types are below
-  /// https://nylo.dev/docs/5.20.0/form#casts
-  @override
-  Map<String, dynamic> cast() => {
-        "Email": FormCast.email(),
-        "Password": FormCast.password(viewable: passwordViewable),
-      };
-
-  /// Validate the fields
-  /// All available validations are below
-  /// https://nylo.dev/docs/5.20.0/validation#validation-rules
-  @override
-  Map<String, dynamic> validate() => {
-        "Email": FormValidator(emailValidationRule ?? "email",
-            message: emailValidationMessage),
-        "Password": FormValidator(passwordValidationRule ?? "password_v1",
-            message: passwordValidationMessage),
-      };
 
   /// Dummy data for the form
   /// This is used to populate the form with dummy data
   /// It will be removed when your .env file is set to production
   @override
   Map<String, dynamic> dummyData() => _dummyData;
-
-  /// Style the fields
-  /// This is used to style the fields
-  /// Options: compact
-  @override
-  Map<String, dynamic> style() => {
-        "Email": _style,
-        "Password": _style,
-      };
 }
