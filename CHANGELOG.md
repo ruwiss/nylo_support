@@ -1,3 +1,7 @@
+## [5.81.2] - 2024-07-09
+
+* Update default toast widget text style
+
 ## [5.81.1] - 2024-07-09
 
 * Remove default validation rule from `NyLoginForm`

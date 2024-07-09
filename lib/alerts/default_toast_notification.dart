@@ -68,7 +68,7 @@ class DefaultToastNotification extends StatelessWidget {
                           _toastMeta.title.tr(),
                           style: Theme.of(context)
                               .textTheme
-                              .headlineSmall!
+                              .bodyLarge!
                               .copyWith(
                                   color: context.isDarkMode
                                       ? Colors.white.withOpacity(0.8)
@@ -81,7 +81,7 @@ class DefaultToastNotification extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                             style: Theme.of(context)
                                 .textTheme
-                                .bodyLarge!
+                                .bodyMedium!
                                 .copyWith(
                                     color: context.isDarkMode
                                         ? Colors.white70
