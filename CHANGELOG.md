@@ -1,3 +1,7 @@
+## [5.81.1] - 2024-07-09
+
+* Remove default validation rule from `NyLoginForm`
+
 ## [5.81.0] - 2024-07-08
 
 * Refactor `FormValidator` class.
