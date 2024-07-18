@@ -115,9 +115,34 @@ class _NyFormCheckboxState extends State<NyFormCheckbox> {
 
   @override
   Widget build(BuildContext context) {
+    Widget? title = getMetaData('title');
+
+    if (title == null) {
+      title = Text(
+        widget.field.name,
+      );
+    }
+    if (title is Text && (title.data == null || title.data!.isEmpty)) {
+      title = Text(
+        widget.field.name,
+      );
+    }
+
+    Color? fillColorMetaData = getMetaData('fillColor');
+    WidgetStateProperty<Color?>? fillColor;
+    if (fillColorMetaData != null) {
+      fillColor = WidgetStateProperty.all(fillColorMetaData);
+    }
+
+    Color? overlayColorMetaData = getMetaData('overlayColor');
+    WidgetStateProperty<Color?>? overlayColor;
+    if (overlayColorMetaData != null) {
+      overlayColor = WidgetStateProperty.all(overlayColorMetaData);
+    }
+
     return CheckboxListTile(
       mouseCursor: getMetaData('mouseCursor'),
-      title: Text(widget.field.name),
+      title: title,
       value: currentValue,
       onChanged: (value) {
         setState(() {
@@ -129,10 +154,10 @@ class _NyFormCheckboxState extends State<NyFormCheckbox> {
       },
       controlAffinity: ListTileControlAffinity.leading,
       activeColor: getMetaData('activeColor'),
-      fillColor: getMetaData('fillColor'),
+      fillColor: fillColor,
       checkColor: getMetaData('checkColor'),
       hoverColor: getMetaData('hoverColor'),
-      overlayColor: getMetaData('overlayColor'),
+      overlayColor: overlayColor,
       splashRadius: getMetaData('splashRadius'),
       materialTapTargetSize: getMetaData('materialTapTargetSize'),
       visualDensity: getMetaData('visualDensity'),

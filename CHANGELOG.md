@@ -1,3 +1,18 @@
+## [5.82.0] - 2024-07-18
+
+* New `create` method added to `NyFormData` class. This will allow you to create the form from the instance.
+* Add `FormStyle` to NyForm. This will allow you to set a global style for the form. It currently only supports `TextField` and `NyFormCheckbox` widgets.
+* Ability to create custom validation rules in `NyForm`'s
+* Added `refreshState` to `NyForm` class. This will refresh the state of the form.
+* Added new typedefs `FormStyleTextField` and `FormStyleCheckbox` for handling custom styles in `NyForm`
+* Added `clear` method to `NyForm` class. This will clear the form.
+* Added `clearField` method to `NyForm` class. This will clear a specific field in the form.
+* Update `setField` and `setData` methods in `NyForm` class. This will now update the state of the form after setting the field.
+* Small refactor to the `NyTextField` class
+* Refactor `NyFormCheckbox` class to support global styles
+* `FormStyle` added to Nylo class
+* Update pubspec.yaml
+
 ## [5.81.2] - 2024-07-09
 
 * Update default toast widget text style

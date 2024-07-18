@@ -1,5 +1,6 @@
 import 'package:error_stack/error_stack.dart';
 import 'package:intl/intl.dart';
+import 'package:nylo_support/widgets/ny_form.dart';
 import '/controllers/ny_controller.dart';
 import '/event_bus/event_bus_plus.dart';
 import 'package:flutter/material.dart';
@@ -50,6 +51,7 @@ class Nylo {
   Map<Type, dynamic> _controllerDecoders = {};
   Map<Type, dynamic> _singletonControllers = {};
   Function(String route, dynamic data)? onDeepLinkAction;
+  NyFormStyle? _formStyle;
 
   /// Create a new Nylo instance.
   Nylo({this.router, bool useNyRouteObserver = true})
@@ -81,6 +83,14 @@ class Nylo {
       Backpack.instance.set("nylo", this);
     }
   }
+
+  /// Set the form style
+  addFormStyle(NyFormStyle formStyle) {
+    _formStyle = formStyle;
+  }
+
+  /// Get the form style
+  NyFormStyle? getFormStyle() => _formStyle;
 
   /// Update the stack on the router.
   /// [routes] is a list of routes to navigate to. E.g. [HomePage.path, SettingPage.path]

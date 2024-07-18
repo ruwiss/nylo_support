@@ -45,9 +45,10 @@ class NyLoginForm extends NyFormData {
             style: _style),
         Field("Password",
             cast: FormCast.password(viewable: passwordViewable),
-            validate: passwordValidationRule == null ? null : FormValidator.rule(
-                passwordValidationRule,
-                message: passwordValidationMessage),
+            validate: passwordValidationRule == null
+                ? null
+                : FormValidator.rule(passwordValidationRule,
+                    message: passwordValidationMessage),
             style: _style),
       ];
 

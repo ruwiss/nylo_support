@@ -17,8 +17,23 @@ import '/widgets/ny_text_field.dart';
 import '/forms/ny_login_form.dart';
 import 'fields/form_checkbox.dart';
 
+/// FormStyleTextField is a typedef that helps in managing form style text fields
+typedef FormStyleTextField = Map<String, NyTextField Function(NyTextField)>;
+
+/// FormStyleCheckbox is a typedef that helps in managing form style checkboxes
+typedef FormStyleCheckbox = Map<String, FormCast Function()>;
+
 /// TextAreaSize is an enum that helps in managing textarea sizes
 enum TextAreaSize { sm, md, lg }
+
+/// NyFormStyle is a class that helps in managing form styles
+class NyFormStyle {
+  /// TextField styles for the form
+  FormStyleTextField textField(BuildContext context, Field field) => {};
+
+  /// Checkbox styles for the form
+  FormStyleCheckbox checkbox(BuildContext context, Field field) => {};
+}
 
 /// FormCast is a class that helps in managing form casts
 class FormCast {
@@ -277,12 +292,16 @@ class FormValidator {
   String? data;
   dynamic rules;
   String? message;
+  bool Function(dynamic data)? customRule;
 
   /// Create a new form validator with [message] and [data]
   FormValidator({this.message, this.data});
 
   /// Create a new form validator with [rules]
   FormValidator.rule(this.rules, {this.message, this.data});
+
+  /// Create a new custom validation rule
+  FormValidator.custom(this.customRule, {this.message});
 
   /// Validate a password with a strength of 1 or 2
   /// [strength] 1: 1 uppercased letter, 1 digit, 8 characters
@@ -528,6 +547,7 @@ class NyFormData {
             }
             _getAutoFocusedField = field.key;
           }
+          _keys.add(field.key);
         }
         _groupedItems.add([for (Field field in formField) field.key]);
         continue;
@@ -601,16 +621,18 @@ class NyFormData {
         }
         _getAutoFocusedField = formField.key;
       }
+
+      _keys.add(formField.key);
     }
 
-    this.setData(allData);
+    this.setData(allData, refreshState: false);
     if (getEnv('APP_ENV') != 'developing') {
       return;
     }
     Map<String, dynamic> allDummyData = this.getDummyData;
     allDummyData.entries.forEach((data) {
       if (data.value != null) {
-        this.setField(data.key, data.value);
+        this.setField(data.key, data.value, refreshState: false);
       }
     });
   }
@@ -623,6 +645,9 @@ class NyFormData {
 
   /// The data for the form
   Map<String, dynamic> _data = {};
+
+  /// The keys for the form
+  List _keys = [];
 
   /// The grouped items for the form
   List<List> _groupedItems = [];
@@ -656,7 +681,6 @@ class NyFormData {
 
   /// Get the autofocus field for the form
   String? get getAutoFocusedField => _getAutoFocusedField;
-
   String? _getAutoFocusedField = null;
 
   /// StreamController for the form
@@ -677,18 +701,69 @@ class NyFormData {
   /// Returns the style for the form
   Map<String, dynamic> style() => _style;
 
+  /// Create a new form
+  /// [initialData] The initial data for the form
+  /// [crossAxisSpacing] The cross axis spacing for the form
+  /// [mainAxisSpacing] The main axis spacing for the form
+  /// [onChanged] The onChanged function for the form
+  /// [validateOnFocusChange] Validate on focus change
+  /// [locked] Lock the form
+  NyForm create(
+      {Map<String, dynamic>? initialData,
+      double? crossAxisSpacing,
+      double? mainAxisSpacing,
+      Function(Map<String, dynamic> data)? onChanged,
+      bool? validateOnFocusChange,
+      bool? locked}) {
+    return NyForm(
+        form: this,
+        crossAxisSpacing: crossAxisSpacing ?? 10,
+        mainAxisSpacing: mainAxisSpacing ?? 10,
+        initialData: initialData,
+        onChanged: onChanged,
+        validateOnFocusChange: validateOnFocusChange ?? false,
+        locked: locked ?? false);
+  }
+
+  /// Clear the form
+  clear() {
+    _data.forEach((key, value) {
+      _data[key] = null;
+    });
+    // update the state
+    NyForm.refreshState(stateName);
+  }
+
+  /// Clear a field in the form
+  clearField(String key) {
+    if (!_data.containsKey(key)) {
+      throw Exception("Field $key does not exist in the form");
+    }
+    _data[key] = null;
+    NyForm.refreshState(stateName);
+  }
+
   /// Set the value for a field in the form
   /// If the field does not exist, it will throw an exception
-  setField(String key, dynamic value) {
+  setField(String key, dynamic value, {bool refreshState = true}) {
     if (!_data.containsKey(key)) {
       throw Exception("Field $key does not exist in the form");
     }
     _data[key] = value;
+    if (!refreshState) return;
+    NyForm.refreshState(stateName);
   }
 
   /// Set the data for the form
-  setData(Map<String, dynamic> data) {
-    _data = data;
+  setData(Map<String, dynamic> data, {bool refreshState = true}) {
+    if (data.isEmpty) {
+      return;
+    }
+    data.forEach((key, value) {
+      _data[key] = value;
+    });
+    if (!refreshState) return;
+    NyForm.refreshState(stateName);
   }
 
   /// Check if the form passes validation
@@ -698,9 +773,15 @@ class NyFormData {
     Map<String, dynamic> ruleMap = {};
     Map<String, dynamic> dataMap = {};
 
-    rules.entries.forEach((rule) {
+    for (MapEntry rule in rules.entries) {
       dynamic item = data(key: rule.key);
       if (rule.value is FormValidator) {
+        if (rule.value.customRule != null) {
+          if (!rule.value.customRule!(item)) {
+            return false;
+          }
+        }
+
         rule.value.setData(item);
         dataMap[rule.key] = item is List ? item.join(", ") : item;
         ruleMap[rule.key] = rule.value.toValidationRule();
@@ -708,7 +789,7 @@ class NyFormData {
         dataMap[rule.key] = data(key: rule.key);
         ruleMap[rule.key] = rule.value;
       }
-    });
+    }
 
     return NyValidator.isSuccessful(rules: ruleMap, data: dataMap);
   }
@@ -766,6 +847,8 @@ class NyFormItem extends StatelessWidget {
       this.validateOnFocusChange = false,
       this.onChanged,
       this.fieldStyle,
+      this.formStyle,
+      this.customValidationRule,
       this.style,
       this.updated,
       this.autoFocusField});
@@ -773,8 +856,10 @@ class NyFormItem extends StatelessWidget {
   final Field field;
   final String? validationRules;
   final String? validationMessage;
+  final bool Function(dynamic value)? customValidationRule;
   final String? dummyData;
   final String? fieldStyle;
+  final NyFormStyle? formStyle;
   final String? autoFocusField;
   final TextEditingController controller = TextEditingController();
   final Function(dynamic value)? onChanged;
@@ -849,11 +934,35 @@ class NyFormItem extends StatelessWidget {
 
     // check if the field is a checkbox field
     if (field.cast.type == "checkbox") {
+      FormStyleCheckbox? checkboxStyles = formStyle?.checkbox(context, field);
+      if ((checkboxStyles ?? {}).containsKey('default')) {
+        FormCast formCast = checkboxStyles!['default']!();
+        formCast.metaData.forEach((key, value) {
+          if (key == 'title' && field.cast.metaData[key] is Text) {
+            Text? title = field.cast.metaData[key];
+            if (title?.data == null) {
+              formCast.metaData[key] = Text(field.name);
+            } else {
+              formCast.metaData[key] = title;
+            }
+          } else {
+            field.cast.metaData[key] = value;
+          }
+        });
+        field.cast = formCast;
+      } else if ((checkboxStyles ?? {}).containsKey(fieldStyle)) {
+        FormCast formCast = checkboxStyles![fieldStyle]!();
+        formCast.metaData
+            .forEach((key, value) => field.cast.metaData[key] = value);
+        field.cast = formCast;
+      }
       return NyFormCheckbox.fromField(
         field,
         onChanged,
       );
     }
+
+    FormStyleTextField? textFieldStyles = formStyle?.textField(context, field);
 
     TextCapitalization textCapitalization = TextCapitalization.none;
     switch (field.cast.type) {
@@ -874,7 +983,7 @@ class NyFormItem extends StatelessWidget {
         break;
     }
 
-    NyTextField? nyTextField;
+    NyTextField nyTextField;
     switch (fieldStyle) {
       case "compact":
         nyTextField = NyTextField.compact(
@@ -885,6 +994,7 @@ class NyFormItem extends StatelessWidget {
               ((field.cast.type ?? "").contains("currency")) ? null : onChanged,
           autoFocus: field.autofocus,
           validationRules: validationRules,
+          customValidationRule: customValidationRule,
           validationErrorMessage: validationMessage,
           validateOnFocusChange: validateOnFocusChange,
           dummyData: dummyData,
@@ -901,10 +1011,22 @@ class NyFormItem extends StatelessWidget {
                 : onChanged,
             autoFocus: field.autofocus,
             validationRules: validationRules,
+            validationErrorMessage: validationMessage,
+            customValidationRule: customValidationRule,
             validateOnFocusChange: validateOnFocusChange,
             dummyData: dummyData,
           );
+
+          if ((textFieldStyles ?? {}).containsKey('default')) {
+            nyTextField = textFieldStyles!['default']!(nyTextField);
+          }
         }
+    }
+
+    if (fieldStyle != null) {
+      if ((textFieldStyles ?? {}).containsKey(fieldStyle)) {
+        nyTextField = textFieldStyles![fieldStyle]!(nyTextField);
+      }
     }
 
     // check if the field has a style
@@ -1042,8 +1164,8 @@ class NyFormItem extends StatelessWidget {
 /// class RegisterForm extends NyFormData {
 ///  @override
 ///  fields() => [
-///     Field("Name", value: "", cast: FormCast.text(), validate: FormValidator.notEmpty()),
-///     Field("Email", value: "", cast: FormCast.email(), validate: FormValidator.email()),
+///     Field("Name", cast: FormCast.text(), validate: FormValidator.notEmpty()),
+///     Field("Email", cast: FormCast.email(), validate: FormValidator.email()),
 ///  ];
 /// }
 ///
@@ -1069,14 +1191,23 @@ class NyFormItem extends StatelessWidget {
 /// ```
 /// Learn more: https://nylo.dev/docs/5.20.0/forms
 class NyForm extends StatefulWidget {
-  const NyForm(
+  NyForm(
       {super.key,
-      required this.form,
+      required NyFormData form,
       this.crossAxisSpacing = 10,
       this.mainAxisSpacing = 10,
+      Map<String, dynamic>? initialData,
       this.onChanged,
       this.validateOnFocusChange = false,
-      this.locked = false});
+      this.locked = false})
+      : this.form = form..setData(initialData ?? {}, refreshState: false);
+
+  /// Refresh the state of the form
+  static refreshState(String stateName) {
+    updateState(stateName, data: {
+      "action": "refresh",
+    });
+  }
 
   /// Create a login form
   NyForm.login(
@@ -1151,6 +1282,13 @@ class _NyFormState extends NyState<NyForm> {
       }
     });
 
+    _construct();
+  }
+
+  /// Construct the form
+  _construct() {
+    NyFormStyle? nyFormStyle = Nylo.instance.getFormStyle();
+
     Map<String, dynamic> fields = widget.form.data();
     _children = fields.entries.map((field) {
       dynamic value = field.value;
@@ -1207,8 +1345,9 @@ class _NyFormState extends NyState<NyForm> {
         value = value.toString();
       }
 
-      String? validationRules = null;
-      String? validationMessage = null;
+      String? validationRules;
+      String? validationMessage;
+      bool Function(dynamic value)? customValidationRule;
       Map<String, dynamic> formRules = widget.form.getValidate;
       if (formRules.containsKey(field.key)) {
         dynamic rule = formRules[field.key];
@@ -1217,7 +1356,10 @@ class _NyFormState extends NyState<NyForm> {
         }
 
         if (rule is FormValidator) {
-          validationRules = rule.rules;
+          customValidationRule = rule.customRule;
+          if (rule.customRule == null) {
+            validationRules = rule.rules;
+          }
           if (rule.message != null) {
             validationMessage = rule.message;
           }
@@ -1236,7 +1378,7 @@ class _NyFormState extends NyState<NyForm> {
       if (dummyData.containsKey(field.key)) {
         dummyDataValue = dummyData[field.key];
         if (dummyDataValue != null) {
-          widget.form.setField(field.key, dummyDataValue);
+          widget.form.setField(field.key, dummyDataValue, refreshState: false);
         }
       }
 
@@ -1253,15 +1395,17 @@ class _NyFormState extends NyState<NyForm> {
           validationMessage: validationMessage,
           validateOnFocusChange: widget.validateOnFocusChange,
           dummyData: dummyDataValue,
+          customValidationRule: customValidationRule,
           fieldStyle: fieldStyle,
+          formStyle: nyFormStyle,
           style: style,
           updated: widget.form.updated,
           onChanged: (dynamic fieldValue) {
             if (fieldValue is DateTime) {
-              widget.form.setField(field.key, fieldValue);
+              widget.form.setField(field.key, fieldValue, refreshState: false);
               return;
             }
-            widget.form.setField(field.key, fieldValue);
+            widget.form.setField(field.key, fieldValue, refreshState: false);
           });
 
       return formItem;
@@ -1270,6 +1414,13 @@ class _NyFormState extends NyState<NyForm> {
 
   @override
   stateUpdated(dynamic data) async {
+    if (data is Map<String, String> && data.containsKey('action')) {
+      if (data['action'] == 'refresh') {
+        _construct();
+        NyListView.stateReset(stateName! + "_ny_grid");
+      }
+      return;
+    }
     data as Map<String, dynamic>;
 
     // Get the rules, onSuccess and onFailure functions
@@ -1288,6 +1439,7 @@ class _NyFormState extends NyState<NyForm> {
       if (rules.containsKey(field.key)) {
         if (rules[field.key] is FormValidator) {
           FormValidator formValidator = rules[field.key];
+
           if (field.value is List) {
             formValidator.setData((field.value as List).join(", ").toString());
           } else {
@@ -1318,6 +1470,7 @@ class _NyFormState extends NyState<NyForm> {
     return IgnorePointer(
       ignoring: widget.locked,
       child: NyListView.grid(
+        stateName: stateName! + "_ny_grid",
         mainAxisSpacing: widget.crossAxisSpacing,
         crossAxisCount: 1,
         physics: const NeverScrollableScrollPhysics(),

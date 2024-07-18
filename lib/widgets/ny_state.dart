@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:nylo_support/validation/rules.dart';
 import 'package:nylo_support/widgets/ny_form.dart';
 import '/event_bus/event_bus_plus.dart';
 import 'package:flutter/material.dart';
@@ -481,12 +482,32 @@ abstract class NyState<T extends StatefulWidget> extends State<T> {
     Map<String, dynamic> finalData = {};
     Map<String, dynamic> finalMessages = messages ?? {};
 
+    bool completed = false;
     for (MapEntry rule in rules.entries) {
       String key = rule.key;
       dynamic value = rule.value;
 
       if (value is FormValidator) {
         FormValidator formValidator = value;
+
+        if (formValidator.customRule != null) {
+          bool passed = formValidator.customRule!(formValidator.data);
+          if (!passed) {
+            ValidationRule customRule = ValidationRule(
+              signature: "FormValidator.custom",
+              textFieldMessage: formValidator.message,
+              title: formValidator.message ?? "Invalid data",
+            );
+            ValidationException exception =
+                ValidationException(key, customRule);
+            NyLogger.error(exception.toString());
+            if (onFailure == null) return;
+            onFailure(exception);
+            completed = true;
+            break;
+          }
+        }
+
         if (formValidator.rules == null) continue;
         finalRules[key] = formValidator.rules;
         finalData[key] = formValidator.data;
@@ -510,6 +531,8 @@ abstract class NyState<T extends StatefulWidget> extends State<T> {
         }
       }
     }
+
+    if (completed) return;
 
     if (data != null) {
       data.forEach((key, value) {

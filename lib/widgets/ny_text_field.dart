@@ -72,6 +72,7 @@ class NyTextField extends StatefulWidget {
   final EdgeInsetsGeometry? contentPadding;
   final bool? passwordViewable;
   final bool? validateOnFocusChange;
+  final bool Function(dynamic value)? customValidationRule;
 
   /// Default Text Field
   NyTextField(
@@ -140,6 +141,7 @@ class NyTextField extends StatefulWidget {
       this.enabledBorder,
       this.contentPadding,
       this.labelStyle,
+      this.customValidationRule,
       this.type = null})
       : super(key: key) {
     if (Nylo.isEnvDeveloping()) {
@@ -216,6 +218,7 @@ class NyTextField extends StatefulWidget {
     this.enabledBorder,
     this.contentPadding,
     this.labelStyle,
+    this.customValidationRule,
     this.type = 'compact',
   })  : passwordViewable = false,
         super(key: key) {
@@ -231,7 +234,7 @@ class NyTextField extends StatefulWidget {
   NyTextField.password({
     Key? key,
     this.passwordVisible,
-    this.labelText,
+    this.labelText = "Password",
     required this.controller,
     this.obscureText = true,
     this.autoFocus = false,
@@ -294,6 +297,7 @@ class NyTextField extends StatefulWidget {
     this.enabledBorder,
     this.contentPadding,
     this.labelStyle,
+    this.customValidationRule,
     this.type = 'password',
   }) : super(key: key) {
     if (Nylo.isEnvDeveloping()) {
@@ -307,7 +311,7 @@ class NyTextField extends StatefulWidget {
   /// Email Address Text Field
   NyTextField.emailAddress({
     Key? key,
-    this.labelText,
+    this.labelText = "Email Address",
     required this.controller,
     this.obscureText = false,
     this.autoFocus = true,
@@ -371,6 +375,7 @@ class NyTextField extends StatefulWidget {
     this.contentPadding,
     this.labelStyle,
     this.passwordVisible,
+    this.customValidationRule,
     this.type = 'email-address',
   }) : super(key: key) {
     if (Nylo.isEnvDeveloping()) {
@@ -448,6 +453,7 @@ class NyTextField extends StatefulWidget {
     InputBorder? focusedBorder,
     InputBorder? enabledBorder,
     EdgeInsetsGeometry? contentPadding,
+    bool Function(dynamic value)? customValidationRule,
   }) {
     return NyTextField(
       type: type ?? this.type,
@@ -518,6 +524,7 @@ class NyTextField extends StatefulWidget {
       focusedBorder: focusedBorder ?? this.focusedBorder,
       enabledBorder: enabledBorder ?? this.enabledBorder,
       contentPadding: contentPadding ?? this.contentPadding,
+      customValidationRule: customValidationRule ?? this.customValidationRule,
     );
   }
 
@@ -532,9 +539,14 @@ class _NyTextFieldState extends NyState<NyTextField> {
   bool _passwordVisible = false;
 
   @override
+  void initState() {
+    super.initState();
+    _obscured = widget.obscureText;
+  }
+
+  @override
   init() async {
     super.init();
-    _obscured = widget.obscureText;
     if (widget.passwordVisible == true) {
       _obscured = true;
     }
@@ -570,10 +582,17 @@ class _NyTextFieldState extends NyState<NyTextField> {
 
   /// validate the users input
   String? _validate() {
+    if (didChange == false) return null;
+
+    if (widget.customValidationRule != null) {
+      if (widget.customValidationRule!(widget.controller.text) == false) {
+        return widget.validationErrorMessage ?? "Invalid data";
+      }
+    }
+
     if (widget.validationRules == null) {
       return null;
     }
-    if (didChange == false) return null;
 
     String attributeKey = (widget.labelText ?? "");
     try {
@@ -598,7 +617,9 @@ class _NyTextFieldState extends NyState<NyTextField> {
   Widget build(BuildContext context) {
     InputDecoration decoration = widget.decoration ??
         InputDecoration(
-          labelText: widget.labelText,
+          labelText: widget.labelText == null ? null : widget.labelText!.tr(),
+          labelStyle:
+              widget.labelStyle ?? TextStyle(fontSize: 16, color: Colors.black),
           hintText: widget.hintText,
           hintStyle: widget.hintStyle,
           focusedBorder: UnderlineInputBorder(
@@ -607,13 +628,16 @@ class _NyTextFieldState extends NyState<NyTextField> {
           errorStyle: TextStyle(fontSize: 12),
           errorMaxLines: 2,
         );
+
     decoration = decoration.copyWith(errorText: _validate());
+
     if (widget.backgroundColor != null) {
       decoration = decoration.copyWith(
         filled: true,
         fillColor: widget.backgroundColor,
       );
     }
+
     if (widget.passwordVisible == true) {
       decoration = decoration.copyWith(
         suffixIcon: Padding(
@@ -630,15 +654,21 @@ class _NyTextFieldState extends NyState<NyTextField> {
         ),
       );
     }
+
+    if (widget.prefixIcon != null) {
+      decoration = decoration.copyWith(prefixIcon: widget.prefixIcon);
+    }
+
+    if (widget.labelText != null) {
+      decoration = decoration.copyWith(
+        labelText: widget.labelText,
+      );
+    }
+
     switch (widget.type) {
       case 'compact':
         {
-          return TextField(
-            key: widget.key,
-            decoration: decoration.copyWith(
-              prefixIcon: widget.prefixIcon,
-              labelText: widget.labelText,
-              labelStyle: TextStyle(fontSize: 16, color: Colors.black),
+          decoration = decoration.copyWith(
               filled: true,
               fillColor: widget.backgroundColor ?? Colors.grey.shade50,
               isDense: true,
@@ -660,296 +690,130 @@ class _NyTextFieldState extends NyState<NyTextField> {
                       width: 0,
                       style: BorderStyle.none,
                     ),
-                  ),
-            ),
-            controller: widget.controller,
-            keyboardAppearance: Brightness.light,
-            autofocus: widget.autoFocus,
-            textAlign: widget.textAlign ?? TextAlign.left,
-            maxLines: widget.maxLines,
-            minLines: widget.minLines,
-            keyboardType: widget.keyboardType,
-            onTap: widget.onTap,
-            textCapitalization: widget.textCapitalization,
-            obscureText: _obscured ?? false,
-            focusNode: widget.focusNode ?? _focus,
-            enableSuggestions: widget.enableSuggestions,
-            onChanged: (String value) {
-              setState(() {});
-              if (widget.onChanged != null) {
-                widget.onChanged!(value);
-              }
-            },
-            textInputAction: widget.textInputAction,
-            style: widget.style,
-            strutStyle: widget.strutStyle,
-            textAlignVertical: widget.textAlignVertical,
-            textDirection: widget.textDirection,
-            readOnly: widget.readOnly,
-            showCursor: widget.showCursor,
-            obscuringCharacter: widget.obscuringCharacter,
-            smartDashesType: widget.smartDashesType,
-            smartQuotesType: widget.smartQuotesType,
-            expands: widget.expands,
-            maxLength: widget.maxLength,
-            mouseCursor: widget.mouseCursor,
-            maxLengthEnforcement: widget.maxLengthEnforcement,
-            onAppPrivateCommand: widget.onAppPrivateCommand,
-            inputFormatters: widget.inputFormatters,
-            enabled: widget.enabled,
-            cursorWidth: widget.cursorWidth,
-            cursorHeight: widget.cursorHeight,
-            onTapOutside: widget.onTapOutside,
-            cursorRadius: widget.cursorRadius,
-            cursorColor: widget.cursorColor,
-            scrollPadding: widget.scrollPadding,
-            dragStartBehavior: widget.dragStartBehavior,
-            selectionControls: widget.selectionControls,
-            onEditingComplete: widget.onEditingComplete,
-            onSubmitted: widget.onSubmitted,
-            scrollController: widget.scrollController,
-            scrollPhysics: widget.scrollPhysics,
-            autofillHints: widget.autofillHints,
-            clipBehavior: widget.clipBehavior,
-          );
+                  ));
         }
       case 'email-address':
         {
-          return TextField(
-            key: widget.key,
-            decoration: decoration.copyWith(
-              prefixIcon: widget.prefixIcon ?? Icon(Icons.email_outlined),
-              labelText: widget.labelText ?? "Email Address".tr(),
-              labelStyle: widget.labelStyle ??
-                  TextStyle(fontSize: 16, color: Colors.black),
-              filled: true,
-              fillColor: widget.backgroundColor ?? Colors.grey.shade50,
-              isDense: true,
-              focusedBorder: widget.focusedBorder ??
-                  OutlineInputBorder(
+          decoration = decoration.copyWith(
+            prefixIcon: widget.prefixIcon ?? Icon(Icons.email_outlined),
+            filled: true,
+            fillColor: widget.backgroundColor ?? Colors.grey.shade50,
+            isDense: true,
+            contentPadding: widget.contentPadding ??
+                EdgeInsetsDirectional.symmetric(vertical: 14, horizontal: 14),
+            focusedBorder: widget.focusedBorder ??
+                OutlineInputBorder(
                     borderRadius: BorderRadius.all(Radius.circular(12)),
-                    borderSide: BorderSide(color: Colors.transparent),
-                  ),
-              enabledBorder: widget.enabledBorder ??
-                  OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.transparent)),
+            enabledBorder: widget.enabledBorder ??
+                OutlineInputBorder(
                     borderRadius: BorderRadius.all(Radius.circular(12)),
-                    borderSide: BorderSide(color: Colors.transparent),
-                  ),
-              contentPadding: widget.contentPadding ??
-                  EdgeInsetsDirectional.symmetric(vertical: 13, horizontal: 13),
-              border: widget.border ??
-                  OutlineInputBorder(
-                    borderRadius:
-                        widget.borderRadius ?? BorderRadius.circular(12),
-                    borderSide: const BorderSide(
-                      width: 0,
-                      style: BorderStyle.none,
-                    ),
-                  ),
-            ),
-            controller: widget.controller,
-            keyboardAppearance: Brightness.light,
-            autofocus: widget.autoFocus,
-            textAlign: widget.textAlign ?? TextAlign.left,
-            maxLines: widget.maxLines,
-            minLines: widget.minLines,
-            keyboardType: widget.keyboardType,
-            onTap: widget.onTap,
-            textCapitalization: widget.textCapitalization,
-            obscureText: _obscured ?? false,
-            focusNode: widget.focusNode ?? _focus,
-            enableSuggestions: widget.enableSuggestions,
-            onChanged: (String value) {
-              setState(() {});
-              if (widget.onChanged != null) {
-                widget.onChanged!(value);
-              }
-            },
-            textInputAction: widget.textInputAction,
-            style: widget.style,
-            strutStyle: widget.strutStyle,
-            textAlignVertical: widget.textAlignVertical,
-            textDirection: widget.textDirection,
-            readOnly: widget.readOnly,
-            showCursor: widget.showCursor,
-            obscuringCharacter: widget.obscuringCharacter,
-            smartDashesType: widget.smartDashesType,
-            smartQuotesType: widget.smartQuotesType,
-            expands: widget.expands,
-            maxLength: widget.maxLength,
-            mouseCursor: widget.mouseCursor,
-            maxLengthEnforcement: widget.maxLengthEnforcement,
-            onAppPrivateCommand: widget.onAppPrivateCommand,
-            inputFormatters: widget.inputFormatters,
-            enabled: widget.enabled,
-            cursorWidth: widget.cursorWidth,
-            cursorHeight: widget.cursorHeight,
-            onTapOutside: widget.onTapOutside,
-            cursorRadius: widget.cursorRadius,
-            cursorColor: widget.cursorColor,
-            scrollPadding: widget.scrollPadding,
-            dragStartBehavior: widget.dragStartBehavior,
-            selectionControls: widget.selectionControls,
-            onEditingComplete: widget.onEditingComplete,
-            onSubmitted: widget.onSubmitted,
-            scrollController: widget.scrollController,
-            scrollPhysics: widget.scrollPhysics,
-            autofillHints: widget.autofillHints,
-            clipBehavior: widget.clipBehavior,
+                    borderSide: BorderSide(color: Colors.transparent)),
+            border: widget.border ??
+                OutlineInputBorder(
+                  borderSide: BorderSide.none,
+                  borderRadius:
+                      widget.borderRadius ?? BorderRadius.circular(12),
+                ),
           );
         }
       case 'password':
         {
-          return TextField(
-            key: widget.key,
-            decoration: decoration.copyWith(
-              prefixIcon: widget.prefixIcon ?? Icon(Icons.lock_rounded),
-              labelText: widget.labelText ?? "Password".tr(),
-              labelStyle: TextStyle(fontSize: 16, color: Colors.black),
-              filled: true,
-              fillColor: widget.backgroundColor ?? Colors.grey.shade50,
-              isDense: true,
-              suffixIcon: widget.passwordViewable == true
-                  ? IconButton(
-                      icon: Icon(
-                        _passwordVisible
-                            ? Icons.visibility
-                            : Icons.visibility_off,
-                        color: Theme.of(context).primaryColorDark,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _passwordVisible = !_passwordVisible;
-                        });
-                      },
-                    )
-                  : null,
-              contentPadding: widget.contentPadding ??
-                  EdgeInsetsDirectional.symmetric(vertical: 14, horizontal: 14),
-              focusedBorder: widget.focusedBorder ??
-                  OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(12)),
-                      borderSide: BorderSide(color: Colors.transparent)),
-              enabledBorder: widget.enabledBorder ??
-                  OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(12)),
-                      borderSide: BorderSide(color: Colors.transparent)),
-              border: widget.border ??
-                  OutlineInputBorder(
-                    borderSide: BorderSide.none,
-                    borderRadius:
-                        widget.borderRadius ?? BorderRadius.circular(12),
-                  ),
-            ),
-            controller: widget.controller,
-            keyboardAppearance: Brightness.light,
-            autofocus: widget.autoFocus,
-            textAlign: widget.textAlign ?? TextAlign.left,
-            maxLines: widget.maxLines,
-            minLines: widget.minLines,
-            keyboardType: widget.keyboardType,
-            onTap: widget.onTap,
-            textCapitalization: widget.textCapitalization,
-            obscureText: widget.passwordViewable == true
-                ? !_passwordVisible
-                : _obscured ?? false,
-            focusNode: widget.focusNode ?? _focus,
-            enableSuggestions: widget.enableSuggestions,
-            onChanged: (String value) {
-              setState(() {});
-              if (widget.onChanged != null) {
-                widget.onChanged!(value);
-              }
-            },
-            textInputAction: widget.textInputAction,
-            style: widget.style,
-            strutStyle: widget.strutStyle,
-            textAlignVertical: widget.textAlignVertical,
-            textDirection: widget.textDirection,
-            readOnly: widget.readOnly,
-            showCursor: widget.showCursor,
-            obscuringCharacter: widget.obscuringCharacter,
-            smartDashesType: widget.smartDashesType,
-            smartQuotesType: widget.smartQuotesType,
-            expands: widget.expands,
-            maxLength: widget.maxLength,
-            mouseCursor: widget.mouseCursor,
-            maxLengthEnforcement: widget.maxLengthEnforcement,
-            onAppPrivateCommand: widget.onAppPrivateCommand,
-            inputFormatters: widget.inputFormatters,
-            enabled: widget.enabled,
-            cursorWidth: widget.cursorWidth,
-            cursorHeight: widget.cursorHeight,
-            onTapOutside: widget.onTapOutside,
-            cursorRadius: widget.cursorRadius,
-            cursorColor: widget.cursorColor,
-            scrollPadding: widget.scrollPadding,
-            dragStartBehavior: widget.dragStartBehavior,
-            selectionControls: widget.selectionControls,
-            onEditingComplete: widget.onEditingComplete,
-            onSubmitted: widget.onSubmitted,
-            scrollController: widget.scrollController,
-            scrollPhysics: widget.scrollPhysics,
-            autofillHints: widget.autofillHints,
-            clipBehavior: widget.clipBehavior,
-          );
-        }
-      default:
-        {
-          return TextField(
-            key: widget.key,
-            decoration: decoration,
-            controller: widget.controller,
-            keyboardAppearance: Brightness.light,
-            autofocus: widget.autoFocus,
-            textAlign: widget.textAlign ?? TextAlign.left,
-            maxLines: widget.maxLines,
-            minLines: widget.minLines,
-            keyboardType: widget.keyboardType,
-            onTap: widget.onTap,
-            textCapitalization: widget.textCapitalization,
-            obscureText: _obscured ?? false,
-            focusNode: widget.focusNode ?? _focus,
-            enableSuggestions: widget.enableSuggestions,
-            onChanged: (String value) {
-              setState(() {});
-              if (widget.onChanged != null) {
-                widget.onChanged!(value);
-              }
-            },
-            textInputAction: widget.textInputAction,
-            style: widget.style,
-            strutStyle: widget.strutStyle,
-            textAlignVertical: widget.textAlignVertical,
-            textDirection: widget.textDirection,
-            readOnly: widget.readOnly,
-            showCursor: widget.showCursor,
-            obscuringCharacter: widget.obscuringCharacter,
-            smartDashesType: widget.smartDashesType,
-            smartQuotesType: widget.smartQuotesType,
-            expands: widget.expands,
-            maxLength: widget.maxLength,
-            mouseCursor: widget.mouseCursor,
-            maxLengthEnforcement: widget.maxLengthEnforcement,
-            onAppPrivateCommand: widget.onAppPrivateCommand,
-            inputFormatters: widget.inputFormatters,
-            enabled: widget.enabled,
-            cursorWidth: widget.cursorWidth,
-            cursorHeight: widget.cursorHeight,
-            onTapOutside: widget.onTapOutside,
-            cursorRadius: widget.cursorRadius,
-            cursorColor: widget.cursorColor,
-            scrollPadding: widget.scrollPadding,
-            dragStartBehavior: widget.dragStartBehavior,
-            selectionControls: widget.selectionControls,
-            onEditingComplete: widget.onEditingComplete,
-            onSubmitted: widget.onSubmitted,
-            scrollController: widget.scrollController,
-            scrollPhysics: widget.scrollPhysics,
-            autofillHints: widget.autofillHints,
-            clipBehavior: widget.clipBehavior,
+          decoration = decoration.copyWith(
+            prefixIcon: widget.prefixIcon ?? Icon(Icons.lock_rounded),
+            filled: true,
+            fillColor: widget.backgroundColor ?? Colors.grey.shade50,
+            isDense: true,
+            suffixIcon: widget.passwordViewable == true
+                ? IconButton(
+                    icon: Icon(
+                      _passwordVisible
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                      color: Theme.of(context).primaryColorDark,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _passwordVisible = !_passwordVisible;
+                      });
+                    },
+                  )
+                : null,
+            contentPadding: widget.contentPadding ??
+                EdgeInsetsDirectional.symmetric(vertical: 14, horizontal: 14),
+            focusedBorder: widget.focusedBorder ??
+                OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(12)),
+                    borderSide: BorderSide(color: Colors.transparent)),
+            enabledBorder: widget.enabledBorder ??
+                OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(12)),
+                    borderSide: BorderSide(color: Colors.transparent)),
+            border: widget.border ??
+                OutlineInputBorder(
+                  borderSide: BorderSide.none,
+                  borderRadius:
+                      widget.borderRadius ?? BorderRadius.circular(12),
+                ),
           );
         }
     }
+
+    // TextField
+    return TextField(
+      key: widget.key,
+      decoration: decoration,
+      controller: widget.controller,
+      keyboardAppearance: Brightness.light,
+      autofocus: widget.autoFocus,
+      textAlign: widget.textAlign ?? TextAlign.left,
+      maxLines: widget.maxLines,
+      minLines: widget.minLines,
+      keyboardType: widget.keyboardType,
+      onTap: widget.onTap,
+      textCapitalization: widget.textCapitalization,
+      obscureText: widget.passwordViewable == true
+          ? !_passwordVisible
+          : _obscured ?? widget.obscureText,
+      focusNode: widget.focusNode ?? _focus,
+      enableSuggestions: widget.enableSuggestions,
+      onChanged: (String value) {
+        setState(() {});
+        if (widget.onChanged != null) {
+          widget.onChanged!(value);
+        }
+      },
+      textInputAction: widget.textInputAction,
+      style: widget.style,
+      strutStyle: widget.strutStyle,
+      textAlignVertical: widget.textAlignVertical,
+      textDirection: widget.textDirection,
+      readOnly: widget.readOnly,
+      showCursor: widget.showCursor,
+      obscuringCharacter: widget.obscuringCharacter,
+      smartDashesType: widget.smartDashesType,
+      smartQuotesType: widget.smartQuotesType,
+      expands: widget.expands,
+      maxLength: widget.maxLength,
+      mouseCursor: widget.mouseCursor,
+      maxLengthEnforcement: widget.maxLengthEnforcement,
+      onAppPrivateCommand: widget.onAppPrivateCommand,
+      inputFormatters: widget.inputFormatters,
+      enabled: widget.enabled,
+      cursorWidth: widget.cursorWidth,
+      cursorHeight: widget.cursorHeight,
+      onTapOutside: widget.onTapOutside,
+      cursorRadius: widget.cursorRadius,
+      cursorColor: widget.cursorColor,
+      scrollPadding: widget.scrollPadding,
+      dragStartBehavior: widget.dragStartBehavior,
+      selectionControls: widget.selectionControls,
+      onEditingComplete: widget.onEditingComplete,
+      onSubmitted: widget.onSubmitted,
+      scrollController: widget.scrollController,
+      scrollPhysics: widget.scrollPhysics,
+      autofillHints: widget.autofillHints,
+      clipBehavior: widget.clipBehavior,
+    );
   }
 }
