@@ -1,3 +1,7 @@
+## [5.82.1] - 2024-08-09
+
+* pubspec.yaml dependency updates
+
 ## [5.82.0] - 2024-07-18
 
 * New `create` method added to `NyFormData` class. This will allow you to create the form from the instance.
