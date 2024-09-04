@@ -447,19 +447,11 @@ class MaxRule extends ValidationRule {
 
     dynamic data = info['data'];
     if (data is String) {
-      // Check if the string is a number
-      if (double.tryParse(data) != null) {
-        this.description = "$attribute must be a maximum of $intMatch.";
-        this.textFieldMessage = "Must be a maximum of $intMatch.";
-        super.handle(info);
-        return (double.tryParse(data)! < intMatch);
-      } else {
-        this.description =
-            "$attribute must be a maximum length of $intMatch characters.";
-        this.textFieldMessage = "Must be a maximum of $intMatch characters.";
-        super.handle(info);
-        return (data.length < intMatch);
-      }
+      this.description =
+      "$attribute must be a maximum length of $intMatch characters.";
+      this.textFieldMessage = "Must be a maximum of $intMatch characters.";
+      super.handle(info);
+      return (data.length < intMatch);
     }
 
     if (data is int) {

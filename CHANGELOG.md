@@ -1,3 +1,8 @@
+## [5.82.2] - 2024-09-04
+
+* Fix max validation rule
+* pubspec.yaml dependency updates
+
 ## [5.82.1] - 2024-08-09
 
 * pubspec.yaml dependency updates
