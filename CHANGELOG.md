@@ -59,7 +59,7 @@
 
 ## [5.77.0] - 2024-07-02
 
-* New `NyForm` widget! Designed to help you create forms easier in your app. 
+* New `NyForm` widget! Designed to help you create forms easier in your app.
 * Fix password_v1 & password_v2 validation rule not working in all cases
 * Update NyTextField to support different types of text fields
 * Add `makeForm` to `MetroService` class to create a form
@@ -80,7 +80,7 @@
 
 * Add support for the `child` parameter in NyStatefulWidget to be a Function that returns a State.
 * Update pubspec.yaml
- 
+
 ## [5.75.3] - 2024-06-14
 
 * Add await to `ErrorStack.init`
@@ -97,7 +97,7 @@
 ## [5.75.0] - 2024-06-13
 
 * Add new extensions `labelSmall`, `labelMedium` and `labelLarge` to `Text` widget
- 
+
 ## [5.74.0] - 2024-06-12
 
 * Small refactor to `NyRichText` widget
@@ -128,12 +128,12 @@ StorageConfig.init(
 ## [5.72.0] - 2024-06-08
 
 * Added `loadJson` method to helpers to load a json file
- 
+
 ## [5.71.0] - 2024-06-06
 
 * Added `containsRoutes` method to `Nylo` class. Now you can check if a route exists in your app. E.g. `Nylo.containsRoutes(["/home", "/settings"])`
 * Fix `MetroService` duplicating slate file names
- 
+
 ## [5.70.0] - 2024-06-05
 
 * Update `NotEmptyRule` Validation rules to include `null`, `Map` and `List` types
@@ -196,7 +196,7 @@ StorageConfig.init(
     SettingPage.path: {"name": "John Doe"}
     });
 ```
-* Add `nylo.onDeepLink` to listen for deep link events in your app. 
+* Add `nylo.onDeepLink` to listen for deep link events in your app.
 ``` dart
   nylo.onDeepLink((String route, dynamic data) {
     print(data);
@@ -237,7 +237,7 @@ StorageConfig.init(
 ## [5.61.0] - 2024-03-29
 
 * Added `updateCollectionWhere` to `NyStorage` class
- 
+
 ## [5.60.1] - 2024-03-28
 
 * Update pubspec.yaml
@@ -370,7 +370,7 @@ StorageConfig.init(
 
 * Ability to set a Grid view in `NyListView` e.g. `NyListView.grid()`
 * Ability to set a Grid view in `NyPullToRefresh` e.g. `NyPullToRefresh.grid()`
-* Change `getRouteHistory` to return a `list` of the route history 
+* Change `getRouteHistory` to return a `list` of the route history
 * Change `getCurrentRouteArguments` to return a `map` of the current route arguments
 * Change `getPreviousRouteArguments` to return a `map` of the previous route arguments
 * Add `flutter_staggered_grid_view` to pubspec.yaml
@@ -378,7 +378,7 @@ StorageConfig.init(
 ## [5.42.1] - 2024-02-04
 
 * Fix `_initLanguage` method in `app_localization.dart`
- 
+
 ## [5.42.0] - 2024-02-04
 
 * Add `NyLanguageSwitcher` widget
@@ -406,7 +406,7 @@ StorageConfig.init(
 * Add new `updateCollectionByIndex` method in `NyStorage` class
 * Add new `readJson` method in `NyStorage` class
 * Add new `storeJson` method in `NyStorage` class
- 
+
 ## [5.38.1] - 2024-01-28
 
 * Change `sleep` to use seconds instead of milliseconds
@@ -440,11 +440,11 @@ StorageConfig.init(
 * Add `receiveTimeout` to network helper
 * Add `sendTimeout` to network helper
 * New parameter `baseOptions` added to `NyApiService` constructor
- 
+
 ## [5.34.1] - 2024-01-23
 
 * Set `Intl.defaultLocale` in Nylo class
- 
+
 ## [5.34.0] - 2024-01-22
 
 * Add `setRetryIf` to DioApiService
@@ -453,7 +453,7 @@ StorageConfig.init(
 ## [5.33.0] - 2024-01-21
 
 * Update `build` method in `NyState` to Skeletonize the `loading(BuildContext context)` widget
- 
+
 ## [5.32.0] - 2024-01-17
 
 * Add `queryParameters` to `routeTo` helper
@@ -464,7 +464,7 @@ StorageConfig.init(
 
 ## [5.31.0] - 2024-01-15
 
-* You can now set an API service as a singleton in your project. 
+* You can now set an API service as a singleton in your project.
 * Add `setRetry` to `api` helper
 * Add `setRetryDelay` to `api` helper
 * Add `setShouldSetAuthHeaders` to `api` helper
@@ -492,7 +492,7 @@ StorageConfig.init(
 ## [5.30.0] - 2024-01-13
 
 * New `dump` function added for printing out data in a readable format.
- 
+
 ## [5.29.0] - 2024-01-11
 
 * Add `skipIfExist` to **makeModel** method in `MetroService`
@@ -530,7 +530,7 @@ StorageConfig.init(
 * Big updates to `DioApiService`
   * `network` method now accepts a `retry` parameter - Set how many times you want to retry the request if it fails.
   * `network` method now accepts a `retryIf` parameter - A function to check if the request should be retried.
-  * `network` method now accepts a `retryDelay` parameter - Set how long you want to wait before retrying the request. 
+  * `network` method now accepts a `retryDelay` parameter - Set how long you want to wait before retrying the request.
   * Three new methods added to `DioApiService`:
     * `refreshToken` - Override this method to refresh your token.
     * `shouldRefreshToken` - Override this method to check if you should refresh the token.
@@ -662,7 +662,7 @@ StorageConfig.init(
 ## [5.12.0] - 2023-10-19
 
 * Update the look for Toast Notifications
-* Add new parameter **setState** on `refreshPage` to set the state of the Widget. 
+* Add new parameter **setState** on `refreshPage` to set the state of the Widget.
 * New helpers added to `NyPage`
   * context
   * textTheme
@@ -799,14 +799,14 @@ StorageConfig.init(
 
 * Add generic type to `SyncAuthToBackpackEvent`.
 * Fix `NyLogger.json` helper not formatting the output to JSON
-* Add **key** parameter to `auth` 
+* Add **key** parameter to `auth`
 
 ## [5.1.0] - 2023-05-23
 
 * New parameter added to `NyTextField` widget called `handleValidationError` - This new helper is a callback that can be used to handle any validation errors thrown
 * New String extension `toHexColor()` - This will convert your strings into a `Color`. Try it "DB768E".toHexColor()
 * Fix `api` helper not returning request data
-* Added new extensions for `Text` 
+* Added new extensions for `Text`
 
 ## [5.0.0] - 2023-05-16
 
@@ -831,7 +831,7 @@ StorageConfig.init(
   * **match** - Matches
   * **nyHexColor**
   * **nyColorStyle**
-* `nyApi` will now accept `NyEvent`s so the data returned from your API requests will be passed to the events. 
+* `nyApi` will now accept `NyEvent`s so the data returned from your API requests will be passed to the events.
 * The `NyLogger` class will now only log if the project's **APP_DEBUG** is set to true.
 * `NyProvider` class now has an `afterBoot` method which will be called after Nylo has finished 'booting'.
 * Remove `Storable` class
@@ -859,7 +859,7 @@ StorageConfig.init(
 
 ## [4.2.0] - 2023-02-20
 
-* Allow passing custom env file path 
+* Allow passing custom env file path
 
 ## [4.1.1] - 2023-02-14
 
