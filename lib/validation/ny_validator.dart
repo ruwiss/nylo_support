@@ -21,7 +21,7 @@ class NyValidator {
   ///   print(e.validationRule.description);
   ///   print(e.toString());
   /// }
-  /// See more https://nylo.dev/docs/5.x/validation
+  /// See more https://nylo.dev/docs/6.x/validation
   static check(
       {required Map<String, String> rules,
       required Map<String, dynamic> data,
@@ -29,7 +29,7 @@ class NyValidator {
       bool showAlert = true,
       Duration? alertDuration,
       ToastNotificationStyleType alertStyle =
-          ToastNotificationStyleType.WARNING,
+          ToastNotificationStyleType.warning,
       BuildContext? context}) {
     Map<String, Map<String, dynamic>> map = data.map((key, value) {
       if (!rules.containsKey(key)) {

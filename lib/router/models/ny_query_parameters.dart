@@ -3,6 +3,6 @@
 /// E.g. "/home-page?userId=2
 /// [data] = {"userId": "2"}
 class NyQueryParameters {
-  dynamic data;
+  Map<String, String> data;
   NyQueryParameters(this.data);
 }

@@ -14,10 +14,10 @@ abstract class NyStatefulWidget<T extends BaseController>
   final String? state;
 
   /// Child state
-  final State? child;
+  final dynamic child;
 
-  NyStatefulWidget(String? path, {super.key, this.child})
-      : state = path {
+  NyStatefulWidget({super.key, this.child, String? stateName})
+      : state = stateName ?? child.toString() {
     Nylo nylo = Backpack.instance.nylo();
     controller = nylo.getController(T) ?? NyController();
   }
@@ -26,19 +26,29 @@ abstract class NyStatefulWidget<T extends BaseController>
   StatefulElement createElement() => StatefulElement(this);
 
   @override
+  // ignore: no_logic_in_create_state
   State<StatefulWidget> createState() {
-    if (child != null) {
+    if (child == null) {
+      throw UnimplementedError();
+    }
+    if (child is State) {
       return child!;
+    }
+    if (child is Function) {
+      dynamic child = this.child();
+      assert(child is State, "Child must be a State");
+      if (child is State) {
+        return child;
+      }
     }
     throw UnimplementedError();
   }
 
   /// Returns data that's sent via the Navigator or [routeTo] method.
-  dynamic data({String? key}) {
-    if (this.controller.request == null) {
-      return null;
-    }
-    return this.controller.request!.data(key: key);
+  // ignore: avoid_shadowing_type_parameters
+  T? data<T>({dynamic defaultValue}) {
+    if (this.controller.request == null) return null;
+    return this.controller.request!.data(defaultValue: defaultValue);
   }
 
   /// Returns query params

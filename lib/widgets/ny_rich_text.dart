@@ -1,4 +1,4 @@
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 /// NyRichText allows you to display rich text with different styles.
@@ -16,7 +16,7 @@ class NyRichText extends StatelessWidget {
   const NyRichText(
       {super.key,
       required this.children,
-      this.style,
+      this.style = const TextStyle(color: Colors.black),
       this.onEnter,
       this.onExit,
       this.spellOut,

@@ -21,11 +21,13 @@ class DefaultToastNotification extends StatelessWidget {
         margin: const EdgeInsets.symmetric(horizontal: 8.0),
         height: 100,
         decoration: BoxDecoration(
-          color: context.isDarkMode ? "#282c34".toHexColor() : Colors.white,
+          color: context.isDeviceInDarkMode
+              ? "#282c34".toHexColor()
+              : Colors.white,
           borderRadius: BorderRadius.circular(8),
           boxShadow: [
             BoxShadow(
-              color: context.isDarkMode
+              color: context.isDeviceInDarkMode
                   ? Colors.black12
                   : Colors.grey.withOpacity(0.1),
               spreadRadius: 3,
@@ -67,9 +69,9 @@ class DefaultToastNotification extends StatelessWidget {
                           _toastMeta.title.tr(),
                           style: Theme.of(context)
                               .textTheme
-                              .headlineSmall!
+                              .bodyLarge!
                               .copyWith(
-                                  color: context.isDarkMode
+                                  color: context.isDeviceInDarkMode
                                       ? Colors.white.withOpacity(0.8)
                                       : "#171717".toHexColor()),
                         ).fontWeightBold(),
@@ -80,9 +82,9 @@ class DefaultToastNotification extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                             style: Theme.of(context)
                                 .textTheme
-                                .bodyLarge!
+                                .bodyMedium!
                                 .copyWith(
-                                    color: context.isDarkMode
+                                    color: context.isDeviceInDarkMode
                                         ? Colors.white70
                                         : "#5d626b".toHexColor()),
                           ),
@@ -104,7 +106,7 @@ class DefaultToastNotification extends StatelessWidget {
                 width: 30,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                    color: context.isDarkMode
+                    color: context.isDeviceInDarkMode
                         ? Colors.white30
                         : "#f2f2f2".toHexColor(),
                     borderRadius: BorderRadius.circular(20)),
@@ -113,12 +115,12 @@ class DefaultToastNotification extends StatelessWidget {
                       padding: EdgeInsets.zero,
                       onPressed: () {
                         if (_dismiss != null) {
-                          _dismiss!();
+                          _dismiss();
                         }
                       },
                       icon: Icon(
                         Icons.close,
-                        color: context.isDarkMode
+                        color: context.isDeviceInDarkMode
                             ? Colors.white
                             : "#878787".toHexColor(),
                         size: 18,

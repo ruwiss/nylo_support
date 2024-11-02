@@ -7,7 +7,7 @@ class RouteNotFoundError extends Error {
 
   @override
   String toString() {
-    return "** Route '$name' not found! Make sure you are not using the wrong name"
+    return "Route '$name' not found! Make sure you are not using the wrong name"
         " or have registered the route.";
   }
 }

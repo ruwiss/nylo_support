@@ -1,13 +1,12 @@
 import 'dart:convert';
-import 'dart:developer';
+import 'dart:io';
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import '/event_bus/event_bus_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:app_badge_plus/app_badge_plus.dart';
 import '/events/events.dart';
-import '/helpers/auth.dart';
 import '/helpers/backpack.dart';
 import '/helpers/extensions.dart';
 import '/localization/app_localization.dart';
@@ -16,6 +15,7 @@ import '/themes/base_theme_config.dart';
 import '/widgets/event_bus/update_state.dart';
 import 'package:theme_provider/theme_provider.dart';
 import '/nylo.dart';
+import 'ny_logger.dart';
 
 /// Returns a value from the .env file
 /// the [key] must exist as a string value e.g. APP_NAME.
@@ -44,14 +44,14 @@ dynamic getEnv(String key, {dynamic defaultValue}) {
   return value.toString();
 }
 
-/// Returns the full image path for a image in /public/assets/images/ directory.
+/// Returns the full image path for a image in /public/images/ directory.
 /// Provide the name of the image, using [imageName] parameter.
 ///
 /// Returns a [String].
 String getImageAsset(String imageName) =>
     "${getEnv("ASSET_PATH_IMAGES")}/$imageName";
 
-/// Returns the full path for an asset in /public/assets directory.
+/// Returns the full path for an asset in /public directory.
 /// Usage e.g. getPublicAsset('videos/welcome.mp4');
 ///
 /// Returns a [String].
@@ -79,452 +79,6 @@ TextTheme getAppTextTheme(TextStyle appThemeFont, TextTheme textTheme) {
   );
 }
 
-/// Extensions for String
-extension StringExtension on String {
-  String capitalize() => "${this[0].toUpperCase()}${substring(1)}";
-}
-
-/// Nylo's Model class
-///
-/// Usage
-/// class User extends Model {
-///   String? name;
-///   String? email;
-///   User();
-///   User.fromJson(dynamic data) {
-///     name = data['name'];
-///     email = data['email'];
-///   }
-///   toJson() => {
-///     "name": name,
-///     "email": email
-///   };
-/// }
-/// This class can be used to authenticate a model and store the object in storage.
-abstract class Model {
-  /// Authenticate the model.
-  Future<void> auth({String? key}) async {
-    await Auth.set(this, key: key);
-  }
-
-  /// Save the object to secure storage using a unique [key].
-  /// E.g. User class
-  ///
-  /// User user = new User();
-  /// user.name = "Anthony";
-  /// user.save('com.company.app.auth_user');
-  ///
-  /// Get user
-  /// User user = await NyStorage.read<User>('com.company.app.auth_user', model: new User());
-  Future save(String key, {bool inBackpack = false}) async {
-    await NyStorage.store(key, this);
-    if (inBackpack == true) {
-      Backpack.instance.set(key, this);
-    }
-  }
-
-  /// Convert the model toJson.
-  toJson() {}
-
-  /// Save an item to a collection
-  /// E.g. List of numbers
-  ///
-  /// User userAnthony = new User(name: 'Anthony');
-  /// await userAnthony.saveToCollection('mystoragekey');
-  ///
-  /// User userKyle = new User(name: 'Kyle');
-  /// await userKyle.saveToCollection('mystoragekey');
-  ///
-  /// Get the collection back with the user included.
-  /// List<User> users = await NyStorage.read<List<User>('mystoragekey');
-  ///
-  /// The [key] is the collection you want to access, you can also save
-  /// the collection to the [Backpack] class.
-  Future saveToCollection<T>(String key, {bool inBackpack = false}) async {
-    await NyStorage.addToCollection<T>(key, item: this);
-    if (inBackpack == true) {
-      Backpack.instance.set(key, this);
-    }
-  }
-}
-
-/// Storage manager for Nylo.
-class StorageManager {
-  static const storage = FlutterSecureStorage();
-}
-
-/// Base class to help manage local storage
-class NyStorage {
-  static FlutterSecureStorage manager() {
-    return StorageManager.storage;
-  }
-
-  /// Saves an [object] to local storage.
-  static Future store(String key, object, {bool inBackpack = false}) async {
-    if (inBackpack == true) {
-      Backpack.instance.set(key, object);
-    }
-
-    if (object is! Model) {
-      return await StorageManager.storage
-          .write(key: key, value: object.toString());
-    }
-
-    try {
-      Map<String, dynamic> json = object.toJson();
-      return await StorageManager.storage
-          .write(key: key, value: jsonEncode(json));
-    } on NoSuchMethodError catch (_) {
-      NyLogger.error(
-          '[NyStorage.store] ${object.runtimeType.toString()} model needs to implement the toJson() method.');
-    }
-  }
-
-  /// Saves a JSON [object] to local storage.
-  static Future storeJson(String key, object, {bool inBackpack = false}) async {
-    if (inBackpack == true) {
-      Backpack.instance.set(key, object);
-    }
-
-    try {
-      return await StorageManager.storage
-          .write(key: key, value: jsonEncode(object));
-    } on Exception catch (e) {
-      NyLogger.error(e.toString());
-      NyLogger.error(
-          '[NyStorage.store] Failed to store $object to local storage. Please ensure that the object is a valid JSON object.');
-    }
-  }
-
-  /// Read a value from the local storage
-  static Future<dynamic> read<T>(String key,
-      {dynamic defaultValue, Map<Type, dynamic>? modelDecoders}) async {
-    String? data = await StorageManager.storage.read(key: key);
-    if (data == null) {
-      return defaultValue;
-    }
-
-    if (T.toString() == "String") {
-      return data.toString();
-    }
-
-    if (T.toString() == "int") {
-      return int.parse(data.toString());
-    }
-
-    if (T.toString() == "double") {
-      return double.parse(data);
-    }
-
-    if (_isInteger(data)) {
-      return int.parse(data);
-    }
-
-    if (_isDouble(data)) {
-      return double.parse(data);
-    }
-
-    if (T.toString() != 'dynamic') {
-      try {
-        return dataToModel<T>(
-            data: jsonDecode(data), modelDecoders: modelDecoders);
-      } on Exception catch (e) {
-        NyLogger.error(e.toString());
-        return null;
-      }
-    }
-    return data;
-  }
-
-  /// Read a JSON value from the local storage
-  static Future<dynamic> readJson<T>(String key, {dynamic defaultValue}) async {
-    String? data = await StorageManager.storage.read(key: key);
-    if (data == null) {
-      return defaultValue;
-    }
-
-    try {
-      return jsonDecode(data);
-    } on Exception catch (e) {
-      NyLogger.error(e.toString());
-      return null;
-    }
-  }
-
-  /// Deletes all keys with associated values.
-  static Future deleteAll({bool andFromBackpack = false}) async {
-    if (andFromBackpack == true) {
-      Backpack.instance.deleteAll();
-    }
-    await StorageManager.storage.deleteAll();
-  }
-
-  /// Update a value in the local storage by [index].
-  static Future<bool> updateCollectionByIndex<T>(
-      int index, T Function(T item) object,
-      {required String key}) async {
-    List<T> collection = await readCollection<T>(key);
-
-    // Check if the collection is empty or the index is out of bounds
-    if (collection.isEmpty || index < 0 || index >= collection.length) {
-      NyLogger.error(
-          '[NyStorage.updateCollectionByIndex] The collection is empty or the index is out of bounds.');
-      return false;
-    }
-
-    // Update the item
-    T newItem = object(collection[index]);
-
-    collection[index] = newItem;
-
-    await saveCollection<T>(key, collection);
-    return true;
-  }
-
-  /// Decrypts and returns all keys with associated values.
-  static Future<Map<String, String>> readAll() async =>
-      await StorageManager.storage.readAll();
-
-  /// Deletes associated value for the given [key].
-  static Future delete(String key, {bool andFromBackpack = false}) async {
-    if (andFromBackpack == true) {
-      Backpack.instance.delete(key);
-    }
-    return await StorageManager.storage.delete(key: key);
-  }
-
-  /// Deletes a collection from the given [key].
-  static Future deleteCollection(String key,
-      {bool andFromBackpack = false}) async {
-    await delete(key, andFromBackpack: andFromBackpack);
-  }
-
-  /// Add a newItem to the collection using a [key].
-  static Future addToCollection<T>(String key,
-      {required dynamic item,
-      bool allowDuplicates = true,
-      Map<Type, dynamic>? modelDecoders}) async {
-    List<T> collection =
-        await readCollection<T>(key, modelDecoders: modelDecoders);
-    if (allowDuplicates == false) {
-      if (collection.any((collect) => collect == item)) {
-        return;
-      }
-    }
-    collection.add(item);
-    await saveCollection<T>(key, collection);
-  }
-
-  /// Update item(s) in a collection using a where query.
-  static Future updateCollectionWhere<T>(bool Function(dynamic value) where,
-      {required String key, required T Function(dynamic value) update}) async {
-    List<T> collection = await readCollection<T>(key);
-    if (collection.isEmpty) return;
-
-    collection.where((value) => where(value)).forEach((element) {
-      update(element);
-    });
-
-    await saveCollection<T>(key, collection);
-  }
-
-  /// Read the collection values using a [key].
-  static Future<List<T>> readCollection<T>(String key,
-      {Map<Type, dynamic>? modelDecoders}) async {
-    String? data = await read(key);
-    if (data == null || data == "") return [];
-
-    List<dynamic> listData = jsonDecode(data);
-
-    if (!["dynamic", "string", "double", "int"]
-        .contains(T.toString().toLowerCase())) {
-      return List.from(listData)
-          .map((json) =>
-              dataToModel<T>(data: json, modelDecoders: modelDecoders))
-          .toList();
-    }
-    return List.from(listData).toList().cast();
-  }
-
-  /// Sets the [key] to null.
-  static Future clear(String key) async => await NyStorage.store(key, null);
-
-  /// Delete item(s) from a collection using a where query.
-  static Future deleteFromCollectionWhere<T>(bool Function(dynamic value) where,
-      {required String key}) async {
-    List<T> collection = await readCollection<T>(key);
-    if (collection.isEmpty) return;
-
-    collection.removeWhere((value) => where(value));
-
-    await saveCollection<T>(key, collection);
-  }
-
-  /// Delete an item of a collection using a [index] and the collection [key].
-  static Future deleteFromCollection<T>(int index,
-      {required String key}) async {
-    List<T> collection = await readCollection<T>(key);
-    if (collection.isEmpty) return;
-    collection.removeAt(index);
-    await saveCollection<T>(key, collection);
-  }
-
-  /// Save a list of objects to a [collection] using a [key].
-  static Future saveCollection<T>(String key, List collection) async {
-    if (["dynamic", "string", "double", "int"]
-        .contains(T.toString().toLowerCase())) {
-      await store(key, jsonEncode(collection));
-      return;
-    }
-
-    String json = jsonEncode(collection.map((item) {
-      Map<String, dynamic>? data = _objectToJson(item);
-      if (data != null) {
-        return data;
-      }
-      return item;
-    }).toList());
-    await store(key, json);
-  }
-
-  /// Delete a value from a collection using a [key] and the [value] you want to remove.
-  static Future deleteValueFromCollection<T>(String key,
-      {dynamic value}) async {
-    List<T> collection = await readCollection<T>(key);
-    collection.removeWhere((item) => item == value);
-    await saveCollection<T>(key, collection);
-  }
-
-  /// Checks if a collection is empty
-  static Future<bool> isCollectionEmpty(String key) async =>
-      (await readCollection(key)).isEmpty;
-
-  /// Sync all the keys stored to the [Backpack] instance.
-  static Future syncToBackpack({bool overwrite = false}) async {
-    Map<String, String> values = await readAll();
-    Backpack backpack = Backpack.instance;
-    for (var data in values.entries) {
-      if (overwrite == false && backpack.contains(data.key)) {
-        continue;
-      }
-      dynamic result = await NyStorage.read(data.key);
-      Backpack.instance.set(data.key, result);
-    }
-  }
-}
-
-/// Attempts to call toJson() on an [object].
-Map<String, dynamic>? _objectToJson(dynamic object) {
-  try {
-    Map<String, dynamic> json = object.toJson();
-    return json;
-  } on NoSuchMethodError catch (e) {
-    NyLogger.debug(e.toString());
-    NyLogger.error(
-        '[NyStorage.store] ${object.runtimeType.toString()} model needs to implement the toJson() method.');
-  }
-  return null;
-}
-
-/// Checks if the value is an integer.
-bool _isInteger(String? s) {
-  if (s == null) {
-    return false;
-  }
-
-  RegExp regExp = RegExp(
-    r"^-?[0-9]+$",
-    caseSensitive: false,
-    multiLine: false,
-  );
-
-  return regExp.hasMatch(s);
-}
-
-/// Checks if the value is a double.
-bool _isDouble(String? s) {
-  if (s == null) {
-    return false;
-  }
-
-  RegExp regExp = RegExp(
-    r"^[0-9]{1,13}([.]?[0-9]*)?$",
-    caseSensitive: false,
-    multiLine: false,
-  );
-
-  return regExp.hasMatch(s);
-}
-
-/// Logger used for messages you want to print to the console.
-class NyLogger {
-  /// Logs a debug [message] to the console.
-  /// It will only print if your app's environment is in debug mode.
-  /// You can override this by setting [alwaysPrint] = true.
-  static debug(dynamic message, {bool alwaysPrint = false}) {
-    _loggerPrint(message ?? "", 'debug', alwaysPrint);
-  }
-
-  /// Logs an error [message] to the console.
-  /// It will only print if your app's environment is in debug mode.
-  /// You can override this by setting [alwaysPrint] = true.
-  static error(dynamic message, {bool alwaysPrint = false}) {
-    if (message.runtimeType.toString() == 'Exception') {
-      _loggerPrint(message.toString(), 'error', alwaysPrint);
-    }
-    _loggerPrint(message, 'error', alwaysPrint);
-  }
-
-  /// Log an info [message] to the console.
-  /// It will only print if your app's environment is in debug mode.
-  /// You can override this by setting [alwaysPrint] = true.
-  static info(dynamic message, {bool alwaysPrint = false}) {
-    _loggerPrint(message ?? "", 'info', alwaysPrint);
-  }
-
-  /// Dumps a [message] with a tag.
-  static dump(dynamic message, String? tag, {bool alwaysPrint = false}) {
-    _loggerPrint(message ?? "", tag, alwaysPrint);
-  }
-
-  /// Log json data [message] to the console.
-  /// It will only print if your app's environment is in debug mode.
-  /// You can override this by setting [alwaysPrint] = true.
-  static json(dynamic message, {bool alwaysPrint = false}) {
-    bool canPrint = (getEnv('APP_DEBUG', defaultValue: true));
-    if (!canPrint && !alwaysPrint) return;
-    try {
-      log(jsonEncode(message));
-    } on Exception catch (e) {
-      NyLogger.error(e.toString());
-    }
-  }
-
-  /// Print a new log message
-  static _loggerPrint(dynamic message, String? type, bool alwaysPrint) {
-    bool canPrint = (getEnv('APP_DEBUG', defaultValue: true));
-    bool showLog = Backpack.instance.read('SHOW_LOG', defaultValue: false);
-    if (!showLog && !canPrint && !alwaysPrint) return;
-    if (showLog) {
-      Backpack.instance.set('SHOW_LOG', false);
-    }
-    String? message;
-    try {
-      if (Nylo.instance.shouldShowDateTimeInLogs()) {
-        String dateTimeFormatted = "${DateTime.now().toDateTimeString()}";
-        message = '[$dateTimeFormatted] ${type != null ? "$type : " : ""}$message';
-        return;
-      }
-      message = '${type != null ? "$type : " : ""}$message';
-    } on Exception catch (_) {
-      message = '${type != null ? "$type : " : ""}$message';
-    }
-    if (kDebugMode) {
-      print(message);
-    }
-  }
-}
-
 /// Return an object from your modelDecoders using [data].
 T dataToModel<T>({required dynamic data, Map<Type, dynamic>? modelDecoders}) {
   assert(T != dynamic,
@@ -535,10 +89,10 @@ T dataToModel<T>({required dynamic data, Map<Type, dynamic>? modelDecoders}) {
     return modelDecoders[T](data);
   }
   Nylo nylo = Backpack.instance.nylo();
-  Map<Type, dynamic> _modelDecoders = nylo.getModelDecoders();
-  assert(_modelDecoders.containsKey(T),
+  Map<Type, dynamic> nyloModelDecoders = nylo.getModelDecoders();
+  assert(nyloModelDecoders.containsKey(T),
       "Your modelDecoders variable inside config/decoders.dart must contain a decoder for Type: $T");
-  return _modelDecoders[T](data);
+  return nyloModelDecoders[T](data);
 }
 
 /// Returns the translation value from the [key] you provide.
@@ -594,6 +148,10 @@ Future<dynamic> nyApi<T>(
     Duration? retryDelay,
     bool Function(DioException dioException)? retryIf,
     bool? shouldSetAuthHeaders,
+    Function(Response response, dynamic data)? onSuccess,
+    Function(DioException dioException)? onError,
+    Duration? cacheDuration,
+    String? cacheKey,
     List<Type> events = const []}) async {
   assert(apiDecoders.containsKey(T),
       'Your config/decoders.dart is missing this class ${T.toString()} in apiDecoders.');
@@ -645,7 +203,31 @@ Future<dynamic> nyApi<T>(
     apiService.setShouldSetAuthHeaders(shouldSetAuthHeaders);
   }
 
+  if (onSuccess != null) {
+    apiService.onSuccess(onSuccess);
+  }
+
+  if (onError != null) {
+    apiService.onError(onError);
+  }
+
+  if (cacheDuration != null || cacheKey != null) {
+    assert(
+        cacheKey != null,
+        "Cache key is required when using cache duration\n"
+        "Example: cacheKey: 'api_all_users'"
+        "");
+
+    assert(
+        cacheDuration != null,
+        "Cache duration is required when using cache key\n"
+        "Example: cacheDuration: Duration(seconds: 60)"
+        "");
+    apiService.setCache(cacheDuration, cacheKey);
+  }
+
   dynamic result = await request(apiService);
+
   if (events.isNotEmpty) {
     Nylo nylo = Backpack.instance.nylo();
 
@@ -679,7 +261,7 @@ T nyColorStyle<T>(BuildContext context, {String? themeId}) {
 
   if (themeId == null) {
     AppTheme themeFound = appThemes.firstWhere((theme) {
-      if (context.isDarkMode) {
+      if (context.isDeviceInDarkMode) {
         return theme.id == getEnv('DARK_THEME_ID');
       }
       return theme.id == ThemeProvider.controllerOf(context).currentThemeId;
@@ -703,24 +285,35 @@ Color nyHexColor(String hexColor) {
 
 /// Match a value from a Map of data.
 /// It will return null if a match is not found.
-T? match<T>(dynamic value, Map<String, dynamic> Function() values,
+T match<T>(dynamic value, Map<dynamic, T> Function() values,
     {dynamic defaultValue}) {
-  Map<String, dynamic> check = values();
-  if (!check.containsKey(value)) {
+  if (value == null) {
+    return defaultValue;
+  }
+
+  Map<dynamic, T> valuesMeta = values();
+
+  for (var val in valuesMeta.entries) {
+    if (val.key == value) {
+      return val.value;
+    }
+  }
+
+  if (!valuesMeta.containsKey(value)) {
     NyLogger.error('The value "$value" does not match any values provided');
     if (defaultValue != null) {
       return defaultValue;
     } else {
-      return null;
+      throw Exception('The value "$value" does not match any values provided');
     }
   }
-  return check[value];
+  return valuesMeta[value] as T;
 }
 
 /// If you call [showNextLog] it will force the app to display the next
 /// 'NyLogger' log even if your app's APP_DEBUG is set to false.
 void showNextLog() {
-  Backpack.instance.set('SHOW_LOG', true);
+  Backpack.instance.save('SHOW_LOG', true);
 }
 
 /// Update's the state of a NyState Widget in your application.
@@ -764,7 +357,7 @@ void updateState<T>(String name,
     return;
   }
 
-  dynamic _data = data;
+  dynamic dataUpdate = data;
   if (setValue != null) {
     List<EventBusHistoryEntry> eventHistory = eventBus.history
         .where(
@@ -772,11 +365,11 @@ void updateState<T>(String name,
         .toList();
     if (eventHistory.isNotEmpty) {
       T? lastValue = eventHistory.last.event.props[1] as T?;
-      _data = setValue(lastValue);
+      dataUpdate = setValue(lastValue);
     }
   }
 
-  final event = UpdateState(data: _data, stateName: name);
+  final event = UpdateState(data: dataUpdate, stateName: name);
   eventBus.fire(event);
 }
 
@@ -799,6 +392,10 @@ api<T extends NyApiService>(dynamic Function(T request) request,
         Duration? retryDelay,
         bool Function(DioException dioException)? retryIf,
         bool? shouldSetAuthHeaders,
+        Function(Response response, dynamic data)? onSuccess,
+        Function(DioException dioException)? onError,
+        Duration? cacheDuration,
+        String? cacheKey,
         List<Type> events = const []}) async =>
     await nyApi<T>(
       request: request,
@@ -815,6 +412,10 @@ api<T extends NyApiService>(dynamic Function(T request) request,
       retry: retry,
       retryDelay: retryDelay,
       retryIf: retryIf,
+      onSuccess: onSuccess,
+      onError: onError,
+      cacheKey: cacheKey,
+      cacheDuration: cacheDuration,
       shouldSetAuthHeaders: shouldSetAuthHeaders,
     );
 
@@ -845,461 +446,42 @@ sleep(int seconds) async {
   await Future.delayed(Duration(seconds: seconds));
 }
 
-/// [StateAction] class
-class StateAction {
-  static refreshPage(String state, {Function()? setState}) {
-    _updateState(state, "refresh-page", {"setState": setState});
-  }
-
-  /// Pop the page
-  static pop(String state, {dynamic result}) {
-    _updateState(state, "pop", {"setState": result});
-  }
-
-  /// Displays a Toast message containing "Sorry" for the title, you
-  /// only need to provide a [description].
-  static showToastSorry(String state,
-      {String? title,
-      required String description,
-      ToastNotificationStyleType? style}) {
-    _updateState(state, "toast-sorry", {
-      "title": title ?? "Sorry",
-      "description": description,
-      "style": style ?? ToastNotificationStyleType.DANGER
-    });
-  }
-
-  /// Displays a Toast message containing "Warning" for the title, you
-  /// only need to provide a [description].
-  static showToastWarning(String state,
-      {String? title,
-      required String description,
-      ToastNotificationStyleType? style}) {
-    _updateState(state, "toast-warning", {
-      "title": title ?? "Warning",
-      "description": description,
-      "style": style ?? ToastNotificationStyleType.WARNING
-    });
-  }
-
-  /// Displays a Toast message containing "Info" for the title, you
-  /// only need to provide a [description].
-  static showToastInfo(String state,
-      {String? title,
-      required String description,
-      ToastNotificationStyleType? style}) {
-    _updateState(state, "toast-info", {
-      "title": title ?? "Info",
-      "description": description,
-      "style": style ?? ToastNotificationStyleType.INFO
-    });
-  }
-
-  /// Displays a Toast message containing "Error" for the title, you
-  /// only need to provide a [description].
-  static showToastDanger(String state,
-      {String? title,
-      required String description,
-      ToastNotificationStyleType? style}) {
-    _updateState(state, "toast-danger", {
-      "title": title ?? "Error",
-      "description": description,
-      "style": style ?? ToastNotificationStyleType.DANGER
-    });
-  }
-
-  /// Displays a Toast message containing "Oops" for the title, you
-  /// only need to provide a [description].
-  static showToastOops(String state,
-      {String? title,
-      required String description,
-      ToastNotificationStyleType? style}) {
-    _updateState(state, "toast-oops", {
-      "title": title ?? "Oops",
-      "description": description,
-      "style": style ?? ToastNotificationStyleType.DANGER
-    });
-  }
-
-  /// Displays a Toast message containing "Success" for the title, you
-  /// only need to provide a [description].
-  static showToastSuccess(String state,
-      {String? title,
-      required String description,
-      ToastNotificationStyleType? style}) {
-    _updateState(state, "toast-success", {
-      "title": title ?? "Success",
-      "description": description,
-      "style": style ?? ToastNotificationStyleType.SUCCESS
-    });
-  }
-
-  /// Display a custom Toast message.
-  static showToastCustom(String state,
-      {String? title,
-      required String description,
-      ToastNotificationStyleType? style}) {
-    _updateState(state, "toast-custom", {
-      "title": title ?? "",
-      "description": description,
-      "style": style ?? ToastNotificationStyleType.CUSTOM
-    });
-  }
-
-  /// Validate data from your widget.
-  static validate(String state,
-      {required Map<String, dynamic> rules,
-      Map<String, dynamic>? data,
-      Map<String, dynamic>? messages,
-      bool showAlert = true,
-      Duration? alertDuration,
-      ToastNotificationStyleType alertStyle =
-          ToastNotificationStyleType.WARNING,
-      required Function()? onSuccess,
-      Function(Exception exception)? onFailure,
-      String? lockRelease}) {
-    _updateState(state, "validate", {
-      "rules": rules,
-      "data": data,
-      "messages": messages,
-      "showAlert": showAlert,
-      "alertDuration": alertDuration,
-      "alertStyle": alertStyle,
-      "onSuccess": onSuccess,
-      "onFailure": onFailure,
-      "lockRelease": lockRelease,
-    });
-  }
-
-  /// Update the language in the application
-  static changeLanguage(String state,
-      {required String language, bool restartState = true}) {
-    _updateState(state, "change-language", {
-      "language": language,
-      "restartState": restartState,
-    });
-  }
-
-  /// Perform a confirm action
-  static confirmAction(String state,
-      {required Function() action,
-      required String title,
-      String dismissText = "Cancel"}) async {
-    _updateState(state, "confirm-action",
-        {"action": action, "title": title, "dismissText": dismissText});
-  }
-
-  /// Updates the page [state]
-  /// Provide an [action] and [data] to call a method in the [NyState].
-  static void _updateState(String state, String action, dynamic data) {
-    updateState(state, data: {"action": action, "data": data});
+/// Load a json file from the assets folder.
+Future<T?> loadJson<T>(String fileName, {bool cache = true}) async {
+  try {
+    String data = await rootBundle.loadString(fileName, cache: cache);
+    dynamic dataJson = jsonDecode(data);
+    if (!([String, int, double, dynamic].contains(T))) {
+      return dataToModel<T>(data: dataJson);
+    }
+    return dataJson;
+  } on Exception catch (e) {
+    NyLogger.error(e.toString());
+    return null;
   }
 }
 
-/// Nylo's Scheduler class
-/// This class is used to schedule tasks to run at a later time.
-class NyScheduler {
-  /// The prefix for the scheduler
-  static const prefix = "ny_scheduler_";
-
-  /// The secure storage key
-  static String key(String name) => prefix + name;
-
-  /// The secure storage instance
-  static final FlutterSecureStorage _secureStorage = NyStorage.manager();
-
-  /// Read a value from the local storage
-  /// Provide a [name] for the value you want to read.
-  static Future<String?> readValue(String name) async {
-    return await _secureStorage.read(key: key(name));
-  }
-
-  /// Read a boolean value from the local storage
-  /// Provide a [name] for the value you want to read.
-  static Future<bool> readBool(String name) async {
-    return (await readValue(name) ?? "") == "true";
-  }
-
-  /// Write a value to the local storage
-  /// Provide a [name] for the value and a [value] to write.
-  static Future writeValue(String name, String value) async {
-    return await _secureStorage.write(key: key(name), value: value);
-  }
-
-  /// Write a bool value to the local storage
-  /// Provide a [name] for the value and a [value] to write.
-  static Future writeBool(String name, bool value) async {
-    return await writeValue(name, (value == true ? "true" : "false"));
-  }
-
-  /// Run a function once
-  /// Provide a [name] for the function and a [callback] to execute.
-  /// The function will only execute once.
-  ///
-  /// Example:
-  /// ```dart
-  /// NyScheduler.once("myFunction", () {
-  ///  print("This will only execute once");
-  ///  });
-  ///  ```
-  ///  The above example will only execute once.
-  ///  The next time you call NyScheduler.once("myFunction", () {}) it will not execute.
-  static taskOnce(String name, Function() callback) async {
-    String key = "${name}_once";
-    bool alreadyExecuted = await readBool(key);
-    if (!alreadyExecuted) {
-      await writeBool(key, true);
-      await callback();
-    }
-  }
-
-  /// Run a task daily
-  /// Provide a [name] for the function and a [callback] to execute.
-  /// The function will execute every day.
-  /// You can also provide an [endAt] date to stop the task from running.
-  /// You can also provide a [frequency] to run the task weekly, monthly or yearly.
-  /// Example:
-  /// ```dart
-  /// NyScheduler.taskDaily("myFunction", () {
-  ///   print("This will execute every day");
-  /// });
-  /// ```
-  /// The above example will execute every day.
-  static taskDaily(String name, Function() callback, {DateTime? endAt}) async {
-    if (endAt != null && !endAt.isInFuture()) {
-      return;
-    }
-
-    String key = "${name}_daily";
-    String? lastTime = await readValue(key);
-
-    if (lastTime == null || lastTime.isEmpty) {
-      await _executeTaskAndSetDateTime(key, callback);
-      return;
-    }
-
-    DateTime todayDateTime = now();
-    DateTime lastDateTime = DateTime.parse(lastTime);
-    Duration difference = todayDateTime.difference(lastDateTime);
-    bool canExecute = (difference.inDays >= 1);
-
-    if (canExecute) {
-      // set the time
-      await _executeTaskAndSetDateTime(key, callback);
-    }
-  }
-
-  /// Execute a task
-  static _executeTaskAndSetDateTime(String key, Function() callback) async {
-    DateTime dateTime = DateTime.now();
-    await writeValue(key, dateTime.toString());
-
-    await callback();
-  }
-
-  /// Run a task after date
-  /// Provide a [name] for the function and a [callback] to execute.
-  /// The function will execute after the [date] provided.
-  /// Example:
-  /// ```dart
-  /// NyScheduler.taskAfterDate("myFunction", () {
-  ///   print("This will execute after the date");
-  /// }, date: DateTime.now().add(Duration(days: 1)));
-  /// ```
-  /// The above example will execute after the date provided.
-  static taskOnceAfterDate(String name, Function() callback,
-      {required DateTime date}) async {
-    /// Check if the date is in the past
-    if (!date.isInPast()) {
-      return;
-    }
-    String key = "${name}_after_date_$date";
-
-    /// Check if we have already executed the task
-    String keyExecuted = "${key}_executed";
-    bool alreadyExecuted = await readBool(keyExecuted);
-
-    if (!alreadyExecuted) {
-      await writeBool(keyExecuted, true);
-      await callback();
-    }
+/// Clear badge number
+clearBadgeNumber() async {
+  if (Platform.isAndroid || Platform.isIOS) {
+    await AppBadgePlus.updateBadge(0);
   }
 }
 
-/// Nylo's NyAppUsage class
-/// This class is used to monitor app usage.
-class NyAppUsage {
-  /// The prefix for the app usage
-  static const prefix = "ny_app_usage_";
-
-  /// The secure storage key
-  static String key(String name) => prefix + name;
-
-  /// The secure storage instance
-  static final FlutterSecureStorage _secureStorage = NyStorage.manager();
-
-  /// Read a value from the local storage
-  /// Provide a [name] for the value you want to read.
-  static Future<String?> readValue(String name) async {
-    return await _secureStorage.read(key: key(name));
-  }
-
-  /// Read a boolean value from the local storage
-  /// Provide a [name] for the value you want to read.
-  static Future<bool> readBool(String name) async {
-    return (await readValue(name) ?? "") == "true";
-  }
-
-  /// Write a value to the local storage
-  /// Provide a [name] for the value and a [value] to write.
-  static Future writeValue(String name, String value) async {
-    return await _secureStorage.write(key: key(name), value: value);
-  }
-
-  /// Reset launch count
-  static resetLaunchCount() async {
-    await useMonitoringMethod(() async {
-      await writeValue("launch_count", "0");
-    });
-  }
-
-  /// Reset first launch
-  static resetFirstLaunch() async {
-    await useMonitoringMethod(() async {
-      await writeValue("first_launch", DateTime.now().toString());
-    });
-  }
-
-  /// Reset first launch
-  static resetLastLaunch() async {
-    await useMonitoringMethod(() async {
-      await writeValue("last_launch", DateTime.now().toString());
-    });
-  }
-
-  /// Check if we can use this [method]
-  static useMonitoringMethod(Function() method) async {
-    Nylo.canMonitorAppUsage();
-    return await method();
-  }
-
-  /// App launched
-  /// This method will increment the app launch count.
-  static Future<void> appLaunched() async {
-    await useMonitoringMethod(() async {
-      await writeValue("last_launch", DateTime.now().toString());
-      int? count = await appLaunchCount();
-      if (count == null) {
-        await writeValue("first_launch", DateTime.now().toString());
-        await writeValue("launch_count", "1");
-        return;
-      }
-      count++;
-      await writeValue("launch_count", count.toString());
-    });
-  }
-
-  /// App launch count
-  /// This method will return the app launch count.
-  static Future<int?> appLaunchCount() async {
-    return await useMonitoringMethod(() async {
-      String? launchCount = await readValue("launch_count");
-      if (launchCount == null || launchCount.isEmpty) {
-        return null;
-      }
-
-      int count = int.parse(launchCount);
-      return count;
-    });
-  }
-
-  /// Days since first launch
-  static Future<int> appTotalDaysSinceFirstLaunch() async {
-    return await useMonitoringMethod(() async {
-      String? firstLaunch = await readValue("first_launch");
-      if (firstLaunch == null || firstLaunch.isEmpty) {
-        return 0;
-      }
-
-      DateTime firstLaunchDateTime = DateTime.parse(firstLaunch);
-      DateTime todayDateTime = DateTime.now();
-      Duration difference = todayDateTime.difference(firstLaunchDateTime);
-      return difference.inDays;
-    });
-  }
-
-  /// Days since first launch
-  static Future<DateTime?> appFirstLaunchDate() async {
-    return await useMonitoringMethod(() async {
-      String? firstLaunch = await readValue("first_launch");
-      if (firstLaunch == null || firstLaunch.isEmpty) {
-        return null;
-      }
-
-      try {
-        return DateTime.parse(firstLaunch);
-      } on Exception catch (e) {
-        NyLogger.error(e.toString());
-        return null;
-      }
-    });
-  }
+/// Print a message to the console.
+/// Log level: Info
+printInfo(dynamic message, {bool alwaysPrint = false}) {
+  NyLogger.info(message, alwaysPrint: alwaysPrint);
 }
 
-/// Nylo's NyAction class
-class NyAction {
-  /// Limit the number of times an action can be performed in a day.
-  /// Provide an [actionKey] for the action you want to limit.
-  /// Provide an [perform] to execute if the user is authorized.
-  /// Provide a [maxPerDay] to limit the number of times the action can be performed.
-  static limitPerDay(String actionKey, Function() perform,
-      {int maxPerDay = 5, Function()? unauthorized}) async {
-    String key = "action_$actionKey";
+/// Print a message to the console.
+/// Log level: Error
+printError(dynamic message, {bool alwaysPrint = false}) {
+  NyLogger.error(message, alwaysPrint: alwaysPrint);
+}
 
-    /// check that the actions occur on the same day
-    Map<String, dynamic>? value = await NyStorage.readJson(key);
-    if (value == null) {
-      await NyStorage.storeJson(
-          key, {"date": DateTime.now().toDateString(), "value": "1"});
-      await perform();
-      return;
-    }
-    int valueInt = int.parse(value['value']);
-
-    // reset the value if the date is not today
-    if (value['date'] != DateTime.now().toDateString()) {
-      await NyStorage.storeJson(
-          key, {"date": DateTime.now().toDateString(), "value": "1"});
-      await perform();
-      return;
-    }
-
-    if (valueInt >= maxPerDay) {
-      if (unauthorized != null) {
-        await unauthorized();
-      }
-      return;
-    }
-    await NyStorage.storeJson(key, {
-      "date": DateTime.now().toDateString(),
-      "value": (valueInt + 1).toString()
-    });
-    await perform();
-  }
-
-  /// Perform an action only if the user is authorized to do so.
-  /// Provide a [perform] function to execute if the user is authorized.
-  /// Provide a [when] function to check if the user is authorized.
-  /// Provide an [unauthorized] function to execute if the user is not authorized.
-  static authorized(Function() perform,
-      {required bool Function() when, Function()? unauthorized}) async {
-    bool canPerform = when();
-    if (!canPerform) {
-      if (unauthorized != null) {
-        await unauthorized();
-      }
-      return;
-    }
-    await perform();
-  }
+/// Print a message to the console.
+/// Log level: Debug
+printDebug(dynamic message, {bool alwaysPrint = false}) {
+  NyLogger.debug(message, alwaysPrint: alwaysPrint);
 }

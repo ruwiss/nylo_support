@@ -27,13 +27,14 @@ class PageTransitionSettings {
       this.isIos,
       this.matchingBuilder});
 
+  /// Base constructor
   const PageTransitionSettings.base(
       {this.childCurrent,
       this.context,
       this.inheritTheme = false,
-      this.curve = Curves.linear,
+      this.curve = Curves.easeInOut,
       this.alignment,
-      this.duration = const Duration(milliseconds: 200),
+      this.duration = const Duration(milliseconds: 300),
       this.reverseDuration = const Duration(milliseconds: 200),
       this.fullscreenDialog = false,
       this.opaque = false,

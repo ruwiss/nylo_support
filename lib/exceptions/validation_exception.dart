@@ -13,6 +13,7 @@ class ValidationException implements Exception {
   final ValidationRule validationRule;
 
   /// Returns a description of the exception.
+  @override
   String toString() =>
       'ValidationException: The "$attribute" attribute has failed validation on "${validationRule.signature}"';
 

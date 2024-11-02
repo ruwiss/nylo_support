@@ -22,6 +22,7 @@ const String pagesFolder = 'lib/resources/pages';
 const String modelsFolder = 'lib/app/models';
 const String themesFolder = 'lib/resources/themes';
 const String providerFolder = 'lib/app/providers';
+const String formsFolder = 'lib/app/forms';
 const String eventsFolder = 'lib/app/events';
 const String networkingFolder = 'lib/app/networking';
 const String networkingInterceptorsFolder =
@@ -30,7 +31,7 @@ const String bootstrapFolder = 'lib/bootstrap';
 const String configFolder = 'lib/config';
 const String themeColorsFolder = 'lib/resources/themes/styles';
 const String routeGuardsFolder = 'lib/routes/guards';
-const String publicAssetsImagesFolder = 'public/assets/images';
+const String publicAssetsImagesFolder = 'public/images';
 const String langFolder = 'lang';
 
 // import paths

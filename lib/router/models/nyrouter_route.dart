@@ -1,34 +1,33 @@
+import '/controllers/ny_controller.dart';
+
 import '/controllers/controller.dart';
 import '/router/models/ny_page_transition_settings.dart';
 import '/router/models/ny_query_parameters.dart';
 import '/router/models/nyrouter_route_guard.dart';
 import '/router/router.dart';
-import '/widgets/ny_page.dart';
 import '/widgets/ny_stateful_widget.dart';
 import 'package:flutter/widgets.dart';
-import 'package:page_transition/page_transition.dart';
+import '/router/page_transition/page_transition.dart';
 import 'ny_argument.dart';
 
+/// The typedef for the route builder.
 typedef NyRouterRouteBuilder = Widget Function(
   BuildContext context,
   NyArgument? args,
   NyQueryParameters? queryParameters,
 );
 
+/// The [NyRouterRoute] class is used to define a route in the Nylo Router.
 class NyRouterRoute {
-  final String name;
+  String name;
   late NyRouterRouteBuilder builder;
   final NyArgument? defaultArgs;
   final NyQueryParameters? queryParameters;
   final NyRouteView view;
   PageTransitionType? pageTransitionType;
   PageTransitionSettings? pageTransitionSettings;
-  bool _initialRoute, _authPage;
-
-  /// Ran before opening the route itself.
-  /// If every route guard returns [true], the route is approved and opened.
-  /// Anything else will result in the route being rejected and not open.
-  List<RouteGuard> _routeGuards = [];
+  bool _initialRoute, _authPage, _unknownRoute;
+  final List<RouteGuard> _routeGuards = [];
 
   NyRouterRoute(
       {required this.name,
@@ -39,10 +38,12 @@ class NyRouterRoute {
       this.pageTransitionType,
       this.pageTransitionSettings,
       initialRoute = false,
+      unknownRoute = false,
       authPage = false})
       : _initialRoute = initialRoute,
-        _authPage = authPage,
-        _routeGuards = routeGuards ?? [] {
+        _unknownRoute = unknownRoute,
+        _authPage = authPage {
+    _routeGuards.addAll(routeGuards ?? []);
     builder = (context, arg, queryParameters) {
       Widget widget = view(context);
       if (widget is NyStatefulWidget) {
@@ -51,19 +52,12 @@ class NyRouterRoute {
           args: arg,
           queryParameters: queryParameters,
         );
+        (widget.controller as NyController).routeGuards.addAll(_routeGuards);
+
         widget.controller.construct(context);
         if (widget.state != null) {
           widget.controller.state = widget.state!;
         }
-      }
-      if (widget is NyPage) {
-        widget.controller.request = NyRequest(
-          currentRoute: name,
-          args: arg,
-          queryParameters: queryParameters,
-        );
-        widget.controller.construct(context);
-        widget.controller.state = widget.state;
       }
       return widget;
     };
@@ -92,17 +86,30 @@ class NyRouterRoute {
 
   /// Add route guards to the route
   NyRouterRoute addRouteGuards(List<RouteGuard> guards) {
-    guards.forEach((guard) {
+    for (var guard in guards) {
       _routeGuards.add(guard);
-    });
+    }
     NyNavigator.instance.router.updateRoute(this);
     return this;
   }
 
   /// Set the initial route.
-  NyRouterRoute initialRoute() {
-    _initialRoute = true;
-    NyNavigator.instance.router.updateRoute(this);
+  NyRouterRoute initialRoute({bool Function()? when}) {
+    if (when != null && when()) {
+      _initialRoute = true;
+    }
+    if (when == null) {
+      _initialRoute = true;
+    }
+    if (_initialRoute) {
+      NyNavigator.instance.router.updateRoute(this);
+    }
+    return this;
+  }
+
+  /// Add a prefix to the route name.
+  NyRouterRoute addPrefixToName(String prefix) {
+    name = prefix + name;
     return this;
   }
 
@@ -111,9 +118,28 @@ class NyRouterRoute {
     return _initialRoute;
   }
 
-  /// Set the auth route.
-  NyRouterRoute authRoute() {
-    _authPage = true;
+  /// Get the unknown route.
+  bool getUnknownRoute() {
+    return _unknownRoute;
+  }
+
+  /// Set the authenticated route.
+  NyRouterRoute authenticatedRoute({bool Function()? when}) {
+    if (when != null && when()) {
+      _authPage = true;
+    }
+    if (when == null) {
+      _authPage = true;
+    }
+    if (_authPage) {
+      NyNavigator.instance.router.updateRoute(this);
+    }
+    return this;
+  }
+
+  /// Set the unknown route.
+  NyRouterRoute unknownRoute() {
+    _unknownRoute = true;
     NyNavigator.instance.router.updateRoute(this);
     return this;
   }

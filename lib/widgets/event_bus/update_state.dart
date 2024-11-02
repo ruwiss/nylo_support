@@ -1,7 +1,6 @@
 import '/event_bus/event_bus_plus.dart';
 
 /// UpdateState Model.
-
 class UpdateState extends AppEvent {
   const UpdateState({this.data, this.stateName});
 

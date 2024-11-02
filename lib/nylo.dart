@@ -1,4 +1,14 @@
+import 'dart:io';
+
+import 'package:error_stack/error_stack.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
+import '/helpers/ny_cache.dart';
+import 'package:timezone/data/latest_all.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
 import 'package:intl/intl.dart';
+import '/widgets/ny_form.dart';
 import '/controllers/ny_controller.dart';
 import '/event_bus/event_bus_plus.dart';
 import 'package:flutter/material.dart';
@@ -9,7 +19,6 @@ import '/events/events.dart';
 import '/helpers/backpack.dart';
 import '/helpers/helper.dart';
 import '/networking/ny_api_service.dart';
-import '/plugin/nylo_plugin.dart';
 import '/router/models/arguments_wrapper.dart';
 import '/router/models/ny_argument.dart';
 import '/router/observers/ny_route_history_observer.dart';
@@ -18,6 +27,9 @@ import '/themes/base_color_styles.dart';
 import '/themes/base_theme_config.dart';
 import '/widgets/event_bus/update_state.dart';
 import 'package:theme_provider/theme_provider.dart';
+import 'helpers/ny_app_usage.dart';
+import 'helpers/ny_scheduler.dart';
+import 'local_storage/local_storage.dart';
 import 'localization/app_localization.dart';
 export '/exceptions/validation_exception.dart';
 export '/alerts/toast_enums.dart';
@@ -29,49 +41,112 @@ class Nylo {
   NyRouter? router;
   bool? _monitorAppUsage;
   bool? _showDateTimeInLogs;
-  Map<Type, NyEvent> _events = {};
-  Map<String, dynamic> _validationRules = {};
+  bool? _enableErrorStack;
+  ErrorStackLogLevel? _errorStackLogLevel;
+  String? authStorageKey;
+  Widget Function(FlutterErrorDetails errorDetails)? _errorStackErrorWidget;
+  InitializationSettings? _initializationSettings;
+  final Map<Type, NyEvent> _events = {};
+  final Map<String, dynamic> _validationRules = {};
+  final Map<String, dynamic> _formCasts = {};
   final Map<Type, NyApiService Function()> _apiDecoders = {};
   final Map<Type, NyApiService> _singletonApiDecoders = {};
-  List<BaseThemeConfig> _appThemes = [];
-  List<NavigatorObserver> _navigatorObservers = [];
+  final List<BaseThemeConfig> _appThemes = [];
+  final List<NavigatorObserver> _navigatorObservers = [];
   Widget Function({
     required ToastNotificationStyleType style,
     Function(ToastNotificationStyleMetaHelper helper)?
         toastNotificationStyleMeta,
     Function? onDismiss,
   })? _toastNotification;
-  Map<Type, dynamic> _modelDecoders = {};
-  Map<Type, dynamic> _controllerDecoders = {};
-  Map<Type, dynamic> _singletonControllers = {};
+  final Map<Type, dynamic> _modelDecoders = {};
+  final Map<Type, dynamic> _controllerDecoders = {};
+  final Map<Type, dynamic> _singletonControllers = {};
+  Function(String route, dynamic data)? onDeepLinkAction;
+  NyFormStyle? _formStyle;
+  FlutterLocalNotificationsPlugin? _localNotifications;
+  bool? _useLocalNotifications;
+  Function(NotificationResponse details)? _onDidReceiveLocalNotification;
+  Function(NotificationResponse details)?
+      _onDidReceiveBackgroundNotificationResponse;
+  NyCache? _cache;
+
+  /// Get the cache instance
+  NyCache? get getCache => _cache;
 
   /// Create a new Nylo instance.
   Nylo({this.router, bool useNyRouteObserver = true})
-      : _appLoader = CircularProgressIndicator(),
-        _appLogo = SizedBox.shrink(),
-        _navigatorObservers = useNyRouteObserver
-            ? [
-                NyRouteHistoryObserver(),
-              ]
-            : [];
-
-  /// Assign a [NyPlugin] to add extra functionality to your app from a plugin.
-  /// e.g. from main.dart
-  /// Nylo.use(CustomPlugin());
-  use(NyPlugin plugin) async {
-    await plugin.initPackage(this);
-    router ??= NyRouter();
-    router!.setNyRoutes(plugin.routes());
-    _events.addAll(plugin.events());
-    NyNavigator.instance.router = router!;
+      : _appLoader = const CircularProgressIndicator(),
+        _appLogo = const SizedBox.shrink() {
+    _navigatorObservers.addAll(useNyRouteObserver
+        ? [
+            NyRouteHistoryObserver(),
+          ]
+        : []);
   }
 
   /// Set the initial route from a [routeName].
   setInitialRoute(String routeName) {
     _initialRoute = routeName;
     if (!Backpack.instance.isNyloInitialized()) {
-      Backpack.instance.set("nylo", this);
+      Backpack.instance.save("nylo", this);
     }
+  }
+
+  /// Sync keys to the backpack instance.
+  syncKeys(keys) async {
+    Future<List<Object?>> Function() keysToSync = await keys();
+    List finalKeys = await keysToSync();
+    for (var key in finalKeys) {
+      if (key is Future Function(bool)) {
+        await key(true);
+        continue;
+      }
+      dynamic keyValue = await NyStorage.read(key);
+      Backpack.instance.save(key, keyValue);
+    }
+  }
+
+  /// Set the form style
+  addFormStyle(NyFormStyle formStyle) {
+    _formStyle = formStyle;
+  }
+
+  /// Get the form style
+  NyFormStyle? getFormStyle() => _formStyle;
+
+  /// Update the stack on the router.
+  /// [routes] is a list of routes to navigate to. E.g. [HomePage.path, SettingPage.path]
+  /// [replace] is a boolean that determines if the current route should be replaced.
+  /// [dataForRoute] is a map of data to pass to the route. E.g. {HomePage.path: {"name": "John Doe"}}
+  /// Example:
+  /// ```dart
+  /// Nylo.updateStack([
+  ///  HomePage.path,
+  ///  SettingPage.path
+  ///  ], replace: true, dataForRoute: {
+  ///  HomePage.path: {"name": "John Doe"}
+  ///  });
+  ///  ```
+  ///  This will navigate to the HomePage and SettingPage with the data passed to the HomePage.
+  static updateRouteStack(List<String> routes,
+      {bool replace = true,
+      bool deepLink = false,
+      Map<String, dynamic>? dataForRoute}) {
+    if (deepLink == true) {
+      routes.removeLast();
+    }
+    NyNavigator.updateStack(routes,
+        replace: replace, dataForRoute: dataForRoute);
+  }
+
+  /// Set the deep link action.
+  /// e.g. nylo.onDeepLink((route, data) {
+  ///  print("Deep link route: $route");
+  ///  print("Deep link data: $data");
+  ///  });
+  onDeepLink(Function(String route, dynamic data) callback) {
+    onDeepLinkAction = callback;
   }
 
   /// Get the toast notification.
@@ -91,8 +166,9 @@ class Nylo {
       if (!_singletonControllers.containsKey(controller)) return null;
     }
 
-    if (_singletonControllers.containsKey(controller))
+    if (_singletonControllers.containsKey(controller)) {
       return _singletonControllers[controller];
+    }
 
     if (controllerValue is NyController) return controllerValue;
 
@@ -124,10 +200,10 @@ class Nylo {
   /// Allows you to add additional Router's to your project.
   ///
   /// file: e.g. /lib/routes/account_router.dart
-  /// NyRouter accountRouter() => nyRoutes((router) {
+  /// accountRouter() => nyRoutes((router) {
   ///    Add your routes here
-  ///    router.route("/account", (context) => AccountPage());
-  ///    router.route("/account/update", (context) => AccountUpdatePage());
+  ///    router.add(AccountPage.path);
+  ///    router.add(AccountUpdatePage.path);
   /// });
   ///
   /// Usage in /app/providers/route_provider.dart e.g. Nylo.addRouter(accountRouter());
@@ -135,7 +211,8 @@ class Nylo {
     if (this.router == null) {
       this.router = NyRouter();
     }
-    this.router!.setRegisteredRoutes(router.getRegisteredRoutes());
+    this.router?.setRegisteredRoutes(router.getRegisteredRoutes());
+    this.router?.setUnknownRoutes(router.getUnknownRoutes());
     NyNavigator.instance.router = this.router!;
   }
 
@@ -151,6 +228,43 @@ class Nylo {
   /// functions from the [NyAppUsage] class.
   monitorAppUsage() {
     _monitorAppUsage = true;
+  }
+
+  /// Use ErrorStack
+  /// [level] is the log level for ErrorStack
+  /// [errorWidget] is a custom error widget
+  useErrorStack(
+      {ErrorStackLogLevel level = ErrorStackLogLevel.verbose,
+      Widget Function(FlutterErrorDetails errorDetails)? errorWidget}) {
+    _enableErrorStack = true;
+    _errorStackLogLevel = level;
+    _errorStackErrorWidget = errorWidget;
+  }
+
+  /// Use local notifications
+  void useLocalNotifications({
+    DarwinInitializationSettings? iosSettings,
+    AndroidInitializationSettings? androidSettings =
+        const AndroidInitializationSettings('app_icon'),
+    LinuxInitializationSettings? linuxSettings =
+        const LinuxInitializationSettings(
+            defaultActionName: 'Open notification'),
+    Function(NotificationResponse details)? onDidReceiveLocalNotification,
+    Function(NotificationResponse details)?
+        onDidReceiveBackgroundNotificationResponse,
+  }) {
+    _useLocalNotifications = true;
+
+    InitializationSettings initializationSettings = InitializationSettings(
+      android: androidSettings,
+      iOS: iosSettings,
+      linux: linuxSettings,
+    );
+
+    _initializationSettings = initializationSettings;
+    _onDidReceiveLocalNotification = onDidReceiveLocalNotification;
+    _onDidReceiveBackgroundNotificationResponse =
+        onDidReceiveBackgroundNotificationResponse;
   }
 
   /// Check if the app should monitor app usage
@@ -214,11 +328,19 @@ class Nylo {
   /// Get [validators] from Nylo
   Map<String, dynamic> getValidationRules() => _validationRules;
 
+  /// Add form casts to Nylo
+  addFormCasts(Map<String, dynamic> formTypes) {
+    _formCasts.addAll(formTypes);
+  }
+
+  /// Get form types from Nylo
+  Map<String, dynamic> getFormCasts() => _formCasts;
+
   /// Add [modelDecoders] to Nylo
   addModelDecoders(Map<Type, dynamic> modelDecoders) {
     _modelDecoders.addAll(modelDecoders);
     if (!Backpack.instance.isNyloInitialized()) {
-      Backpack.instance.set("nylo", this);
+      Backpack.instance.save("nylo", this);
     }
   }
 
@@ -238,10 +360,10 @@ class Nylo {
       maxHistoryLength: maxHistoryLength,
       allowLogging: allowLogging,
     );
-    final event = UpdateState();
+    const event = UpdateState();
     eventBus.watch(event);
 
-    Backpack.instance.set("event_bus", eventBus);
+    Backpack.instance.save("event_bus", eventBus);
   }
 
   /// Add appLoader
@@ -269,35 +391,107 @@ class Nylo {
     }
 
     if (!Backpack.instance.isNyloInitialized()) {
-      Backpack.instance.set("nylo", this);
+      Backpack.instance.save("nylo", this);
     }
+  }
+
+  /// Configure the app to use local timezone
+  static Future<void> _configureLocalTimeZone() async {
+    if (kIsWeb || Platform.isLinux) {
+      return;
+    }
+    tz.initializeTimeZones();
+    final String timeZoneName = await FlutterTimezone.getLocalTimezone();
+    tz.setLocalLocation(tz.getLocation(timeZoneName));
+  }
+
+  /// Get initialization settings
+  InitializationSettings? getInitializationSettings() =>
+      _initializationSettings;
+
+  /// Get local notifications
+  FlutterLocalNotificationsPlugin? getLocalNotifications() =>
+      _localNotifications;
+
+  /// Set local notifications
+  setLocalNotifications(FlutterLocalNotificationsPlugin localNotifications) {
+    _localNotifications = localNotifications;
+  }
+
+  /// Get the local notifications plugin
+  static localNotifications(
+      Function(FlutterLocalNotificationsPlugin localNotifications)
+          callback) async {
+    FlutterLocalNotificationsPlugin? flutterLocalNotifications =
+        Nylo.instance.getLocalNotifications();
+    if (flutterLocalNotifications == null) {
+      flutterLocalNotifications = FlutterLocalNotificationsPlugin();
+      Nylo.instance.setLocalNotifications(flutterLocalNotifications);
+    }
+    await callback(flutterLocalNotifications);
   }
 
   /// Initialize Nylo
   static Future<Nylo> init(
-      {Function? setup, Function(Nylo nylo)? setupFinished}) async {
-    const String ENV_FILE = String.fromEnvironment(
+      {Function? setup,
+      Function(Nylo nylo)? setupFinished,
+      bool? showSplashScreen}) async {
+    const String envFile = String.fromEnvironment(
       'ENV_FILE',
       defaultValue: '.env',
     );
-    await dotenv.load(fileName: ENV_FILE);
+    await dotenv.load(
+        fileName: envFile,
+        mergeWith: showSplashScreen != null
+            ? {"SHOW_SPLASH_SCREEN": 'true'}
+            : const {});
     Intl.defaultLocale = getEnv('DEFAULT_LOCALE', defaultValue: 'en');
 
-    Nylo _nylo = Nylo();
+    await _configureLocalTimeZone();
+
+    Nylo nyloApp = Nylo();
 
     if (setup == null) {
+      nyloApp._cache = await NyCache.getInstance();
       if (setupFinished != null) {
-        await setupFinished(_nylo);
+        await setupFinished(nyloApp);
       }
-      return _nylo;
+      if (nyloApp._enableErrorStack == true) {
+        await ErrorStack.init(
+            level: nyloApp._errorStackLogLevel ?? ErrorStackLogLevel.verbose,
+            initialRoute: nyloApp.getInitialRoute(),
+            errorWidget: nyloApp._errorStackErrorWidget);
+      }
+      if (nyloApp._useLocalNotifications == true) {
+        FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+            FlutterLocalNotificationsPlugin();
+        nyloApp.setLocalNotifications(flutterLocalNotificationsPlugin);
+        if (nyloApp._initializationSettings != null) {
+          await flutterLocalNotificationsPlugin.initialize(
+            nyloApp._initializationSettings!,
+            onDidReceiveBackgroundNotificationResponse:
+                nyloApp._onDidReceiveBackgroundNotificationResponse,
+            onDidReceiveNotificationResponse:
+                nyloApp._onDidReceiveLocalNotification,
+          );
+        }
+      }
+      return nyloApp;
     }
 
-    _nylo = await setup();
+    nyloApp = await setup();
+    nyloApp._cache = await NyCache.getInstance();
 
     if (setupFinished != null) {
-      await setupFinished(_nylo);
+      await setupFinished(nyloApp);
     }
-    return _nylo;
+    if (nyloApp._enableErrorStack == true) {
+      await ErrorStack.init(
+          level: nyloApp._errorStackLogLevel ?? ErrorStackLogLevel.verbose,
+          initialRoute: nyloApp.getInitialRoute(),
+          errorWidget: nyloApp._errorStackErrorWidget);
+    }
+    return nyloApp;
   }
 
   /// Get the current locale
@@ -329,6 +523,15 @@ class Nylo {
     }
     apiDecoders.addAll(instance._singletonApiDecoders);
     return apiDecoders;
+  }
+
+  /// Get a API Decoder
+  static NyApiService apiDecoder<T>() {
+    Map<Type, NyApiService> decoders = apiDecoders();
+    if (decoders.containsKey(T)) {
+      return decoders[T]!;
+    }
+    throw Exception("ApiService not found");
   }
 
   /// Add a navigator observer.
@@ -503,5 +706,44 @@ class Nylo {
   /// Wipe all storage data
   static Future<void> wipeAllStorageData() async {
     await NyStorage.deleteAll(andFromBackpack: true);
+  }
+
+  /// Check if the router contains specific [routes]
+  static bool containsRoutes(List<String> routes) {
+    return NyNavigator.instance.router.containsRoutes(routes);
+  }
+
+  /// Check if the router contains specific [route]
+  static bool containsRoute(String route) {
+    return NyNavigator.instance.router.containsRoutes([route]);
+  }
+
+  /// Get the auth user
+  static T? user<T>() {
+    return Backpack.instance.read<T>(authKey());
+  }
+
+  /// Get the auth user
+  static String authKey() {
+    String? authKey = instance.authStorageKey;
+    if (authKey == null) {
+      throw Exception("Auth key is not set in your Nylo instance");
+    }
+    return instance.authStorageKey!;
+  }
+
+  /// Add an auth key to the Nylo instance
+  addAuthKey(String key) {
+    authStorageKey = key;
+  }
+
+  /// Sync a model to the backpack instance.
+  syncToBackpack(String key, dynamic data) async {
+    Backpack.instance.save(key, data);
+  }
+
+  /// Wipe all storage data
+  wipeStorage() async {
+    await NyStorage.deleteAll();
   }
 }

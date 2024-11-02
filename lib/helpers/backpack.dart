@@ -1,16 +1,15 @@
 import 'dart:convert';
-
 import '/helpers/helper.dart';
 import '/nylo.dart';
 
 /// Backpack class for storing data
 /// This class is not designed to store huge amounts of data.
 class Backpack {
-  Map<String, dynamic> _values = {};
+  final Map<String, dynamic> _values = {};
 
   Backpack._privateConstructor();
 
-  static final Backpack instance = Backpack._privateConstructor();
+  static Backpack instance = Backpack._privateConstructor();
 
   /// Read data from the Backpack with a [key].
   T? read<T>(String key, {dynamic defaultValue}) {
@@ -31,13 +30,51 @@ class Backpack {
     return value;
   }
 
+  /// Update the session with a [key] and [value].
+  sessionUpdate(String name, String key, dynamic value) {
+    if (!_values.containsKey(name)) {
+      _values[name] = {};
+    }
+    _values[name][key] = value;
+  }
+
+  /// Get a session value using a [key].
+  T? sessionGet<T>(String name, String key) {
+    if (!_values.containsKey(name)) {
+      return null;
+    }
+    return _values[name][key];
+  }
+
+  /// Remove a session value using a [key].
+  sessionRemove(String name, String key) {
+    if (_values.containsKey(name)) {
+      _values[name].remove(key);
+    }
+  }
+
+  /// Flush a session using a [name].
+  sessionFlush(String name) {
+    if (_values.containsKey(name)) {
+      _values.remove(name);
+    }
+  }
+
+  /// Get all session values.
+  Map<String, dynamic>? sessionData(String name) {
+    if (_values.containsKey(name)) {
+      return Map<String, dynamic>.from(_values[name]);
+    }
+    return null;
+  }
+
   /// Checks if Backpack contains a key.
   bool contains(String key) {
     return _values.containsKey(key);
   }
 
   /// Set a value using a [key] and [value].
-  void set(String key, dynamic value) => _values[key] = value;
+  void save(String key, dynamic value) => _values[key] = value;
 
   /// Delete a value using a [key].
   void delete(String key) {
@@ -48,7 +85,7 @@ class Backpack {
 
   /// Delete all values from [Backpack].
   void deleteAll() {
-    _values = {};
+    _values.removeWhere((key, value) => key != 'nylo');
   }
 
   /// Returns an instance of Nylo.
@@ -59,22 +96,26 @@ class Backpack {
     return _values[key];
   }
 
-  /// Returns an instance of the auth user.
-  T? auth<T>({String? key}) {
-    String storageKey = getEnv('AUTH_USER_KEY', defaultValue: 'AUTH_USER');
-    if (key != null) {
-      storageKey = key;
-    }
-    if (!_values.containsKey(storageKey)) {
-      return null;
-    }
-    return _values[storageKey];
-  }
-
   /// Check if the Backpack class contains an instance of Nylo.
   bool isNyloInitialized({String? key = "nylo"}) =>
       _values.containsKey(key) && _values[key] is Nylo;
 }
+
+/// Read data from the Backpack with a [key].
+backpackRead<T>(String key, {dynamic defaultValue}) =>
+    Backpack.instance.read<T>(key, defaultValue: defaultValue);
+
+/// Save a value using a [key] and [value].
+backpackSave(String key, dynamic value) => Backpack.instance.save(key, value);
+
+/// Delete a value using a [key].
+backpackDelete(String key) => Backpack.instance.delete(key);
+
+/// Delete all values from [Backpack].
+backpackDeleteAll() => Backpack.instance.deleteAll();
+
+/// Returns an instance of Nylo.
+Nylo backpackNylo({String key = 'nylo'}) => Backpack.instance.nylo(key: key);
 
 /// helper to encode and decode data
 class _NyJson {

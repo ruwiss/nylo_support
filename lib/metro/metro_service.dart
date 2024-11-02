@@ -93,7 +93,7 @@ final Map<Type, dynamic> controllers = {${reg.allMatches(file).map((e) => e.grou
             RegExp reg = RegExp(
                 r'final Map<Type, BaseController Function\(\)> controllers = \{([^}]*)\};');
             String temp = """
-final Map<Type, BaseController Function\(\)> controllers = {${reg.allMatches(file).map((e) => e.group(1)).toList()[0]}
+final Map<Type, BaseController Function()> controllers = {${reg.allMatches(file).map((e) => e.group(1)).toList()[0]}
   $controllerName: () => $controllerName(),
 };""";
 
@@ -172,7 +172,7 @@ final Map<Type, BaseController> controllers = {${reg.allMatches(file).map((e) =>
       bool isInitialPage = false,
       bool isAuthPage = false,
       String? creationPath}) async {
-    String name = className.replaceAll(RegExp(r'(_?page)'), "");
+    String name = className.snakeCase.replaceAll(RegExp(r'(_?page)'), "");
 
     // create missing directories in the project
     await createDirectoriesFromCreationPath(creationPath, folderPath);
@@ -180,7 +180,7 @@ final Map<Type, BaseController> controllers = {${reg.allMatches(file).map((e) =>
     // create file path
     String filePath = createPathForDartFile(
         folderPath: folderPath,
-        className: className,
+        className: name,
         prefix: "page",
         creationPath: creationPath);
 
@@ -201,6 +201,64 @@ final Map<Type, BaseController> controllers = {${reg.allMatches(file).map((e) =>
         createTemplate: (file) {
           String strAuthPage = "";
           if (isAuthPage) {
+            strAuthPage = ", authenticatedRoute: true";
+          }
+          String strInitialPage = "";
+          if (isInitialPage) {
+            strInitialPage = ", initialRoute: true";
+          }
+
+          String routeName =
+              'router.add(${name.pascalCase}Page.path$strAuthPage$strInitialPage);';
+          if (file.contains(routeName)) {
+            return "";
+          }
+
+          RegExp reg = RegExp(r'\}\);(?![\s\S]*\}\);)');
+
+          return file.replaceFirst(reg, "  $routeName\n});");
+        });
+  }
+
+  /// Creates a new Navigation Hub.
+  static makeNavigationHub(String className, String value,
+      {String folderPath = pagesFolder,
+      bool forceCreate = false,
+      bool addToRoute = true,
+      bool isInitialPage = false,
+      bool isAuthPage = false,
+      String? creationPath}) async {
+    String name =
+        className.snakeCase.replaceAll(RegExp(r'(_?navigation_hub)'), "");
+
+    // create missing directories in the project
+    await createDirectoriesFromCreationPath(creationPath, folderPath);
+
+    // create file path
+    String filePath = createPathForDartFile(
+        folderPath: folderPath,
+        className: name,
+        prefix: "navigation_hub",
+        creationPath: creationPath);
+
+    await _makeDirectory(folderPath);
+    await _checkIfFileExists(filePath, shouldForceCreate: forceCreate);
+    await _createNewFile(filePath, value, onSuccess: () {
+      MetroConsole.writeInGreen(
+          '[Navigation Hub] ${name.snakeCase}_navigation_hub created 🎉');
+    });
+
+    // add to router
+    if (addToRoute == false) return;
+
+    String classImport =
+        "import '/resources/pages/${creationPath != null ? '$creationPath/' : ''}${name.snakeCase}_navigation_hub.dart';";
+
+    await addToRouter(
+        classImport: classImport,
+        createTemplate: (file) {
+          String strAuthPage = "";
+          if (isAuthPage) {
             strAuthPage = ", authPage: true";
           }
           String strInitialPage = "";
@@ -209,7 +267,7 @@ final Map<Type, BaseController> controllers = {${reg.allMatches(file).map((e) =>
           }
 
           String routeName =
-              'router.route(${name.pascalCase}Page.path, (context) => ${name.pascalCase}Page()$strAuthPage$strInitialPage);';
+              'router.add(${name.pascalCase}NavigationHub.path$strAuthPage$strInitialPage);';
           if (file.contains(routeName)) {
             return "";
           }
@@ -279,6 +337,11 @@ import '/resources/themes/${nameReCase.snakeCase}_theme.dart';""";
     await stderr.addStream(process.stderr);
   }
 
+  /// Add a package to your pubspec.yaml file.
+  static addPackage(String package) async {
+    await runProcess("dart pub add $package");
+  }
+
   /// Creates a new Model.
   static makeModel(String className, String value,
       {String folderPath = modelsFolder,
@@ -295,9 +358,7 @@ import '/resources/themes/${nameReCase.snakeCase}_theme.dart';""";
 
     // create file path
     String filePath = createPathForDartFile(
-        folderPath: folderPath,
-        className: className,
-        creationPath: creationPath);
+        folderPath: folderPath, className: name, creationPath: creationPath);
 
     if (skipIfExist == true) {
       if (await hasFile(filePath)) return;
@@ -311,14 +372,12 @@ import '/resources/themes/${nameReCase.snakeCase}_theme.dart';""";
 
     String classImport = makeImportPathModel(nameReCase.snakeCase,
         creationPath: creationPath ?? "");
+
     await MetroService.addToConfig(
         configName: "decoders",
         classImport: classImport,
         createTemplate: (file) {
           String modelName = nameReCase.pascalCase;
-          if (file.contains(modelName)) {
-            return "";
-          }
 
           RegExp reg =
               RegExp(r'final Map<Type, dynamic> modelDecoders = \{([^}]*)\};');
@@ -353,7 +412,7 @@ final Map<Type, dynamic> modelDecoders = {${reg.allMatches(file).map((e) => e.gr
     // create file path
     String filePath = createPathForDartFile(
         folderPath: folderPath,
-        className: className,
+        className: name,
         prefix: "widget",
         creationPath: creationPath);
 
@@ -377,9 +436,7 @@ final Map<Type, dynamic> modelDecoders = {${reg.allMatches(file).map((e) => e.gr
 
     // create file path
     String filePath = createPathForDartFile(
-        folderPath: folderPath,
-        className: configName,
-        creationPath: creationPath);
+        folderPath: folderPath, className: name, creationPath: creationPath);
 
     await _checkIfFileExists(filePath, shouldForceCreate: forceCreate);
     await _createNewFile(filePath, value, onSuccess: () {
@@ -401,7 +458,7 @@ final Map<Type, dynamic> modelDecoders = {${reg.allMatches(file).map((e) => e.gr
     // create file path
     String filePath = createPathForDartFile(
         folderPath: folderPath,
-        className: className,
+        className: name,
         prefix: 'widget',
         creationPath: creationPath);
 
@@ -409,6 +466,31 @@ final Map<Type, dynamic> modelDecoders = {${reg.allMatches(file).map((e) => e.gr
     await _createNewFile(filePath, value, onSuccess: () {
       MetroConsole.writeInGreen(
           '[Stateful Widget] ${name.snakeCase} created 🎉');
+    });
+  }
+
+  /// Creates a new State Managed Widget.
+  static makeStateManagedWidget(String className, String value,
+      {String folderPath = widgetsFolder,
+      bool forceCreate = false,
+      String? creationPath}) async {
+    String name = className.replaceAll(RegExp(r'(_?widget)'), "");
+
+    // create missing directories in the project
+    await _makeDirectory(folderPath);
+    await createDirectoriesFromCreationPath(creationPath, folderPath);
+
+    // create file path
+    String filePath = createPathForDartFile(
+        folderPath: folderPath,
+        className: name,
+        prefix: 'widget',
+        creationPath: creationPath);
+
+    await _checkIfFileExists(filePath, shouldForceCreate: forceCreate);
+    await _createNewFile(filePath, value, onSuccess: () {
+      MetroConsole.writeInGreen(
+          '[State Managed Widget] ${name.snakeCase} created 🎉');
     });
   }
 
@@ -426,7 +508,7 @@ final Map<Type, dynamic> modelDecoders = {${reg.allMatches(file).map((e) => e.gr
     // create file path
     String filePath = createPathForDartFile(
         folderPath: folderPath,
-        className: className,
+        className: name,
         prefix: 'interceptor',
         creationPath: creationPath);
 
@@ -478,9 +560,6 @@ final Map<Type, dynamic> modelDecoders = {${reg.allMatches(file).map((e) => e.gr
         classImport: classImport,
         createTemplate: (file) {
           String providerName = "${name.pascalCase}Provider";
-          if (file.contains(providerName)) {
-            return "";
-          }
 
           RegExp reg =
               RegExp(r'final Map<Type, NyProvider> providers = \{([^}]*)\};');
@@ -509,6 +588,20 @@ final Map<Type, NyProvider> providers = {${reg.allMatches(file).map((e) => e.gro
     });
   }
 
+  /// Creates a new Form.
+  static makeForm(String className, String value,
+      {String folderPath = formsFolder, bool forceCreate = false}) async {
+    String name = className.replaceAll(RegExp(r'(_?form)'), "");
+
+    String filePath = '$folderPath/${name.snakeCase}_form.dart';
+
+    await _makeDirectory(folderPath);
+    await _checkIfFileExists(filePath, shouldForceCreate: forceCreate);
+    await _createNewFile(filePath, value, onSuccess: () {
+      MetroConsole.writeInGreen('[Form] ${name.snakeCase} created 🎉');
+    });
+  }
+
   /// Creates a new Director.
   static makeDirectory(String folderPath) async =>
       await _makeDirectory(folderPath);
@@ -534,9 +627,6 @@ final Map<Type, NyProvider> providers = {${reg.allMatches(file).map((e) => e.gro
         classImport: classImport,
         createTemplate: (file) {
           String eventName = "${name.pascalCase}Event";
-          if (file.contains(eventName)) {
-            return "";
-          }
 
           RegExp reg =
               RegExp(r'final Map<Type, NyEvent> events = \{([^}]*)\};');
@@ -575,9 +665,6 @@ final Map<Type, NyProvider> providers = {${reg.allMatches(file).map((e) => e.gro
         classImport: classImport,
         createTemplate: (file) {
           String apiServiceName = "${name.pascalCase}ApiService";
-          if (file.contains(apiServiceName)) {
-            return "";
-          }
 
           if (file.contains("final Map<Type, dynamic> apiDecoders =")) {
             RegExp reg =
@@ -650,6 +737,10 @@ final Map<Type, NyApiService> apiDecoders = {${reg.allMatches(file).map((e) => e
     // add it to the decoder config
     String filePath = "lib/config/$configName.dart";
     String originalFile = await loadAsset(filePath);
+
+    if (originalFile.contains(classImport)) {
+      return;
+    }
 
     // create new file
     String fileCreated = createTemplate(originalFile);
@@ -731,16 +822,20 @@ final Map<Type, NyApiService> apiDecoders = {${reg.allMatches(file).map((e) => e
     }
 
     for (var template in templates) {
+      String templateName = template.name;
       switch (template.saveTo) {
         case controllersFolder:
           {
-            await makeController(template.name, template.stub,
+            if (templateName.contains("_controller")) {
+              templateName = templateName.replaceAll("_controller", "");
+            }
+            await makeController(templateName, template.stub,
                 forceCreate: (hasForceFlag ?? false));
             break;
           }
         case widgetsFolder:
           {
-            await makeStatelessWidget(template.name, template.stub,
+            await makeStatelessWidget(templateName, template.stub,
                 forceCreate: (hasForceFlag ?? false));
             break;
           }
@@ -754,7 +849,10 @@ final Map<Type, NyApiService> apiDecoders = {${reg.allMatches(file).map((e) => e
             if (template.options.containsKey('is_initial_page')) {
               isInitialPage = template.options['is_initial_page'];
             }
-            await makePage(template.name, template.stub,
+            if (templateName.contains("_page")) {
+              templateName = templateName.replaceAll("_page", "");
+            }
+            await makePage(templateName, template.stub,
                 forceCreate: (hasForceFlag ?? false),
                 addToRoute: true,
                 isAuthPage: isAuthPage,
@@ -763,37 +861,61 @@ final Map<Type, NyApiService> apiDecoders = {${reg.allMatches(file).map((e) => e
           }
         case modelsFolder:
           {
-            await makeModel(template.name, template.stub,
+            await makeModel(templateName, template.stub,
                 forceCreate: (hasForceFlag ?? false), addToConfig: true);
             break;
           }
         case themesFolder:
           {
-            await makeTheme(template.name, template.stub,
+            if (templateName.contains("_theme")) {
+              templateName = templateName.replaceAll("_theme", "");
+            }
+            await makeTheme(templateName, template.stub,
                 forceCreate: (hasForceFlag ?? false));
             break;
           }
         case providerFolder:
           {
-            await makeProvider(template.name, template.stub,
+            if (templateName.contains("_provider")) {
+              templateName = templateName.replaceAll("_provider", "");
+            }
+            await makeProvider(templateName, template.stub,
                 forceCreate: (hasForceFlag ?? false), addToConfig: true);
             break;
           }
         case eventsFolder:
           {
-            await makeEvent(template.name, template.stub,
+            if (templateName.contains("_event")) {
+              templateName = templateName.replaceAll("_event", "");
+            }
+            await makeEvent(templateName, template.stub,
                 forceCreate: (hasForceFlag ?? false), addToConfig: true);
             break;
           }
         case networkingFolder:
           {
-            await makeApiService(template.name, template.stub,
+            if (templateName.contains("_api_service")) {
+              templateName = templateName.replaceAll("_api_service", "");
+            }
+            await makeApiService(templateName, template.stub,
                 forceCreate: (hasForceFlag ?? false), addToConfig: true);
             break;
           }
         case themeColorsFolder:
           {
-            await makeThemeColors(template.name, template.stub,
+            if (templateName.contains("_theme_colors")) {
+              templateName = templateName.replaceAll("_theme_colors", "");
+            }
+            await makeThemeColors(templateName, template.stub,
+                forceCreate: (hasForceFlag ?? false));
+            break;
+          }
+        case formsFolder:
+          {
+            if (templateName.contains("_form")) {
+              templateName = templateName.replaceAll("_form", "");
+            }
+            await makeForm(templateName, template.stub,
                 forceCreate: (hasForceFlag ?? false));
             break;
           }

@@ -1,8 +1,6 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import '/helpers/backpack.dart';
-import '/helpers/helper.dart';
+import '/nylo.dart';
+import '/helpers/ny_logger.dart';
 import '/router/errors/route_not_found.dart';
 import '/router/models/arguments_wrapper.dart';
 import '/router/models/ny_page_transition_settings.dart';
@@ -11,9 +9,107 @@ import '/router/models/nyrouter_route_guard.dart';
 import '/router/models/nyrouter_options.dart';
 import '/router/models/nyrouter_route.dart';
 import '/router/ui/page_not_found.dart';
-import 'package:page_transition/page_transition.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import '/router/page_transition/page_transition.dart';
 import 'models/ny_argument.dart';
+
+/// The RouteMatcher class is used to match the route with the registered routes.
+class RouteMatcher {
+  final String path;
+
+  RouteMatcher(this.path);
+
+  /// Find matching route and extract parameters
+  RouteMatch? findMatch(Map<String, NyRouterRoute> routeMappings) {
+    // Normalize the input path but keep leading slash
+    final normalizedPath = _normalizePath(path);
+    final pathSegments = normalizedPath.split('/');
+
+    // Try each registered route
+    for (final entry in routeMappings.entries) {
+      final routePattern = _normalizePath(entry.key);
+      final route = entry.value;
+      final patternSegments = routePattern.split('/');
+
+      // Quick check for segment count (including empty segments from leading slash)
+      if (pathSegments.length != patternSegments.length) {
+        continue;
+      }
+
+      final params = <String, String>{};
+      var isMatch = true;
+
+      // Check each segment
+      for (var i = 0; i < patternSegments.length; i++) {
+        final patternSegment = patternSegments[i];
+        final pathSegment = pathSegments[i];
+
+        // Skip empty segments from leading slash
+        if (patternSegment.isEmpty && pathSegment.isEmpty) {
+          continue;
+        }
+
+        if (patternSegment.startsWith('{') && patternSegment.endsWith('}')) {
+          // Extract parameter
+          final paramName =
+              patternSegment.substring(1, patternSegment.length - 1);
+          params[paramName] = pathSegment;
+        } else if (patternSegment != pathSegment) {
+          // Static segment doesn't match
+          isMatch = false;
+          break;
+        }
+      }
+
+      if (isMatch) {
+        return RouteMatch(
+          pattern: entry.key, // Keep original pattern
+          route: route,
+          parameters: params,
+        );
+      }
+    }
+
+    return null;
+  }
+
+  /// Normalizes a path by:
+  /// 1. Trimming whitespace
+  /// 2. Ensuring single leading slash
+  /// 3. Removing trailing slash
+  /// 4. Replacing multiple slashes with single slash
+  String _normalizePath(String input) {
+    // Trim whitespace
+    input = input.trim();
+
+    // Ensure single leading slash
+    input = '/${input.replaceFirst(RegExp(r'^/+'), '')}';
+
+    // Remove trailing slash if present (unless it's just '/')
+    if (input.length > 1) {
+      input = input.replaceAll(RegExp(r'/+$'), '');
+    }
+
+    // Replace multiple slashes with single slash
+    input = input.replaceAll(RegExp(r'/+'), '/');
+
+    return input;
+  }
+}
+
+class RouteMatch {
+  final String pattern;
+  final NyRouterRoute route;
+  final Map<String, String> parameters;
+
+  RouteMatch({
+    required this.pattern,
+    required this.route,
+    required this.parameters,
+  });
+
+  @override
+  String toString() => 'RouteMatch(pattern: $pattern, parameters: $parameters)';
+}
 
 /// Type definition for the route view.
 typedef RouteView = (String, Widget Function(BuildContext context));
@@ -26,6 +122,39 @@ class NyNavigator {
   NyNavigator._privateConstructor();
 
   static final NyNavigator instance = NyNavigator._privateConstructor();
+
+  /// Update the stack on the router.
+  /// [routes] is a list of routes to navigate to. E.g. [HomePage.path, SettingPage.path]
+  /// [replace] is a boolean that determines if the current route should be replaced.
+  /// [dataForRoute] is a map of data to pass to the route. E.g. {HomePage.path: {"name": "John Doe"}}
+  /// Example:
+  /// ```dart
+  /// Nylo.updateStack([
+  ///  HomePage.path,
+  ///  SettingPage.path
+  ///  ], replace: true, dataForRoute: {
+  ///  HomePage.path: {"name": "John Doe"}
+  ///  });
+  ///  ```
+  ///  This will navigate to the HomePage and SettingPage with the data passed to the HomePage.
+  static updateStack(List<String> routes,
+      {bool replace = true, Map<String, dynamic>? dataForRoute}) {
+    for (var route in routes) {
+      dynamic data;
+      if (dataForRoute != null && dataForRoute.containsKey(route)) {
+        data = dataForRoute[route];
+      }
+
+      if (routes.first == route && replace == true) {
+        instance.router.navigate(route,
+            navigationType: NavigationType.pushAndForgetAll,
+            args: NyArgument(data));
+        continue;
+      }
+      instance.router.navigate(route,
+          navigationType: NavigationType.push, args: NyArgument(data));
+    }
+  }
 
   /// Prefix routes
   Map<String, String> prefixRoutes = {};
@@ -43,12 +172,13 @@ NyRouter nyRoutes(Function(NyRouter router) build) {
   return nyRouter;
 }
 
+/// The [NavigationType] enum is used to define the type of navigation to be
 enum NavigationType {
   push,
   pushReplace,
   pushAndRemoveUntil,
   popAndPushNamed,
-  pushAndForgetAll
+  pushAndForgetAll,
 }
 
 /// NyRouterRoute manages routing, registering routes with transitions, navigating to
@@ -72,6 +202,10 @@ class NyRouter {
 
   /// Store all the mappings of route names and corresponding [NyRouterRouteRoute]
   /// Used to generate routes
+  final Map<String, NyRouterRoute> _routeUnknownMappings = {};
+
+  /// Store all the mappings of route names and corresponding [NyRouterRouteRoute]
+  /// Used to generate routes
   Map<String, NyRouterRoute> _routeNameMappings = {};
 
   /// A navigator key lets NyRouterRoute grab the [NavigatorState] from a [MaterialApp]
@@ -84,7 +218,7 @@ class NyRouter {
   GlobalKey<NavigatorState>? _navigatorKey;
 
   /// Stores the history of routes visited.
-  List<Route<dynamic>> _routeHistory = [];
+  final List<Route<dynamic>> _routeHistory = [];
 
   GlobalKey<NavigatorState>? get navigatorKey => _navigatorKey;
 
@@ -94,14 +228,48 @@ class NyRouter {
   /// Get the registered routes as a list.
   Map<String, NyRouterRoute> getRegisteredRoutes() => _routeNameMappings;
 
+  /// Update the registered routes.
+  updateRegisteredRoutes(Map<String, NyRouterRoute> router) {
+    _routeNameMappings = router;
+  }
+
+  /// Get the unknown routes as a list.
+  Map<String, NyRouterRoute> getUnknownRoutes() => _routeUnknownMappings;
+
   /// Set the registered routes.
   void setRegisteredRoutes(Map<String, NyRouterRoute> routes) {
     _routeNameMappings.addAll(routes);
   }
 
+  /// Set the unknown routes.
+  void setUnknownRoutes(Map<String, NyRouterRoute> routes) {
+    _routeUnknownMappings.addAll(routes);
+  }
+
   /// Set the registered routes.
   void setNyRoutes(NyRouter router) {
     _routeNameMappings.addAll(router.getRegisteredRoutes());
+  }
+
+  /// Checks if the route name mappings contain a route name.
+  bool routeNameMappingsContains(String name) {
+    bool routeNamedArg = isRouteNamedArg(name);
+    if (routeNamedArg) {
+      return true;
+    }
+    return _routeNameMappings.containsKey(name);
+  }
+
+  /// Check if the route is a named argument.
+  bool isRouteNamedArg(String name) {
+    return _routeNameMappings.entries.where((test) {
+      RegExp regExp = RegExp(r"{(.*?)}");
+      return regExp.hasMatch(test.key);
+    }).where((test) {
+      final matcher = RouteMatcher(test.key);
+      final RouteMatch? match = matcher.findMatch(_routeNameMappings);
+      return match != null;
+    }).isNotEmpty;
   }
 
   /// Retrieves the arguments passed in when calling the [navigate] function.
@@ -173,6 +341,7 @@ class NyRouter {
       }
       if (prefix != null) {
         NyNavigator.instance.prefixRoutes[key] = prefix;
+        route.addPrefixToName(prefix);
       }
       if (transition != null) {
         route.transition(transition);
@@ -198,7 +367,8 @@ class NyRouter {
       PageTransitionSettings? pageTransitionSettings,
       List<NyRouteGuard>? routeGuards,
       bool initialRoute = false,
-      bool authPage = false}) {
+      bool unknownRoute = false,
+      bool authenticatedRoute = false}) {
     NyRouterRoute nyRouterRoute = NyRouterRoute(
         name: routeView.$1,
         view: (context) => routeView.$2(context),
@@ -206,8 +376,9 @@ class NyRouter {
         pageTransitionSettings: pageTransitionSettings,
         routeGuards: routeGuards,
         initialRoute: initialRoute,
-        authPage: authPage);
-    _addRoute(nyRouterRoute);
+        unknownRoute: unknownRoute,
+        authPage: authenticatedRoute);
+    _addRoute(nyRouterRoute, unknownRoute: unknownRoute);
 
     assert(
         _routeNameMappings.entries
@@ -225,16 +396,19 @@ class NyRouter {
       PageTransitionSettings? pageTransitionSettings,
       List<NyRouteGuard>? routeGuards,
       bool initialRoute = false,
-      bool authPage = false}) {
+      bool unknownRoute = false,
+      bool authenticatedRoute = false}) {
     NyRouterRoute nyRouterRoute = NyRouterRoute(
-        name: name,
-        view: view,
-        pageTransitionType: transition,
-        pageTransitionSettings: pageTransitionSettings,
-        routeGuards: routeGuards,
-        initialRoute: initialRoute,
-        authPage: authPage);
-    _addRoute(nyRouterRoute);
+      name: name,
+      view: view,
+      pageTransitionType: transition,
+      pageTransitionSettings: pageTransitionSettings,
+      routeGuards: routeGuards,
+      initialRoute: initialRoute,
+      unknownRoute: unknownRoute,
+      authPage: authenticatedRoute,
+    );
+    _addRoute(nyRouterRoute, unknownRoute: unknownRoute);
 
     assert(
         _routeNameMappings.entries
@@ -252,7 +426,17 @@ class NyRouter {
   ///
   /// If a route is provided with a name that was previously added, it will
   /// override the old one.
-  void _addRoute(NyRouterRoute route) {
+  void _addRoute(NyRouterRoute route, {bool unknownRoute = false}) {
+    if (unknownRoute == true) {
+      if (_routeUnknownMappings.containsKey(route.name)) {
+        NyLogger.info(
+            "'${route.name}' has already been registered before. Overriding it!");
+      }
+
+      _routeUnknownMappings[route.name] = route;
+      NyNavigator.instance.router = this;
+      return;
+    }
     if (_routeNameMappings.containsKey(route.name)) {
       NyLogger.info(
           "'${route.name}' has already been registered before. Overriding it!");
@@ -268,7 +452,7 @@ class NyRouter {
         .where((element) => element.value.getAuthRoute() == true)
         .toList();
 
-    if (authRoutes.isNotEmpty && Backpack.instance.auth() != null) {
+    if (authRoutes.isNotEmpty && Nylo.user() != null) {
       return authRoutes.first.value.name;
     }
     return null;
@@ -287,6 +471,19 @@ class NyRouter {
     return "/";
   }
 
+  /// Retrieves the unknown route name from your router.
+  String getUnknownRouteName() {
+    List<MapEntry<String, NyRouterRoute>> routes = NyNavigator
+        .instance.router._routeUnknownMappings.entries
+        .where((element) => element.value.getUnknownRoute() == true)
+        .toList();
+
+    if (routes.isNotEmpty) {
+      return routes.first.value.name;
+    }
+    return "/";
+  }
+
   /// Find the initial route.
   static String getInitialRoute() {
     List<MapEntry<String, NyRouterRoute>> authRoutes = NyNavigator
@@ -294,7 +491,7 @@ class NyRouter {
         .where((element) => element.value.getAuthRoute() == true)
         .toList();
 
-    if (authRoutes.isNotEmpty && Backpack.instance.auth() != null) {
+    if (authRoutes.isNotEmpty && Nylo.user() != null) {
       return authRoutes.first.value.name;
     }
 
@@ -307,6 +504,23 @@ class NyRouter {
       return initialRoutes.first.value.name;
     }
     return "/";
+  }
+
+  /// Find the unknown route.
+  static NyRouterRoute getUnknownRoute() {
+    List<MapEntry<String, NyRouterRoute>> unknownRoutes = NyNavigator
+        .instance.router._routeUnknownMappings.entries
+        .where((element) => element.value.getUnknownRoute() == true)
+        .toList();
+
+    if (unknownRoutes.isNotEmpty && Nylo.user() != null) {
+      return unknownRoutes.first.value;
+    }
+
+    return NyRouterRoute(
+      name: "/404",
+      view: (context) => const PageNotFound(),
+    );
   }
 
   /// Add a list of routes at once.
@@ -359,11 +573,14 @@ class NyRouter {
       nyQueryParameters = NyQueryParameters(uriSettingName.queryParameters);
     }
 
-    _checkAndThrowRouteNotFound(routeName, args, navigationType);
+    bool checkRouteNamedArg = isRouteNamedArg(routeName);
+    if (!checkRouteNamedArg) {
+      _checkAndThrowRouteNotFound(routeName, args, navigationType);
+    }
 
     return await _navigate(routeName, args, navigationType, result,
             removeUntilPredicate, pageTransitionType, pageTransitionSettings,
-            queryParameters: nyQueryParameters)
+            queryParameters: nyQueryParameters, originalRouteName: name)
         .then((value) => value as T);
   }
 
@@ -388,30 +605,14 @@ class NyRouter {
       bool Function(Route<dynamic> route)? removeUntilPredicate,
       PageTransitionType? pageTransitionType,
       PageTransitionSettings? pageTransitionSettings,
-      {NyQueryParameters? queryParameters}) async {
+      {NyQueryParameters? queryParameters,
+      String? originalRouteName}) async {
     final argsWrapper = ArgumentsWrapper(
       baseArguments: args,
       pageTransitionType: pageTransitionType,
       queryParameters: queryParameters,
       pageTransitionSettings: pageTransitionSettings,
     );
-
-    /// Evaluate if the route can be opened using route guard.
-    final NyRouterRoute? route = _routeNameMappings[name];
-
-    if (route != null && (route.getRouteGuards()).isNotEmpty) {
-      for (RouteGuard routeGuard in route.getRouteGuards()) {
-        final result = await routeGuard.canOpen(
-          navigatorKey!.currentContext,
-          argsWrapper.baseArguments,
-        );
-
-        if (result == false) {
-          return await routeGuard.redirectTo(
-              navigatorKey!.currentContext, argsWrapper.baseArguments);
-        }
-      }
-    }
 
     String? pushName;
     Map<String, String> routePrefixes = NyNavigator.instance.prefixRoutes;
@@ -429,8 +630,7 @@ class NyRouter {
 
     switch (navigationType) {
       case NavigationType.push:
-        return await navigatorKey!
-            .currentState!
+        return await navigatorKey!.currentState!
             .pushNamed(pushName ?? name, arguments: argsWrapper);
       case NavigationType.pushReplace:
         return await navigatorKey!.currentState!.pushReplacementNamed(
@@ -448,10 +648,10 @@ class NyRouter {
             arguments: argsWrapper);
       case NavigationType.pushAndForgetAll:
         return await navigatorKey!.currentState!.pushNamedAndRemoveUntil(
-              pushName ?? name,
-              (_) => false,
-              arguments: argsWrapper,
-            );
+          pushName ?? name,
+          (_) => false,
+          arguments: argsWrapper,
+        );
     }
   }
 
@@ -494,14 +694,14 @@ class NyRouter {
     NyArgument? args,
     NavigationType navigationType,
   ) {
-    if (!_routeNameMappings.containsKey(name)) {
+    if (!routeNameMappingsContains(name)) {
       if (options.handleNameNotFoundUI) {
         NyLogger.error("Page not found\n"
             "[Route Name] $name\n"
             "[ARGS] ${args.toString()}");
         navigatorKey!.currentState!.push(
           MaterialPageRoute(builder: (BuildContext context) {
-            return PageNotFound();
+            return const PageNotFound();
           }),
         );
       }
@@ -518,6 +718,126 @@ class NyRouter {
       if (settings.name == null) return null;
 
       Uri? uriSettingName;
+      bool routeNamedArg = isRouteNamedArg(settings.name!);
+      if (!routeNamedArg) {
+        try {
+          uriSettingName = Uri.parse(settings.name!);
+        } on FormatException catch (e) {
+          NyLogger.error(e.toString());
+        }
+      }
+
+      String routeName = settings.name!;
+      if (uriSettingName != null) {
+        routeName = uriSettingName.path;
+      }
+
+      ArgumentsWrapper? argumentsWrapper;
+      if (settings.arguments is ArgumentsWrapper) {
+        argumentsWrapper = settings.arguments as ArgumentsWrapper?;
+      } else {
+        argumentsWrapper = ArgumentsWrapper();
+        argumentsWrapper.baseArguments = NyArgument(settings.arguments);
+      }
+
+      if (argumentsWrapper?.baseArguments?.data != null &&
+          argumentsWrapper?.prefix != null) {
+        String prefix = argumentsWrapper!.prefix!;
+        routeName = routeName.replaceFirst(prefix, "");
+      }
+
+      argumentsWrapper ??= ArgumentsWrapper();
+
+      if (uriSettingName != null && uriSettingName.queryParameters.isNotEmpty) {
+        argumentsWrapper.queryParameters =
+            NyQueryParameters(uriSettingName.queryParameters);
+      }
+
+      if (routeNamedArg) {
+        final matcher = RouteMatcher(settings.name!);
+        final match = matcher.findMatch(_routeNameMappings);
+
+        if (argumentsWrapper.queryParameters != null) {
+          Map<String, String> mappedData =
+              Map.from(argumentsWrapper.queryParameters!.data);
+          mappedData.addAll(match?.parameters ?? {});
+          argumentsWrapper.queryParameters = NyQueryParameters(mappedData);
+        } else {
+          argumentsWrapper.queryParameters =
+              NyQueryParameters(match?.parameters ?? {});
+        }
+
+        routeName = match?.pattern ?? routeName;
+      }
+
+      final NyArgument? baseArgs = argumentsWrapper.baseArguments;
+      final NyQueryParameters? queryParameters =
+          argumentsWrapper.queryParameters;
+
+      argumentsWrapper.pageTransitionSettings ??=
+          const PageTransitionSettings();
+
+      late final NyRouterRoute? route;
+
+      if (routeName == "/") {
+        route = _routeNameMappings[routeName];
+      } else {
+        if (_routeNameMappings.containsKey(routeName)) {
+          route = _routeNameMappings[routeName];
+        } else {
+          if (_routeUnknownMappings.isNotEmpty) {
+            route = _routeUnknownMappings.entries.first.value;
+          }
+        }
+      }
+
+      if (route == null) return null;
+
+      route.pageTransitionSettings ??= const PageTransitionSettings();
+
+      if (Nylo.instance.onDeepLinkAction != null) {
+        Nylo.instance.onDeepLinkAction!(route.name, queryParameters?.data);
+      }
+
+      return PageTransition(
+        child: StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) {
+          if (builder != null) {
+            Widget widget = route!.builder(
+              context,
+              baseArgs ?? route.defaultArgs,
+              queryParameters ?? route.queryParameters,
+            );
+            return builder(context, widget);
+          }
+          return route!.builder(context, baseArgs ?? route.defaultArgs,
+              queryParameters ?? route.queryParameters);
+        }),
+        type: argumentsWrapper.pageTransitionType ??
+            (route.pageTransitionType ?? PageTransitionType.rightToLeft),
+        settings: settings,
+        duration: _getPageTransitionDuration(route, argumentsWrapper),
+        alignment: _getPageTransitionAlignment(route, argumentsWrapper),
+        reverseDuration:
+            _getPageTransitionReversedDuration(route, argumentsWrapper),
+        childCurrent: _getPageTransitionChildCurrent(route, argumentsWrapper),
+        curve: _getPageTransitionCurve(route, argumentsWrapper),
+        ctx: _getPageTransitionContext(route, argumentsWrapper),
+        inheritTheme: _getPageTransitionInheritTheme(route, argumentsWrapper),
+        fullscreenDialog:
+            _getPageTransitionFullscreenDialog(route, argumentsWrapper),
+        opaque: _getPageTransitionOpaque(route, argumentsWrapper),
+      );
+    };
+  }
+
+  /// Generates the [RouteFactory] for unknown routes.
+  RouteFactory unknownRoute(
+      {Widget Function(BuildContext context, Widget widget)? builder}) {
+    return (RouteSettings settings) {
+      if (settings.name == null) return null;
+
+      Uri? uriSettingName;
       try {
         uriSettingName = Uri.parse(settings.name!);
       } on FormatException catch (e) {
@@ -525,6 +845,7 @@ class NyRouter {
       }
 
       String routeName = settings.name!;
+
       if (uriSettingName != null) {
         routeName = uriSettingName.path;
       }
@@ -554,13 +875,21 @@ class NyRouter {
       final NyQueryParameters? queryParameters =
           argumentsWrapper.queryParameters;
 
-      argumentsWrapper.pageTransitionSettings ??= const PageTransitionSettings();
+      argumentsWrapper.pageTransitionSettings ??=
+          const PageTransitionSettings();
 
-      final NyRouterRoute? route = _routeNameMappings[routeName];
+      if (_routeUnknownMappings.isEmpty) {
+        return null;
+      }
 
-      if (route == null) return null;
+      final NyRouterRoute route = _routeUnknownMappings.entries.first.value;
+      route.name = routeName;
 
       route.pageTransitionSettings ??= const PageTransitionSettings();
+
+      if (Nylo.instance.onDeepLinkAction != null) {
+        Nylo.instance.onDeepLinkAction!(route.name, queryParameters?.data);
+      }
 
       return PageTransition(
         child: StatefulBuilder(
@@ -583,8 +912,6 @@ class NyRouter {
         alignment: _getPageTransitionAlignment(route, argumentsWrapper),
         reverseDuration:
             _getPageTransitionReversedDuration(route, argumentsWrapper),
-        matchingBuilder:
-            _getPageTransitionMatchingBuilder(route, argumentsWrapper),
         childCurrent: _getPageTransitionChildCurrent(route, argumentsWrapper),
         curve: _getPageTransitionCurve(route, argumentsWrapper),
         ctx: _getPageTransitionContext(route, argumentsWrapper),
@@ -592,7 +919,6 @@ class NyRouter {
         fullscreenDialog:
             _getPageTransitionFullscreenDialog(route, argumentsWrapper),
         opaque: _getPageTransitionOpaque(route, argumentsWrapper),
-        isIos: _getPageTransitionIsIos(route, argumentsWrapper),
       );
     };
   }
@@ -698,8 +1024,7 @@ class NyRouter {
   /// Used to retrieve the correct FullscreenDialog value for the [PageTransition] constructor.
   bool _getPageTransitionFullscreenDialog(
       NyRouterRoute route, ArgumentsWrapper argumentsWrapper) {
-    bool fullscreenDialog =
-        options.pageTransitionSettings.fullscreenDialog!;
+    bool fullscreenDialog = options.pageTransitionSettings.fullscreenDialog!;
 
     if (route.pageTransitionSettings?.fullscreenDialog != null) {
       fullscreenDialog = route.pageTransitionSettings!.fullscreenDialog!;
@@ -725,45 +1050,6 @@ class NyRouter {
     return opaque;
   }
 
-  /// Used to retrieve the correct IsIos value for the [PageTransition] constructor.
-  bool _getPageTransitionIsIos(
-      NyRouterRoute route, ArgumentsWrapper argumentsWrapper) {
-    bool isIos = false;
-
-    if (!kIsWeb && Platform.isIOS) {
-      isIos = true;
-    }
-
-    if (options.pageTransitionSettings.isIos != null) {
-      isIos = options.pageTransitionSettings.isIos!;
-    }
-
-    if (route.pageTransitionSettings?.isIos != null) {
-      isIos = route.pageTransitionSettings!.isIos!;
-    }
-    if (argumentsWrapper.pageTransitionSettings?.isIos != null) {
-      isIos = argumentsWrapper.pageTransitionSettings!.isIos!;
-    }
-
-    return isIos;
-  }
-
-  /// Used to retrieve the correct MatchingBuilder value for the [PageTransition] constructor.
-  PageTransitionsBuilder _getPageTransitionMatchingBuilder(
-      NyRouterRoute route, ArgumentsWrapper argumentsWrapper) {
-    PageTransitionsBuilder matchingBuilder =
-        options.pageTransitionSettings.matchingBuilder!;
-
-    if (route.pageTransitionSettings?.matchingBuilder != null) {
-      matchingBuilder = route.pageTransitionSettings!.matchingBuilder!;
-    }
-    if (argumentsWrapper.pageTransitionSettings?.matchingBuilder != null) {
-      matchingBuilder =
-          argumentsWrapper.pageTransitionSettings!.matchingBuilder!;
-    }
-    return matchingBuilder;
-  }
-
   /// Unknown route generator.
   static RouteFactory unknownRouteGenerator() {
     return (settings) {
@@ -775,11 +1061,22 @@ class NyRouter {
       );
     };
   }
+
+  /// Check if the router contains the [routes].
+  bool containsRoutes(List<String> routes) {
+    List<String> allRouteNames = getRegisteredRouteNames();
+    for (var route in routes) {
+      if (!allRouteNames.contains(route)) {
+        return false;
+      }
+    }
+    return true;
+  }
 }
 
 /// Navigate to a new route.
 ///
-/// It requires a String [routeName] e.g. "/my-route"
+/// It requires a String [routeName] e.g. ProfilePage.path or "/my-route"
 ///
 /// Optional variables in [data] that you can pass in [dynamic] objects to
 /// the next widget you navigate to.
@@ -792,7 +1089,49 @@ class NyRouter {
 /// navigating to the new route. E.g. [PageTransitionType.fade] or
 /// [PageTransitionType.bottomToTop].
 /// See https://pub.dev/packages/page_transition to learn more.
-routeTo(String routeName,
+routeTo(dynamic routeName,
+    {dynamic data,
+    Map<String, dynamic>? queryParameters,
+    NavigationType navigationType = NavigationType.push,
+    dynamic result,
+    bool Function(Route<dynamic> route)? removeUntilPredicate,
+    PageTransitionSettings? pageTransitionSettings,
+    PageTransitionType? pageTransitionType,
+    int? tabIndex,
+    Function(dynamic value)? onPop}) async {
+  if (routeName is RouteView) {
+    routeName = routeName.$1;
+  }
+
+  if (tabIndex != null) {
+    if (data != null) {
+      assert(data is Map, "Data must be of type Map");
+      (data as Map<String, dynamic>).addAll({"tab-index": tabIndex});
+    } else {
+      data = {"tab-index": tabIndex};
+    }
+  }
+
+  NyArgument nyArgument = NyArgument(data);
+  if (queryParameters != null) {
+    routeName =
+        Uri(path: routeName, queryParameters: queryParameters).toString();
+  }
+
+  await NyNavigator.instance.router
+      .navigate(routeName,
+          args: nyArgument,
+          navigationType: navigationType,
+          result: result,
+          removeUntilPredicate: removeUntilPredicate,
+          pageTransitionType: pageTransitionType,
+          pageTransitionSettings: pageTransitionSettings)
+      .then((v) => onPop != null ? onPop(v) : (v) {});
+}
+
+/// Navigate to a new route if a condition is met.
+/// If the condition is false, the route will not be navigated to.
+routeIf(bool condition, dynamic routeName,
     {dynamic data,
     Map<String, dynamic>? queryParameters,
     NavigationType navigationType = NavigationType.push,
@@ -801,35 +1140,31 @@ routeTo(String routeName,
     PageTransitionSettings? pageTransitionSettings,
     PageTransitionType? pageTransition,
     Function(dynamic value)? onPop}) async {
-  NyArgument nyArgument = NyArgument(data);
-  if (queryParameters != null) {
-    routeName =
-        Uri(path: routeName, queryParameters: queryParameters).toString();
-  }
-  await NyNavigator.instance.router
-      .navigate(routeName,
-          args: nyArgument,
-          navigationType: navigationType,
-          result: result,
-          removeUntilPredicate: removeUntilPredicate,
-          pageTransitionType: pageTransition,
-          pageTransitionSettings: pageTransitionSettings)
-      .then((v) => onPop != null ? onPop(v) : (v) {});
+  if (!condition) return;
+  await routeTo(routeName,
+      data: data,
+      queryParameters: queryParameters,
+      navigationType: navigationType,
+      result: result,
+      removeUntilPredicate: removeUntilPredicate,
+      pageTransitionSettings: pageTransitionSettings,
+      pageTransitionType: pageTransition,
+      onPop: onPop);
 }
 
 /// Navigate to the auth route.
-routeToAuth(
+routeToAuthenticatedRoute(
     {dynamic data,
     NavigationType navigationType = NavigationType.pushAndForgetAll,
     dynamic result,
     bool Function(Route<dynamic> route)? removeUntilPredicate,
     PageTransitionSettings? pageTransitionSettings,
-    PageTransitionType? pageTransition,
+    PageTransitionType? pageTransitionType,
     Function(dynamic value)? onPop}) async {
   NyArgument nyArgument = NyArgument(data);
   String? route = NyNavigator.instance.router.getAuthRouteName();
   if (route == null) {
-    NyLogger.debug("No auth route set");
+    NyLogger.debug("No authenticated route set");
     return;
   }
   await NyNavigator.instance.router
@@ -838,7 +1173,7 @@ routeToAuth(
           navigationType: navigationType,
           result: result,
           removeUntilPredicate: removeUntilPredicate,
-          pageTransitionType: pageTransition,
+          pageTransitionType: pageTransitionType,
           pageTransitionSettings: pageTransitionSettings)
       .then((v) => onPop != null ? onPop(v) : (v) {});
 }
@@ -850,7 +1185,7 @@ routeToInitial(
     dynamic result,
     bool Function(Route<dynamic> route)? removeUntilPredicate,
     PageTransitionSettings? pageTransitionSettings,
-    PageTransitionType? pageTransition,
+    PageTransitionType? pageTransitionType,
     Function(dynamic value)? onPop}) async {
   NyArgument nyArgument = NyArgument(data);
   String route = NyNavigator.instance.router.getInitialRouteName();
@@ -861,7 +1196,7 @@ routeToInitial(
           navigationType: navigationType,
           result: result,
           removeUntilPredicate: removeUntilPredicate,
-          pageTransitionType: pageTransition,
+          pageTransitionType: pageTransitionType,
           pageTransitionSettings: pageTransitionSettings)
       .then((v) => onPop != null ? onPop(v) : (v) {});
 }

@@ -1,3 +1,212 @@
+## [6.0.0] - 2024-11-02
+
+* New version of Nylo - read more about the changes [here](https://nylo.dev/)
+
+## [5.82.0] - 2024-07-18
+
+* New `create` method added to `NyFormData` class. This will allow you to create the form from the instance.
+* Add `FormStyle` to NyForm. This will allow you to set a global style for the form. It currently only supports `TextField` and `NyFormCheckbox` widgets.
+* Ability to create custom validation rules in `NyForm`'s
+* Added `refreshState` to `NyForm` class. This will refresh the state of the form.
+* Added new typedefs `FormStyleTextField` and `FormStyleCheckbox` for handling custom styles in `NyForm`
+* Added `clear` method to `NyForm` class. This will clear the form.
+* Added `clearField` method to `NyForm` class. This will clear a specific field in the form.
+* Update `setField` and `setData` methods in `NyForm` class. This will now update the state of the form after setting the field.
+* Small refactor to the `NyTextField` class
+* Refactor `NyFormCheckbox` class to support global styles
+* `FormStyle` added to Nylo class
+* Update pubspec.yaml
+
+## [5.81.2] - 2024-07-09
+
+* Update default toast widget text style
+
+## [5.81.1] - 2024-07-09
+
+* Remove default validation rule from `NyLoginForm`
+
+## [5.81.0] - 2024-07-08
+
+* Refactor `FormValidator` class.
+  * To set a validation rule, you must now use `FormValidator.rule("email")` instead of `FormValidator("email")`
+  * You can now join multiple validation rules. E.g. `FormValidator().minLength(5).uppercase()` will check if the value is at least 5 characters long and has an uppercase letter.
+* Fix autofocus on `Field`'s in `NyForm`
+
+## [5.80.0] - 2024-07-07
+
+* Ability to create forms using slate packages
+
+## [5.79.1] - 2024-07-06
+
+* Fix slight issue with NyForm when handling validation rules
+* Update `validate` helper in NyState to skip null values
+
+## [5.79.0] - 2024-07-06
+
+* Add new Forms
+  * `NyFormCheckbox` - This will create a checkbox form field
+  * `NyFormDateTimePicker` - This will create a date time picker form field
+* Refactor `NyFormData` class
+* pubspec.yaml dependency updates
+
+## [5.78.1] - 2024-07-05
+
+* Fix `deleteAll()` method in Backpack to not remove the `nylo` key
+
+## [5.78.0] - 2024-07-03
+
+* Remove `deepLink` required parameter for deep linking
+
+## [5.77.0] - 2024-07-02
+
+* New `NyForm` widget! Designed to help you create forms easier in your app. 
+* Fix password_v1 & password_v2 validation rule not working in all cases
+* Update NyTextField to support different types of text fields
+* Add `makeForm` to `MetroService` class to create a form
+* Update `EmailRule`, `URLRule` to support `null` values
+* Rename `PhoneNumberUsaRule` to `PhoneNumberUsRule`
+* Update `textFieldMessage` on some validation rules
+* Small refactor of `NyTextField` widget. The `copyWith` contains new parameters.
+  * New `passwordViewable` parameter added to `NyTextField` widget
+  * New `validateOnFocusChange` parameter added to `NyTextField` widget
+* Update `NyState` to check when post frame is complete for a better user experience
+* New `NyFormPicker` Widget added to the library - This will create a bottom modal with a picker. It can be used in NyForm's and as a standalone widget.
+* New `NyForm.login` method added to `NyForm` class - This will create a login form
+* Ability to add custom form casts to `NyForm` class via Nylo. E.g. `Nylo.addFormCasts({"my_cast": (value) => value.toString()});`
+* Update docs
+* Update pubspec.yaml
+
+## [5.76.0] - 2024-06-16
+
+* Add support for the `child` parameter in NyStatefulWidget to be a Function that returns a State.
+* Update pubspec.yaml
+ 
+## [5.75.3] - 2024-06-14
+
+* Add await to `ErrorStack.init`
+
+## [5.75.2] - 2024-06-14
+
+* Update Error Stack to use `ErrorStackLogLevel.verbose` (default)
+* Update pubspec.yaml
+
+## [5.75.1] - 2024-06-14
+
+* Update pubspec.yaml
+
+## [5.75.0] - 2024-06-13
+
+* Add new extensions `labelSmall`, `labelMedium` and `labelLarge` to `Text` widget
+ 
+## [5.74.0] - 2024-06-12
+
+* Small refactor to `NyRichText` widget
+* Add `_errorStackErrorWidget` to `Nylo` class
+* Update pubspec.yaml
+
+## [5.73.1] - 2024-06-11
+
+* Fix `MetroService` not properly suffixing the file names
+
+## [5.73.0] - 2024-06-11
+
+* Added `StorageConfig` class to the library. This will allow you to set the storage configuration for your app.
+``` dart
+StorageConfig.init(
+   androidOptions: AndroidOptions(
+      resetOnError: true,
+      encryptedSharedPreferences: false
+   )
+);
+```
+* Set `NyRichText` style color to `Colors.black` by default
+
+## [5.72.1] - 2024-06-11
+
+* Update pubspec.yaml
+
+## [5.72.0] - 2024-06-08
+
+* Added `loadJson` method to helpers to load a json file
+ 
+## [5.71.0] - 2024-06-06
+
+* Added `containsRoutes` method to `Nylo` class. Now you can check if a route exists in your app. E.g. `Nylo.containsRoutes(["/home", "/settings"])`
+* Fix `MetroService` duplicating slate file names
+ 
+## [5.70.0] - 2024-06-05
+
+* Update `NotEmptyRule` Validation rules to include `null`, `Map` and `List` types
+* Update pubspec.yaml
+
+## [5.69.5] - 2024-05-22
+
+* Update pubspec.yaml
+
+## [5.69.4] - 2024-05-17
+
+* Update pubspec.yaml
+
+## [5.69.3] - 2024-05-14
+
+* Update pubspec.yaml
+
+## [5.69.2] - 2024-05-12
+
+* Update pubspec.yaml
+
+## [5.69.1] - 2024-05-12
+
+* Downgrade `flutter_secure_storage` to 9.0.0
+
+## [5.69.0] - 2024-05-11
+
+* Fix `NyState` not receiving state updates
+* New `stateReset` method added to `NyListView` and `NyPullToRefresh`
+* Add `StateAction.setState` method
+* Update `flutter_secure_storage`
+* Update pubspec.yaml
+
+## [5.68.1] - 2024-05-05
+
+* Update pubspec.yaml
+
+## [5.68.0] - 2024-05-01
+
+* Add `ErrorStack` to the library
+* New `useErrorStack` helper added to Nylo. This will enable [ErrorStack](https://github.com/nylo-core/error-stack) in your application.
+* Update pubspec.yaml
+
+## [5.67.1] - 2024-04-29
+
+* Update pubspec.yaml
+
+## [5.67.0] - 2024-04-28
+
+* Update `confirmAction` method in `NyState` to support more options
+
+## [5.66.0] - 2024-04-25
+
+* Add `updateRouteStack` to Nylo. This method will update the route stack with a new routes.
+``` dart
+  Nylo.updateRouteStack([
+    HomePage.path,
+    SettingPage.path
+    ], dataForRoute: {
+    SettingPage.path: {"name": "John Doe"}
+    });
+```
+* Add `nylo.onDeepLink` to listen for deep link events in your app. 
+``` dart
+  nylo.onDeepLink((String route, dynamic data) {
+    print(data);
+  });
+```
+
+## [5.65.2] - 2024-04-25
+
+* Update `NyState` to check that `data` is of Type Map before calling `data[key]`
+
 ## [5.65.1] - 2024-04-20
 
 * Fix `web` builds - https://github.com/nylo-core/nylo/discussions/122
@@ -462,7 +671,7 @@
 ## [5.11.0] - 2023-10-17
 
 * Improve regex to auto add classes and routes
-* New `NyPage` widget - Learn more [here](https://nylo.dev/docs/5.x/ny-page)
+* New `NyPage` widget - Learn more [here](https://nylo.dev/docs/6.x/ny-page)
 * New helper for the Nylo class - `addControllers`
 * Improve Metro to auto add controllers when created
 * Add more docs

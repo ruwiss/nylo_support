@@ -1,7 +1,7 @@
 import '/router/models/ny_argument.dart';
 import '/router/models/ny_page_transition_settings.dart';
 import '/router/models/ny_query_parameters.dart';
-import 'package:page_transition/page_transition.dart';
+import '/router/page_transition/page_transition.dart';
 
 class ArgumentsWrapper {
   NyArgument? baseArguments;

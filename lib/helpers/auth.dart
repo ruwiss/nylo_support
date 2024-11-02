@@ -1,66 +1,143 @@
-import '/events/auth_user_event.dart';
+import 'package:dio/dio.dart';
+import '/networking/ny_api_service.dart';
+import '/nylo.dart';
+import 'package:uuid/uuid.dart';
+import '/local_storage/local_storage.dart';
 import '/helpers/backpack.dart';
-import '/helpers/extensions.dart';
-import '/helpers/helper.dart';
+import 'model.dart';
+
+/// HasApiService mixin
+mixin HasApiService<T extends NyApiService> {
+  /// Get the ApiService
+  T? _apiService;
+
+  /// Set the onSuccess callback
+  onApiSuccess(Function(Response response, dynamic data) onSuccess) {
+    _apiService ??= apiService;
+    _apiService!.onSuccess(onSuccess);
+  }
+
+  /// Set the onError callback
+  onApiError(Function(dynamic error) onError) {
+    _apiService ??= apiService;
+    _apiService!.onError(onError);
+  }
+
+  /// Get the ApiService
+  T get apiService {
+    return _apiService ??= (Nylo.apiDecoder<T>() as T);
+  }
+}
 
 /// Authentication class
-/// Learn more: https://nylo.dev/docs/5.x/authentication
+/// Learn more: https://nylo.dev/docs/6.x/authentication
 class Auth {
-  /// Set the auth user
-  static Future<void> set(dynamic auth, {String? key}) async =>
-      await nyEvent<AuthUserEvent>(params: {"auth": auth, "key": key});
+  /// Get the auth key
+  static String key() => Nylo.authKey();
 
-  /// Login a auth user for a given [key].
-  static Future login(dynamic auth, {String? key}) async =>
-      await set(auth, key: key);
-
-  /// Get the auth user
-  static T? user<T>({String? key}) {
-    if (key != null) {
-      return Backpack.instance.auth<T>(key: key);
-    }
-    return Backpack.instance.auth<T>();
-  }
-
-  /// Remove the auth user for a given [key].
-  static Future remove({String? key}) async {
-    String storageKey = getEnv('AUTH_USER_KEY', defaultValue: 'AUTH_USER');
-    if (key != null) {
-      storageKey = key;
-    }
-    await NyStorage.delete(storageKey, andFromBackpack: true);
-  }
-
-  /// Logout the auth user for a given [key].
-  static Future logout({String? key}) async => await remove(key: key);
-
-  /// Check if a user is logged in for a given [key].
-  static Future<bool> loggedIn({String? key}) async {
-    return (await user(key: key)) != null;
-  }
-
-  /// Login a model into the app.
-  /// [key] that the user was stored under.
-  /// [toModel] is a function that converts the data into a model.
-  /// the [data] parameter will contain the data that was stored in the storage.
-  /// Example:
-  /// ```dart
-  /// await Auth.loginModel('my_auth_key', (data) => Customer.fromJson(data));
-  /// ```
-  static loginModel(String key, Model Function(dynamic data) toModel) async {
-    dynamic object = await NyStorage.read(key);
-    if (object == null) return;
-
-    if (object is String) {
-      try {
-        object = object.parseJson();
-      } on Exception catch (e) {
-        dump(e.toString());
-        return;
+  /// Authenticate user
+  static Future<void> authenticate({dynamic data}) async {
+    if (data != null) {
+      assert(data is Map || data is Model, '''Data must be a Map or a Model
+      Example:
+      Auth.authenticate(data: {
+        "token": "abc123",
+      });
+      or
+      Auth.authenticate(data: user);''');
+      if (data is Model) {
+        data = data.toJson();
       }
     }
-    Model model = toModel(object);
-
-    Backpack.instance.set(key, model);
+    await NyStorage.saveJson(
+      key(),
+      data,
+      inBackpack: true,
+    );
   }
+
+  /// Logout auth.
+  static Future logout() async {
+    await NyStorage.delete(key(), andFromBackpack: true);
+  }
+
+  /// Check if the user is authenticated.
+  static Future<bool> isAuthenticated() async {
+    return (await Nylo.user()) != null;
+  }
+
+  /// Get the user data.
+  static data({String? key}) {
+    if (key != null) {
+      Map<String, dynamic>? bpData = Backpack.instance.read(key);
+      return (bpData?.containsKey(key) ?? false) ? bpData![key] : null;
+    }
+    return Backpack.instance.read(Auth.key());
+  }
+
+  /// Update the auth user data.
+  static update(Function(dynamic data) update) async {
+    dynamic data = await NyStorage.read(key());
+    dynamic updatedData = await update(data);
+    await authenticate(data: updatedData);
+  }
+
+  /// Get the device id.
+  static Future<String?> deviceId() async {
+    String key = "ny_device_id";
+    String? deviceUid = await NyStorage.read(key);
+    if (deviceUid == null) {
+      Uuid uuid = const Uuid();
+      int timestamp = DateTime.now().millisecondsSinceEpoch;
+      deviceUid = "${uuid.v4()}-${timestamp.toString()}";
+      await NyStorage.save(key, deviceUid);
+    }
+    return deviceUid;
+  }
+
+  /// Sync the auth user data to the backpack.
+  static syncToBackpack() async {
+    dynamic data = await NyStorage.readJson(key());
+    Backpack.instance.save(key(), data);
+  }
+}
+
+/// Authenticate user
+authAuthenticate({dynamic data}) async {
+  await Auth.authenticate(data: data);
+}
+
+/// Logout user
+authLogout() async {
+  await Auth.logout();
+}
+
+/// Check if the user is authenticated
+Future<bool> authIsAuthenticated() async {
+  return await Auth.isAuthenticated();
+}
+
+/// Get the user data
+authData({String? key}) {
+  return Auth.data(key: key);
+}
+
+/// Update the auth user data
+authUpdate(Function(dynamic data) update) async {
+  await Auth.update(update);
+}
+
+/// Sync the auth user data to the backpack
+authSyncToBackpack() async {
+  await Auth.syncToBackpack();
+}
+
+/// Get the auth key
+authKey() {
+  return Auth.key();
+}
+
+/// Get the device id
+Future<String?> authDeviceId() async {
+  return await Auth.deviceId();
 }

@@ -17,7 +17,8 @@ class NyFader extends StatelessWidget {
 
   /// NyFader from bottom to top
   NyFader.bottom(
-      {super.key, required this.child,
+      {super.key,
+      required this.child,
       this.color = Colors.black,
       this.strength = 1,
       this.alignment = const [Alignment.topCenter, Alignment.bottomCenter]}) {
@@ -28,7 +29,8 @@ class NyFader extends StatelessWidget {
 
   /// NyFader from top to bottom
   NyFader.top(
-      {super.key, required this.child,
+      {super.key,
+      required this.child,
       this.color = Colors.black,
       this.strength = 1,
       this.alignment = const [Alignment.bottomCenter, Alignment.topCenter]}) {
@@ -39,7 +41,8 @@ class NyFader extends StatelessWidget {
 
   /// NyFader from left to right
   NyFader.left(
-      {super.key, required this.child,
+      {super.key,
+      required this.child,
       this.color = Colors.black,
       this.strength = 1,
       this.alignment = const [Alignment.centerLeft, Alignment.centerRight]}) {
@@ -50,7 +53,8 @@ class NyFader extends StatelessWidget {
 
   /// NyFader from right to left
   NyFader.right(
-      {super.key, required this.child,
+      {super.key,
+      required this.child,
       this.color = Colors.black,
       this.strength = 1,
       this.alignment = const [Alignment.centerRight, Alignment.topLeft]}) {
@@ -116,27 +120,25 @@ class NyFader extends StatelessWidget {
         stops = [0, 0, 0.5, 1];
         break;
     }
-    return Container(
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: child,
-          ),
-          Positioned.fill(
-            child: Container(
-              padding: const EdgeInsets.all(10.0),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: colors,
-                  begin: alignment[0],
-                  end: alignment[1],
-                  stops: stops,
-                ),
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: child,
+        ),
+        Positioned.fill(
+          child: Container(
+            padding: const EdgeInsets.all(10.0),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: colors,
+                begin: alignment[0],
+                end: alignment[1],
+                stops: stops,
               ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

@@ -9,7 +9,7 @@ abstract class BaseColorStyles {
 
   // general
   Color get background;
-  Color get primaryContent;
+  Color get content;
   Color get primaryAccent;
 
   Color get surfaceBackground;
@@ -21,7 +21,10 @@ abstract class BaseColorStyles {
 
   // buttons
   Color get buttonBackground;
-  Color get buttonPrimaryContent;
+  Color get buttonContent;
+
+  Color get buttonSecondaryBackground;
+  Color get buttonSecondaryContent;
 
   // bottom tab bar
   Color get bottomTabBarBackground;

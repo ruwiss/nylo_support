@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import '/helpers/helper.dart';
+import '/helpers/ny_logger.dart';
 import '/widgets/ny_language_switcher.dart';
 
 /// Locale Types
@@ -28,7 +28,7 @@ class LocalizedApp extends StatefulWidget {
   }
 
   @override
-   createState() => _LocalizedAppState();
+  createState() => _LocalizedAppState();
 }
 
 class _LocalizedAppState extends State<LocalizedApp> {
@@ -200,11 +200,10 @@ class NyLocalization {
     _locale = Locale(language, "");
 
     String filePath = "$_assetsDir$language.json";
-    String content = await rootBundle.loadString(filePath);
-
-    _values = json.decode(content);
+    _values = json.decode(await rootBundle.loadString(filePath));
 
     if (restart) {
+      // ignore: use_build_context_synchronously
       LocalizedApp.restart(context);
     }
   }

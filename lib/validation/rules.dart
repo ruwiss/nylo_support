@@ -1,7 +1,7 @@
+import '/helpers/ny_logger.dart';
 import '/alerts/toast_enums.dart';
 import '/alerts/toast_notification.dart';
 import '/helpers/extensions.dart';
-import '/helpers/helper.dart';
 import 'package:validated/validated.dart' as validate;
 
 /// BASE ValidationRule class
@@ -45,7 +45,7 @@ class ValidationRule {
 
   /// The alert which will be displayed.
   alert(context,
-      {ToastNotificationStyleType style = ToastNotificationStyleType.WARNING,
+      {ToastNotificationStyleType style = ToastNotificationStyleType.warning,
       Duration? duration,
       Map<String, dynamic>? info}) {
     showToastNotification(
@@ -65,12 +65,15 @@ class EmailRule extends ValidationRule {
             attribute: attribute,
             signature: "email",
             description: "The $attribute field is not a valid email",
-            textFieldMessage: "Provide a valid email");
+            textFieldMessage: "Enter a valid email");
 
   @override
   handle(Map<String, dynamic> info) {
     super.handle(info);
-    return validate.isEmail(info['data']);
+    if (info['data'] == null) {
+      return false;
+    }
+    return validate.isEmail(info['data'].toLowerCase());
   }
 }
 
@@ -148,7 +151,17 @@ class NotEmptyRule extends ValidationRule {
   @override
   bool handle(Map<String, dynamic> info) {
     super.handle(info);
-    return info['data'] != "";
+    dynamic data = info['data'];
+    if (data == null) {
+      return false;
+    }
+    if (data is List) {
+      return data.isNotEmpty;
+    }
+    if (data is Map) {
+      return data.isNotEmpty;
+    }
+    return (data.toString() != "");
   }
 }
 
@@ -163,6 +176,9 @@ class ContainsRule extends ValidationRule {
   @override
   bool handle(Map<String, dynamic> info) {
     super.handle(info);
+    if (info['data'] == null) {
+      return false;
+    }
     RegExp regExp = RegExp(signature + r':([A-z0-9, ]+)');
     String match = regExp.firstMatch(info['rule'])!.group(1) ?? "";
     List<String> listMatches = match.split(",");
@@ -178,11 +194,14 @@ class URLRule extends ValidationRule {
       : super(
             signature: "url",
             description: "The $attribute is not a valid URL",
-            textFieldMessage: "Must be a valid URL");
+            textFieldMessage: "Enter a valid URL");
 
   @override
   bool handle(Map<String, dynamic> info) {
     super.handle(info);
+    if (info['data'] == null) {
+      return false;
+    }
     return validate.isURL(info['data']);
   }
 }
@@ -213,7 +232,8 @@ class UpperCaseRule extends ValidationRule {
   @override
   bool handle(Map<String, dynamic> info) {
     super.handle(info);
-    return validate.isUpperCase(info['data']);
+    String data = info['data'];
+    return data == data.toUpperCase();
   }
 }
 
@@ -273,8 +293,7 @@ class NumericRule extends ValidationRule {
   @override
   bool handle(Map<String, dynamic> info) {
     super.handle(info);
-    RegExp _numeric = RegExp(r'^-?[0-9]\d*(\.\d+)?$');
-    return _numeric.hasMatch(info['data']);
+    return RegExp(r'^-?[0-9]\d*(\.\d+)?$').hasMatch(info['data']);
   }
 }
 
@@ -289,8 +308,7 @@ class DateAgeIsYoungerRule extends ValidationRule {
     String match = regExp.firstMatch(info['rule'])?.group(1) ?? "";
     int intMatch = int.parse(match);
     info.dump();
-    description =
-        "The $attribute must be younger than $intMatch years old.";
+    description = "The $attribute must be younger than $intMatch years old.";
     textFieldMessage = "Must be younger than $intMatch years old.";
     super.handle(info);
     dynamic date = info['data'];
@@ -320,8 +338,7 @@ class DateAgeIsOlderRule extends ValidationRule {
     String match = regExp.firstMatch(info['rule'])?.group(1) ?? "";
     int intMatch = int.parse(match);
 
-    description =
-        "The $attribute must be older than $intMatch years old.";
+    description = "The $attribute must be older than $intMatch years old.";
     textFieldMessage = "Must be older than $intMatch years old.";
     super.handle(info);
     dynamic date = info['data'];
@@ -427,19 +444,11 @@ class MaxRule extends ValidationRule {
 
     dynamic data = info['data'];
     if (data is String) {
-      // Check if the string is a number
-      if (double.tryParse(data) != null) {
-        description = "$attribute must be a maximum of $intMatch.";
-        textFieldMessage = "Must be a maximum of $intMatch.";
-        super.handle(info);
-        return (double.tryParse(data)! < intMatch);
-      } else {
-        description =
-            "$attribute must be a maximum length of $intMatch characters.";
-        textFieldMessage = "Must be a maximum of $intMatch characters.";
-        super.handle(info);
-        return (data.length < intMatch);
-      }
+      description =
+          "$attribute must be a maximum length of $intMatch characters.";
+      textFieldMessage = "Must be a maximum of $intMatch characters.";
+      super.handle(info);
+      return (data.length < intMatch);
     }
 
     if (data is int) {
@@ -540,7 +549,7 @@ class PhoneNumberUkRule extends ValidationRule {
             attribute: attribute,
             signature: "phone_number_uk",
             description: "The $attribute field is not a valid phone number",
-            textFieldMessage: "This value must be a valid phone number");
+            textFieldMessage: "Enter a valid UK phone number");
 
   @override
   bool handle(Map<String, dynamic> info) {
@@ -551,14 +560,14 @@ class PhoneNumberUkRule extends ValidationRule {
   }
 }
 
-/// USA NUMBER RULE
-class PhoneNumberUsaRule extends ValidationRule {
-  PhoneNumberUsaRule(String attribute)
+/// US NUMBER RULE
+class PhoneNumberUsRule extends ValidationRule {
+  PhoneNumberUsRule(String attribute)
       : super(
             attribute: attribute,
             signature: "phone_number_us",
             description: "The $attribute field is not a valid phone number",
-            textFieldMessage: "This value must be a valid phone number");
+            textFieldMessage: "Enter a valid US phone number");
 
   @override
   bool handle(Map<String, dynamic> info) {
@@ -576,7 +585,7 @@ class PostCodeUkRule extends ValidationRule {
             attribute: attribute,
             signature: "postcode_uk",
             description: "The $attribute field is not a valid post code",
-            textFieldMessage: "This value must be a valid post code");
+            textFieldMessage: "Enter a valid post code");
 
   @override
   bool handle(Map<String, dynamic> info) {
@@ -588,7 +597,7 @@ class PostCodeUkRule extends ValidationRule {
 
 /// PasswordV1 RULE
 /// This rule is used to validate a password with the following requirements:
-/// - At least one upper case letter
+/// - At least one uppercase letter
 /// - At least one digit
 /// - Minimum of 8 characters
 class PasswordV1Rule extends ValidationRule {
@@ -597,11 +606,11 @@ class PasswordV1Rule extends ValidationRule {
             attribute: attribute,
             signature: "password_v1",
             description: "The $attribute field is not a valid password",
-            textFieldMessage: "This value must be a valid password");
+            textFieldMessage: "1 uppercased letter, 1 digit, 8 characters");
 
   @override
   bool handle(Map<String, dynamic> info) {
-    RegExp regExp = RegExp(r'^(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$');
+    RegExp regExp = RegExp(r'^(?=.*[A-Z])(?=.*\d).{8,}$');
     super.handle(info);
     return regExp.hasMatch(info['data'].toString());
   }
@@ -609,7 +618,7 @@ class PasswordV1Rule extends ValidationRule {
 
 /// PasswordV2 RULE
 /// This rule is used to validate a password with the following requirements:
-/// - At least one upper case letter
+/// - At least one uppercase letter
 /// - At least one digit
 /// - Minimum of 8 characters
 /// - At least one special character
@@ -619,12 +628,13 @@ class PasswordV2Rule extends ValidationRule {
             attribute: attribute,
             signature: "password_v2",
             description: "The $attribute field is not a valid password",
-            textFieldMessage: "This value must be a valid password");
+            textFieldMessage:
+                "1 uppercased letter, 1 digit, 1 special character, 8 characters");
 
   @override
   bool handle(Map<String, dynamic> info) {
-    RegExp regExp = RegExp(
-        r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$');
+    RegExp regExp =
+        RegExp(r'^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$');
     super.handle(info);
     return regExp.hasMatch(info['data'].toString());
   }
@@ -637,7 +647,7 @@ class ZipCodeUsRule extends ValidationRule {
             attribute: attribute,
             signature: "zipcode_us",
             description: "The $attribute field is not a valid zip code",
-            textFieldMessage: "This value must be a valid zip code");
+            textFieldMessage: "Enter a valid zip code");
 
   @override
   bool handle(Map<String, dynamic> info) {

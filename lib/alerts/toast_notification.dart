@@ -25,17 +25,18 @@ showToastNotification(BuildContext context,
 
   if (nylo.toastNotification != null) {
     toastNotificationWidget = nylo.toastNotification!(
-        style: style ?? ToastNotificationStyleType.CUSTOM,
+        style: style ?? ToastNotificationStyleType.custom,
         toastNotificationStyleMeta: (meta) {
           toastNotificationStyleMetaHelper = meta;
-          ToastMeta _toastMeta = toastNotificationStyleMetaHelper.getValue();
+          ToastMeta toastNotificationMeta =
+              toastNotificationStyleMetaHelper.getValue();
           if (title != null) {
-            _toastMeta.title = title;
+            toastNotificationMeta.title = title;
           }
           if (description != null) {
-            _toastMeta.description = description;
+            toastNotificationMeta.description = description;
           }
-          return _toastMeta;
+          return toastNotificationMeta;
         },
         onDismiss: () {
           ToastManager().dismissAll(showAnim: true);

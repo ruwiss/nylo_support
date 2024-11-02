@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
+import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart'
     show
@@ -48,15 +50,19 @@ import 'package:flutter/material.dart'
         VerticalDivider;
 import 'package:get_time_ago/get_time_ago.dart';
 import 'package:intl/intl.dart' as intl;
-import 'package:nylo_support/nylo.dart';
+import '/helpers/state_action.dart';
+import '/nylo.dart';
 import 'package:skeletonizer/skeletonizer.dart';
+import 'package:theme_provider/theme_provider.dart';
+import '../local_storage/local_storage.dart';
 import '/helpers/backpack.dart';
 import '/helpers/helper.dart';
 import '/localization/app_localization.dart';
 import '/router/router.dart';
 import '/widgets/ny_fader.dart';
-import 'package:page_transition/page_transition.dart';
+import '/router/page_transition/page_transition.dart';
 import '/router/models/ny_page_transition_settings.dart';
+import 'ny_logger.dart';
 
 /// Extensions for [String]
 extension NyStr on String? {
@@ -78,9 +84,6 @@ extension NyStr on String? {
 
   /// Attempt to convert a [String] to a [DateTime].
   DateTime toDateTime() => DateTime.parse(this ?? "");
-
-  /// Attempt to convert a [String] into a model by using your model decoders.
-  T toModel<T>() => dataToModel<T>(data: parseJson());
 }
 
 /// Extensions for [int]
@@ -299,7 +302,6 @@ extension NyDateTime on DateTime? {
       'DateTime is null'.dump();
       return null;
     }
-    ;
     return GetTimeAgo.parse(this!, locale: Nylo.instance.locale);
   }
 
@@ -348,6 +350,46 @@ extension NyList on List? {
     NyLogger.dump((this ?? "").toString(), tag);
     exit(0);
   }
+
+  /// Convert a list to [Row]
+  Row row(
+      {Key? key,
+      MainAxisAlignment mainAxisAlignment = MainAxisAlignment.start,
+      MainAxisSize mainAxisSize = MainAxisSize.max,
+      CrossAxisAlignment crossAxisAlignment = CrossAxisAlignment.center,
+      TextDirection? textDirection,
+      VerticalDirection verticalDirection = VerticalDirection.down,
+      TextBaseline? textBaseline}) {
+    return Row(
+      key: key,
+      mainAxisAlignment: mainAxisAlignment,
+      mainAxisSize: mainAxisSize,
+      crossAxisAlignment: crossAxisAlignment,
+      textDirection: textDirection,
+      verticalDirection: verticalDirection,
+      textBaseline: textBaseline,
+      children: this as List<Widget>,
+    );
+  }
+
+  /// Find a random item in a list.
+  dynamic randomItem() {
+    if (this == null) return null;
+    return this![Random().nextInt(this!.length)];
+  }
+}
+
+/// Extensions for [List]
+extension ListUpdateExtension<T> on List<T> {
+  /// Update a list of items based on a condition.
+  List<T> update(bool Function(T) condition, T Function(T) updater) {
+    return map((item) {
+      if (condition(item)) {
+        return updater(item);
+      }
+      return item;
+    }).toList();
+  }
 }
 
 /// Extensions for [List]
@@ -361,6 +403,32 @@ extension NyListGeneric<T> on List<T> {
       return;
     }
     add(value);
+  }
+}
+
+/// Extensions for [Response]
+extension NyResponse on Response {
+  /// Get the path of the request.
+  String get path => requestOptions.path;
+
+  /// Get the data as a model.
+  T toModel<T>() {
+    return dataToModel<T>(data: data);
+  }
+
+  /// Get the cache key for the request.
+  Map<String, dynamic> toJson() {
+    return {
+      'data': data,
+      'requestOptions': {
+        'path': path,
+        'method': requestOptions.method,
+        'baseUrl': requestOptions.baseUrl,
+        'queryParameters': requestOptions.queryParameters,
+      },
+      'statusCode': statusCode,
+      'statusMessage': statusMessage,
+    };
   }
 }
 
@@ -455,7 +523,7 @@ extension NyColumn on Column {
 
 /// Extensions for [Image]
 extension NyImage on Image {
-  /// Get the image from public/assets/images
+  /// Get the image from public/images
   Image localAsset() {
     assert(image is AssetImage, "Image must be an AssetImage");
     if (image is AssetImage) {
@@ -510,14 +578,17 @@ extension NyImage on Image {
 /// Extensions for [SingleChildRenderObjectWidget]
 extension NySingleChildRenderObjectWidget on SingleChildRenderObjectWidget {
   /// Route to a new page.
-  InkWell onTapRoute(String routeName,
+  InkWell onTapRoute(dynamic routeName,
       {dynamic data,
       NavigationType navigationType = NavigationType.push,
       dynamic result,
       bool Function(Route<dynamic> route)? removeUntilPredicate,
       PageTransitionSettings? pageTransitionSettings,
-      PageTransitionType? pageTransition,
+      PageTransitionType? pageTransitionType,
       Function(dynamic value)? onPop}) {
+    if (routeName is RouteView) {
+      routeName = routeName.name;
+    }
     return InkWell(
       onTap: () async {
         await routeTo(routeName,
@@ -526,7 +597,7 @@ extension NySingleChildRenderObjectWidget on SingleChildRenderObjectWidget {
             result: result,
             removeUntilPredicate: removeUntilPredicate,
             pageTransitionSettings: pageTransitionSettings,
-            pageTransition: pageTransition,
+            pageTransitionType: pageTransitionType,
             onPop: onPop);
       },
       splashColor: Colors.transparent,
@@ -595,15 +666,18 @@ extension NyString on String {
 /// Extensions for [StatelessWidget]
 extension NyStatelessWidget on StatelessWidget {
   /// Route to a new page.
-  InkWell onTapRoute(String routeName,
+  InkWell onTapRoute(dynamic routeName,
       {dynamic data,
       Map<String, dynamic>? queryParameters,
       NavigationType navigationType = NavigationType.push,
       dynamic result,
       bool Function(Route<dynamic> route)? removeUntilPredicate,
       PageTransitionSettings? pageTransitionSettings,
-      PageTransitionType? pageTransition,
+      PageTransitionType? pageTransitionType,
       Function(dynamic value)? onPop}) {
+    if (routeName is RouteView) {
+      routeName = routeName.name;
+    }
     return InkWell(
       onTap: () async {
         await routeTo(routeName,
@@ -613,7 +687,7 @@ extension NyStatelessWidget on StatelessWidget {
             result: result,
             removeUntilPredicate: removeUntilPredicate,
             pageTransitionSettings: pageTransitionSettings,
-            pageTransition: pageTransition,
+            pageTransitionType: pageTransitionType,
             onPop: onPop);
       },
       splashColor: Colors.transparent,
@@ -1014,100 +1088,964 @@ extension NyRow on Row {
 
 /// Extensions for [Text]
 extension NyText on Text {
-  /// Set the Style to use [displayLarge].
-  Text displayLarge(BuildContext context) {
-    if (style == null) {
-      return copyWith(style: Theme.of(context).textTheme.displayLarge);
+  BuildContext get _context {
+    BuildContext? context =
+        NyNavigator.instance.router.navigatorKey?.currentContext;
+    if (context == null) {
+      throw Exception('');
     }
-    return setStyle(Theme.of(context).textTheme.displayLarge);
+    return context;
+  }
+
+  /// Set the Style to use [displayLarge].
+  Text displayLarge({
+    Color? color,
+    double? fontSize,
+    FontWeight? fontWeight,
+    FontStyle? fontStyle,
+    double? letterSpacing,
+    double? wordSpacing,
+    TextBaseline? textBaseline,
+    double? height,
+    Locale? locale,
+    Paint? foreground,
+    Paint? background,
+    List<Shadow>? shadows,
+    List<FontFeature>? fontFeatures,
+    TextDecoration? decoration,
+    Color? decorationColor,
+    TextDecorationStyle? decorationStyle,
+    double? decorationThickness,
+    String? fontFamily,
+    List<String>? fontFamilyFallback,
+    String? package,
+    TextOverflow? overflow,
+    TextDecoration? overline,
+    Color? overlineColor,
+    TextDecorationStyle? overlineStyle,
+    double? overlineThickness,
+    TextDecoration? underline,
+    Color? underlineColor,
+    TextDecorationStyle? underlineStyle,
+    double? underlineThickness,
+    TextHeightBehavior? textHeightBehavior,
+  }) {
+    TextStyle textStyle = TextStyle(
+      color: color,
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      fontStyle: fontStyle,
+      letterSpacing: letterSpacing,
+      wordSpacing: wordSpacing,
+      textBaseline: textBaseline,
+      height: height,
+      locale: locale,
+      foreground: foreground,
+      background: background,
+      shadows: shadows,
+      fontFeatures: fontFeatures,
+      decoration: decoration,
+      decorationColor: decorationColor,
+      decorationStyle: decorationStyle,
+      decorationThickness: decorationThickness,
+      fontFamily: fontFamily,
+      fontFamilyFallback: fontFamilyFallback,
+      package: package,
+      overflow: overflow,
+    );
+    if (style == null) {
+      return copyWith(
+          style: Theme.of(_context).textTheme.displayLarge?.merge(textStyle));
+    }
+    return setStyle(
+        Theme.of(_context).textTheme.displayLarge?.merge(textStyle));
   }
 
   /// Set the Style to use [displayMedium].
-  Text displayMedium(BuildContext context) {
+  Text displayMedium({
+    Color? color,
+    double? fontSize,
+    FontWeight? fontWeight,
+    FontStyle? fontStyle,
+    double? letterSpacing,
+    double? wordSpacing,
+    TextBaseline? textBaseline,
+    double? height,
+    Locale? locale,
+    Paint? foreground,
+    Paint? background,
+    List<Shadow>? shadows,
+    List<FontFeature>? fontFeatures,
+    TextDecoration? decoration,
+    Color? decorationColor,
+    TextDecorationStyle? decorationStyle,
+    double? decorationThickness,
+    String? fontFamily,
+    List<String>? fontFamilyFallback,
+    String? package,
+    TextOverflow? overflow,
+    TextDecoration? overline,
+    Color? overlineColor,
+    TextDecorationStyle? overlineStyle,
+    double? overlineThickness,
+    TextDecoration? underline,
+    Color? underlineColor,
+    TextDecorationStyle? underlineStyle,
+    double? underlineThickness,
+    TextHeightBehavior? textHeightBehavior,
+  }) {
+    TextStyle textStyle = TextStyle(
+      color: color,
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      fontStyle: fontStyle,
+      letterSpacing: letterSpacing,
+      wordSpacing: wordSpacing,
+      textBaseline: textBaseline,
+      height: height,
+      locale: locale,
+      foreground: foreground,
+      background: background,
+      shadows: shadows,
+      fontFeatures: fontFeatures,
+      decoration: decoration,
+      decorationColor: decorationColor,
+      decorationStyle: decorationStyle,
+      decorationThickness: decorationThickness,
+      fontFamily: fontFamily,
+      fontFamilyFallback: fontFamilyFallback,
+      package: package,
+      overflow: overflow,
+    );
     if (style == null) {
-      return copyWith(style: Theme.of(context).textTheme.displayMedium);
+      return copyWith(
+          style: Theme.of(_context).textTheme.displayMedium?.merge(textStyle));
     }
-    return setStyle(Theme.of(context).textTheme.displayMedium);
+    return setStyle(
+        Theme.of(_context).textTheme.displayMedium?.merge(textStyle));
   }
 
   /// Set the Style to use [displaySmall].
-  Text displaySmall(BuildContext context) {
+  Text displaySmall({
+    Color? color,
+    double? fontSize,
+    FontWeight? fontWeight,
+    FontStyle? fontStyle,
+    double? letterSpacing,
+    double? wordSpacing,
+    TextBaseline? textBaseline,
+    double? height,
+    Locale? locale,
+    Paint? foreground,
+    Paint? background,
+    List<Shadow>? shadows,
+    List<FontFeature>? fontFeatures,
+    TextDecoration? decoration,
+    Color? decorationColor,
+    TextDecorationStyle? decorationStyle,
+    double? decorationThickness,
+    String? fontFamily,
+    List<String>? fontFamilyFallback,
+    String? package,
+    TextOverflow? overflow,
+    TextDecoration? overline,
+    Color? overlineColor,
+    TextDecorationStyle? overlineStyle,
+    double? overlineThickness,
+    TextDecoration? underline,
+    Color? underlineColor,
+    TextDecorationStyle? underlineStyle,
+    double? underlineThickness,
+    TextHeightBehavior? textHeightBehavior,
+  }) {
+    TextStyle textStyle = TextStyle(
+      color: color,
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      fontStyle: fontStyle,
+      letterSpacing: letterSpacing,
+      wordSpacing: wordSpacing,
+      textBaseline: textBaseline,
+      height: height,
+      locale: locale,
+      foreground: foreground,
+      background: background,
+      shadows: shadows,
+      fontFeatures: fontFeatures,
+      decoration: decoration,
+      decorationColor: decorationColor,
+      decorationStyle: decorationStyle,
+      decorationThickness: decorationThickness,
+      fontFamily: fontFamily,
+      fontFamilyFallback: fontFamilyFallback,
+      package: package,
+      overflow: overflow,
+    );
     if (style == null) {
-      return copyWith(style: Theme.of(context).textTheme.displaySmall);
+      return copyWith(
+          style: Theme.of(_context).textTheme.displaySmall?.merge(textStyle));
     }
-    return setStyle(Theme.of(context).textTheme.displaySmall);
+    return setStyle(
+        Theme.of(_context).textTheme.displaySmall?.merge(textStyle));
   }
 
   /// Set the Style to use [headlineLarge].
-  Text headingLarge(BuildContext context) {
+  Text headingLarge({
+    Color? color,
+    double? fontSize,
+    FontWeight? fontWeight,
+    FontStyle? fontStyle,
+    double? letterSpacing,
+    double? wordSpacing,
+    TextBaseline? textBaseline,
+    double? height,
+    Locale? locale,
+    Paint? foreground,
+    Paint? background,
+    List<Shadow>? shadows,
+    List<FontFeature>? fontFeatures,
+    TextDecoration? decoration,
+    Color? decorationColor,
+    TextDecorationStyle? decorationStyle,
+    double? decorationThickness,
+    String? fontFamily,
+    List<String>? fontFamilyFallback,
+    String? package,
+    TextOverflow? overflow,
+    TextDecoration? overline,
+    Color? overlineColor,
+    TextDecorationStyle? overlineStyle,
+    double? overlineThickness,
+    TextDecoration? underline,
+    Color? underlineColor,
+    TextDecorationStyle? underlineStyle,
+    double? underlineThickness,
+    TextHeightBehavior? textHeightBehavior,
+  }) {
+    TextStyle textStyle = TextStyle(
+      color: color,
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      fontStyle: fontStyle,
+      letterSpacing: letterSpacing,
+      wordSpacing: wordSpacing,
+      textBaseline: textBaseline,
+      height: height,
+      locale: locale,
+      foreground: foreground,
+      background: background,
+      shadows: shadows,
+      fontFeatures: fontFeatures,
+      decoration: decoration,
+      decorationColor: decorationColor,
+      decorationStyle: decorationStyle,
+      decorationThickness: decorationThickness,
+      fontFamily: fontFamily,
+      fontFamilyFallback: fontFamilyFallback,
+      package: package,
+      overflow: overflow,
+    );
     if (style == null) {
-      return copyWith(style: Theme.of(context).textTheme.headlineLarge);
+      return copyWith(
+          style: Theme.of(_context).textTheme.headlineLarge?.merge(textStyle));
     }
-    return setStyle(Theme.of(context).textTheme.headlineLarge);
+    return setStyle(
+        Theme.of(_context).textTheme.headlineLarge?.merge(textStyle));
   }
 
   /// Set the Style to use [headlineMedium].
-  Text headingMedium(BuildContext context) {
+  Text headingMedium({
+    Color? color,
+    double? fontSize,
+    FontWeight? fontWeight,
+    FontStyle? fontStyle,
+    double? letterSpacing,
+    double? wordSpacing,
+    TextBaseline? textBaseline,
+    double? height,
+    Locale? locale,
+    Paint? foreground,
+    Paint? background,
+    List<Shadow>? shadows,
+    List<FontFeature>? fontFeatures,
+    TextDecoration? decoration,
+    Color? decorationColor,
+    TextDecorationStyle? decorationStyle,
+    double? decorationThickness,
+    String? fontFamily,
+    List<String>? fontFamilyFallback,
+    String? package,
+    TextOverflow? overflow,
+    TextDecoration? overline,
+    Color? overlineColor,
+    TextDecorationStyle? overlineStyle,
+    double? overlineThickness,
+    TextDecoration? underline,
+    Color? underlineColor,
+    TextDecorationStyle? underlineStyle,
+    double? underlineThickness,
+    TextHeightBehavior? textHeightBehavior,
+  }) {
+    TextStyle textStyle = TextStyle(
+      color: color,
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      fontStyle: fontStyle,
+      letterSpacing: letterSpacing,
+      wordSpacing: wordSpacing,
+      textBaseline: textBaseline,
+      height: height,
+      locale: locale,
+      foreground: foreground,
+      background: background,
+      shadows: shadows,
+      fontFeatures: fontFeatures,
+      decoration: decoration,
+      decorationColor: decorationColor,
+      decorationStyle: decorationStyle,
+      decorationThickness: decorationThickness,
+      fontFamily: fontFamily,
+      fontFamilyFallback: fontFamilyFallback,
+      package: package,
+      overflow: overflow,
+    );
     if (style == null) {
-      return copyWith(style: Theme.of(context).textTheme.headlineMedium);
+      return copyWith(
+          style: Theme.of(_context).textTheme.headlineMedium?.merge(textStyle));
     }
-    return setStyle(Theme.of(context).textTheme.headlineMedium);
+    return setStyle(
+        Theme.of(_context).textTheme.headlineMedium?.merge(textStyle));
   }
 
   /// Set the Style to use [headlineSmall].
-  Text headingSmall(BuildContext context) {
+  Text headingSmall({
+    Color? color,
+    double? fontSize,
+    FontWeight? fontWeight,
+    FontStyle? fontStyle,
+    double? letterSpacing,
+    double? wordSpacing,
+    TextBaseline? textBaseline,
+    double? height,
+    Locale? locale,
+    Paint? foreground,
+    Paint? background,
+    List<Shadow>? shadows,
+    List<FontFeature>? fontFeatures,
+    TextDecoration? decoration,
+    Color? decorationColor,
+    TextDecorationStyle? decorationStyle,
+    double? decorationThickness,
+    String? fontFamily,
+    List<String>? fontFamilyFallback,
+    String? package,
+    TextOverflow? overflow,
+    TextDecoration? overline,
+    Color? overlineColor,
+    TextDecorationStyle? overlineStyle,
+    double? overlineThickness,
+    TextDecoration? underline,
+    Color? underlineColor,
+    TextDecorationStyle? underlineStyle,
+    double? underlineThickness,
+    TextHeightBehavior? textHeightBehavior,
+  }) {
+    TextStyle textStyle = TextStyle(
+      color: color,
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      fontStyle: fontStyle,
+      letterSpacing: letterSpacing,
+      wordSpacing: wordSpacing,
+      textBaseline: textBaseline,
+      height: height,
+      locale: locale,
+      foreground: foreground,
+      background: background,
+      shadows: shadows,
+      fontFeatures: fontFeatures,
+      decoration: decoration,
+      decorationColor: decorationColor,
+      decorationStyle: decorationStyle,
+      decorationThickness: decorationThickness,
+      fontFamily: fontFamily,
+      fontFamilyFallback: fontFamilyFallback,
+      package: package,
+      overflow: overflow,
+    );
     if (style == null) {
-      return copyWith(style: Theme.of(context).textTheme.headlineSmall);
+      return copyWith(
+          style: Theme.of(_context).textTheme.headlineSmall?.merge(textStyle));
     }
-    return setStyle(Theme.of(context).textTheme.headlineSmall);
+    return setStyle(
+        Theme.of(_context).textTheme.headlineSmall?.merge(textStyle));
   }
 
   /// Set the Style to use [titleLarge].
-  Text titleLarge(BuildContext context) {
+  Text titleLarge({
+    Color? color,
+    double? fontSize,
+    FontWeight? fontWeight,
+    FontStyle? fontStyle,
+    double? letterSpacing,
+    double? wordSpacing,
+    TextBaseline? textBaseline,
+    double? height,
+    Locale? locale,
+    Paint? foreground,
+    Paint? background,
+    List<Shadow>? shadows,
+    List<FontFeature>? fontFeatures,
+    TextDecoration? decoration,
+    Color? decorationColor,
+    TextDecorationStyle? decorationStyle,
+    double? decorationThickness,
+    String? fontFamily,
+    List<String>? fontFamilyFallback,
+    String? package,
+    TextOverflow? overflow,
+    TextDecoration? overline,
+    Color? overlineColor,
+    TextDecorationStyle? overlineStyle,
+    double? overlineThickness,
+    TextDecoration? underline,
+    Color? underlineColor,
+    TextDecorationStyle? underlineStyle,
+    double? underlineThickness,
+    TextHeightBehavior? textHeightBehavior,
+  }) {
+    TextStyle textStyle = TextStyle(
+      color: color,
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      fontStyle: fontStyle,
+      letterSpacing: letterSpacing,
+      wordSpacing: wordSpacing,
+      textBaseline: textBaseline,
+      height: height,
+      locale: locale,
+      foreground: foreground,
+      background: background,
+      shadows: shadows,
+      fontFeatures: fontFeatures,
+      decoration: decoration,
+      decorationColor: decorationColor,
+      decorationStyle: decorationStyle,
+      decorationThickness: decorationThickness,
+      fontFamily: fontFamily,
+      fontFamilyFallback: fontFamilyFallback,
+      package: package,
+      overflow: overflow,
+    );
     if (style == null) {
-      return copyWith(style: Theme.of(context).textTheme.titleLarge);
+      return copyWith(
+          style: Theme.of(_context).textTheme.titleLarge?.merge(textStyle));
     }
-    return setStyle(Theme.of(context).textTheme.titleLarge);
+    return setStyle(Theme.of(_context).textTheme.titleLarge?.merge(textStyle));
   }
 
   /// Set the Style to use [titleMedium].
-  Text titleMedium(BuildContext context) {
+  Text titleMedium({
+    Color? color,
+    double? fontSize,
+    FontWeight? fontWeight,
+    FontStyle? fontStyle,
+    double? letterSpacing,
+    double? wordSpacing,
+    TextBaseline? textBaseline,
+    double? height,
+    Locale? locale,
+    Paint? foreground,
+    Paint? background,
+    List<Shadow>? shadows,
+    List<FontFeature>? fontFeatures,
+    TextDecoration? decoration,
+    Color? decorationColor,
+    TextDecorationStyle? decorationStyle,
+    double? decorationThickness,
+    String? fontFamily,
+    List<String>? fontFamilyFallback,
+    String? package,
+    TextOverflow? overflow,
+    TextDecoration? overline,
+    Color? overlineColor,
+    TextDecorationStyle? overlineStyle,
+    double? overlineThickness,
+    TextDecoration? underline,
+    Color? underlineColor,
+    TextDecorationStyle? underlineStyle,
+    double? underlineThickness,
+    TextHeightBehavior? textHeightBehavior,
+  }) {
+    TextStyle textStyle = TextStyle(
+      color: color,
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      fontStyle: fontStyle,
+      letterSpacing: letterSpacing,
+      wordSpacing: wordSpacing,
+      textBaseline: textBaseline,
+      height: height,
+      locale: locale,
+      foreground: foreground,
+      background: background,
+      shadows: shadows,
+      fontFeatures: fontFeatures,
+      decoration: decoration,
+      decorationColor: decorationColor,
+      decorationStyle: decorationStyle,
+      decorationThickness: decorationThickness,
+      fontFamily: fontFamily,
+      fontFamilyFallback: fontFamilyFallback,
+      package: package,
+      overflow: overflow,
+    );
     if (style == null) {
-      return copyWith(style: Theme.of(context).textTheme.titleMedium);
+      return copyWith(
+          style: Theme.of(_context).textTheme.titleMedium?.merge(textStyle));
     }
-    return setStyle(Theme.of(context).textTheme.titleMedium);
+    return setStyle(Theme.of(_context).textTheme.titleMedium?.merge(textStyle));
   }
 
   /// Set the Style to use [titleSmall].
-  Text titleSmall(BuildContext context) {
+  Text titleSmall({
+    Color? color,
+    double? fontSize,
+    FontWeight? fontWeight,
+    FontStyle? fontStyle,
+    double? letterSpacing,
+    double? wordSpacing,
+    TextBaseline? textBaseline,
+    double? height,
+    Locale? locale,
+    Paint? foreground,
+    Paint? background,
+    List<Shadow>? shadows,
+    List<FontFeature>? fontFeatures,
+    TextDecoration? decoration,
+    Color? decorationColor,
+    TextDecorationStyle? decorationStyle,
+    double? decorationThickness,
+    String? fontFamily,
+    List<String>? fontFamilyFallback,
+    String? package,
+    TextOverflow? overflow,
+    TextDecoration? overline,
+    Color? overlineColor,
+    TextDecorationStyle? overlineStyle,
+    double? overlineThickness,
+    TextDecoration? underline,
+    Color? underlineColor,
+    TextDecorationStyle? underlineStyle,
+    double? underlineThickness,
+    TextHeightBehavior? textHeightBehavior,
+  }) {
+    TextStyle textStyle = TextStyle(
+      color: color,
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      fontStyle: fontStyle,
+      letterSpacing: letterSpacing,
+      wordSpacing: wordSpacing,
+      textBaseline: textBaseline,
+      height: height,
+      locale: locale,
+      foreground: foreground,
+      background: background,
+      shadows: shadows,
+      fontFeatures: fontFeatures,
+      decoration: decoration,
+      decorationColor: decorationColor,
+      decorationStyle: decorationStyle,
+      decorationThickness: decorationThickness,
+      fontFamily: fontFamily,
+      fontFamilyFallback: fontFamilyFallback,
+      package: package,
+      overflow: overflow,
+    );
     if (style == null) {
-      return copyWith(style: Theme.of(context).textTheme.titleSmall);
+      return copyWith(
+          style: Theme.of(_context).textTheme.titleSmall?.merge(textStyle));
     }
-    return setStyle(Theme.of(context).textTheme.titleSmall);
+    return setStyle(Theme.of(_context).textTheme.titleSmall?.merge(textStyle));
   }
 
   /// Set the Style to use [bodyLarge].
-  Text bodyLarge(BuildContext context) {
+  Text bodyLarge({
+    Color? color,
+    double? fontSize,
+    FontWeight? fontWeight,
+    FontStyle? fontStyle,
+    double? letterSpacing,
+    double? wordSpacing,
+    TextBaseline? textBaseline,
+    double? height,
+    Locale? locale,
+    Paint? foreground,
+    Paint? background,
+    List<Shadow>? shadows,
+    List<FontFeature>? fontFeatures,
+    TextDecoration? decoration,
+    Color? decorationColor,
+    TextDecorationStyle? decorationStyle,
+    double? decorationThickness,
+    String? fontFamily,
+    List<String>? fontFamilyFallback,
+    String? package,
+    TextOverflow? overflow,
+    TextDecoration? overline,
+    Color? overlineColor,
+    TextDecorationStyle? overlineStyle,
+    double? overlineThickness,
+    TextDecoration? underline,
+    Color? underlineColor,
+    TextDecorationStyle? underlineStyle,
+    double? underlineThickness,
+    TextHeightBehavior? textHeightBehavior,
+  }) {
+    TextStyle textStyle = TextStyle(
+      color: color,
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      fontStyle: fontStyle,
+      letterSpacing: letterSpacing,
+      wordSpacing: wordSpacing,
+      textBaseline: textBaseline,
+      height: height,
+      locale: locale,
+      foreground: foreground,
+      background: background,
+      shadows: shadows,
+      fontFeatures: fontFeatures,
+      decoration: decoration,
+      decorationColor: decorationColor,
+      decorationStyle: decorationStyle,
+      decorationThickness: decorationThickness,
+      fontFamily: fontFamily,
+      fontFamilyFallback: fontFamilyFallback,
+      package: package,
+      overflow: overflow,
+    );
     if (style == null) {
-      return copyWith(style: Theme.of(context).textTheme.bodyLarge);
+      return copyWith(
+          style: Theme.of(_context).textTheme.bodyLarge?.merge(textStyle));
     }
-    return setStyle(Theme.of(context).textTheme.bodyLarge);
+    return setStyle(Theme.of(_context).textTheme.bodyLarge?.merge(textStyle));
   }
 
   /// Set the Style to use [bodyMedium].
-  Text bodyMedium(BuildContext context) {
+  Text bodyMedium({
+    Color? color,
+    double? fontSize,
+    FontWeight? fontWeight,
+    FontStyle? fontStyle,
+    double? letterSpacing,
+    double? wordSpacing,
+    TextBaseline? textBaseline,
+    double? height,
+    Locale? locale,
+    Paint? foreground,
+    Paint? background,
+    List<Shadow>? shadows,
+    List<FontFeature>? fontFeatures,
+    TextDecoration? decoration,
+    Color? decorationColor,
+    TextDecorationStyle? decorationStyle,
+    double? decorationThickness,
+    String? fontFamily,
+    List<String>? fontFamilyFallback,
+    String? package,
+    TextOverflow? overflow,
+    TextDecoration? overline,
+    Color? overlineColor,
+    TextDecorationStyle? overlineStyle,
+    double? overlineThickness,
+    TextDecoration? underline,
+    Color? underlineColor,
+    TextDecorationStyle? underlineStyle,
+    double? underlineThickness,
+    TextHeightBehavior? textHeightBehavior,
+  }) {
+    TextStyle textStyle = TextStyle(
+      color: color,
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      fontStyle: fontStyle,
+      letterSpacing: letterSpacing,
+      wordSpacing: wordSpacing,
+      textBaseline: textBaseline,
+      height: height,
+      locale: locale,
+      foreground: foreground,
+      background: background,
+      shadows: shadows,
+      fontFeatures: fontFeatures,
+      decoration: decoration,
+      decorationColor: decorationColor,
+      decorationStyle: decorationStyle,
+      decorationThickness: decorationThickness,
+      fontFamily: fontFamily,
+      fontFamilyFallback: fontFamilyFallback,
+      package: package,
+      overflow: overflow,
+    );
     if (style == null) {
-      return copyWith(style: Theme.of(context).textTheme.bodyMedium);
+      return copyWith(
+          style: Theme.of(_context).textTheme.bodyMedium?.merge(textStyle));
     }
-    return setStyle(Theme.of(context).textTheme.bodyMedium);
+    return setStyle(Theme.of(_context).textTheme.bodyMedium?.merge(textStyle));
   }
 
   /// Set the Style to use [bodySmall].
-  Text bodySmall(BuildContext context) {
+  Text bodySmall({
+    Color? color,
+    double? fontSize,
+    FontWeight? fontWeight,
+    FontStyle? fontStyle,
+    double? letterSpacing,
+    double? wordSpacing,
+    TextBaseline? textBaseline,
+    double? height,
+    Locale? locale,
+    Paint? foreground,
+    Paint? background,
+    List<Shadow>? shadows,
+    List<FontFeature>? fontFeatures,
+    TextDecoration? decoration,
+    Color? decorationColor,
+    TextDecorationStyle? decorationStyle,
+    double? decorationThickness,
+    String? fontFamily,
+    List<String>? fontFamilyFallback,
+    String? package,
+    TextOverflow? overflow,
+    TextDecoration? overline,
+    Color? overlineColor,
+    TextDecorationStyle? overlineStyle,
+    double? overlineThickness,
+    TextDecoration? underline,
+    Color? underlineColor,
+    TextDecorationStyle? underlineStyle,
+    double? underlineThickness,
+    TextHeightBehavior? textHeightBehavior,
+  }) {
+    TextStyle textStyle = TextStyle(
+      color: color,
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      fontStyle: fontStyle,
+      letterSpacing: letterSpacing,
+      wordSpacing: wordSpacing,
+      textBaseline: textBaseline,
+      height: height,
+      locale: locale,
+      foreground: foreground,
+      background: background,
+      shadows: shadows,
+      fontFeatures: fontFeatures,
+      decoration: decoration,
+      decorationColor: decorationColor,
+      decorationStyle: decorationStyle,
+      decorationThickness: decorationThickness,
+      fontFamily: fontFamily,
+      fontFamilyFallback: fontFamilyFallback,
+      package: package,
+      overflow: overflow,
+    );
     if (style == null) {
-      return copyWith(style: Theme.of(context).textTheme.bodySmall);
+      return copyWith(
+          style: Theme.of(_context).textTheme.bodySmall?.merge(textStyle));
     }
-    return setStyle(Theme.of(context).textTheme.bodySmall);
+    return setStyle(Theme.of(_context).textTheme.bodySmall?.merge(textStyle));
+  }
+
+  /// Set the Style to use [labelLarge].
+  Text labelLarge({
+    Color? color,
+    double? fontSize,
+    FontWeight? fontWeight,
+    FontStyle? fontStyle,
+    double? letterSpacing,
+    double? wordSpacing,
+    TextBaseline? textBaseline,
+    double? height,
+    Locale? locale,
+    Paint? foreground,
+    Paint? background,
+    List<Shadow>? shadows,
+    List<FontFeature>? fontFeatures,
+    TextDecoration? decoration,
+    Color? decorationColor,
+    TextDecorationStyle? decorationStyle,
+    double? decorationThickness,
+    String? fontFamily,
+    List<String>? fontFamilyFallback,
+    String? package,
+    TextOverflow? overflow,
+    TextDecoration? overline,
+    Color? overlineColor,
+    TextDecorationStyle? overlineStyle,
+    double? overlineThickness,
+    TextDecoration? underline,
+    Color? underlineColor,
+    TextDecorationStyle? underlineStyle,
+    double? underlineThickness,
+    TextHeightBehavior? textHeightBehavior,
+  }) {
+    TextStyle textStyle = TextStyle(
+      color: color,
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      fontStyle: fontStyle,
+      letterSpacing: letterSpacing,
+      wordSpacing: wordSpacing,
+      textBaseline: textBaseline,
+      height: height,
+      locale: locale,
+      foreground: foreground,
+      background: background,
+      shadows: shadows,
+      fontFeatures: fontFeatures,
+      decoration: decoration,
+      decorationColor: decorationColor,
+      decorationStyle: decorationStyle,
+      decorationThickness: decorationThickness,
+      fontFamily: fontFamily,
+      fontFamilyFallback: fontFamilyFallback,
+      package: package,
+      overflow: overflow,
+    );
+    if (style == null) {
+      return copyWith(
+          style: Theme.of(_context).textTheme.labelLarge?.merge(textStyle));
+    }
+    return setStyle(Theme.of(_context).textTheme.labelLarge?.merge(textStyle));
+  }
+
+  /// Set the Style to use [labelMedium].
+  Text labelMedium({
+    Color? color,
+    double? fontSize,
+    FontWeight? fontWeight,
+    FontStyle? fontStyle,
+    double? letterSpacing,
+    double? wordSpacing,
+    TextBaseline? textBaseline,
+    double? height,
+    Locale? locale,
+    Paint? foreground,
+    Paint? background,
+    List<Shadow>? shadows,
+    List<FontFeature>? fontFeatures,
+    TextDecoration? decoration,
+    Color? decorationColor,
+    TextDecorationStyle? decorationStyle,
+    double? decorationThickness,
+    String? fontFamily,
+    List<String>? fontFamilyFallback,
+    String? package,
+    TextOverflow? overflow,
+    TextDecoration? overline,
+    Color? overlineColor,
+    TextDecorationStyle? overlineStyle,
+    double? overlineThickness,
+    TextDecoration? underline,
+    Color? underlineColor,
+    TextDecorationStyle? underlineStyle,
+    double? underlineThickness,
+    TextHeightBehavior? textHeightBehavior,
+  }) {
+    TextStyle textStyle = TextStyle(
+      color: color,
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      fontStyle: fontStyle,
+      letterSpacing: letterSpacing,
+      wordSpacing: wordSpacing,
+      textBaseline: textBaseline,
+      height: height,
+      locale: locale,
+      foreground: foreground,
+      background: background,
+      shadows: shadows,
+      fontFeatures: fontFeatures,
+      decoration: decoration,
+      decorationColor: decorationColor,
+      decorationStyle: decorationStyle,
+      decorationThickness: decorationThickness,
+      fontFamily: fontFamily,
+      fontFamilyFallback: fontFamilyFallback,
+      package: package,
+      overflow: overflow,
+    );
+    if (style == null) {
+      return copyWith(
+          style: Theme.of(_context).textTheme.labelMedium?.merge(textStyle));
+    }
+    return setStyle(Theme.of(_context).textTheme.labelMedium?.merge(textStyle));
+  }
+
+  /// Set the Style to use [labelSmall].
+  Text labelSmall({
+    Color? color,
+    double? fontSize,
+    FontWeight? fontWeight,
+    FontStyle? fontStyle,
+    double? letterSpacing,
+    double? wordSpacing,
+    TextBaseline? textBaseline,
+    double? height,
+    Locale? locale,
+    Paint? foreground,
+    Paint? background,
+    List<Shadow>? shadows,
+    List<FontFeature>? fontFeatures,
+    TextDecoration? decoration,
+    Color? decorationColor,
+    TextDecorationStyle? decorationStyle,
+    double? decorationThickness,
+    String? fontFamily,
+    List<String>? fontFamilyFallback,
+    String? package,
+    TextOverflow? overflow,
+    TextDecoration? overline,
+    Color? overlineColor,
+    TextDecorationStyle? overlineStyle,
+    double? overlineThickness,
+    TextDecoration? underline,
+    Color? underlineColor,
+    TextDecorationStyle? underlineStyle,
+    double? underlineThickness,
+    TextHeightBehavior? textHeightBehavior,
+  }) {
+    TextStyle textStyle = TextStyle(
+      color: color,
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      fontStyle: fontStyle,
+      letterSpacing: letterSpacing,
+      wordSpacing: wordSpacing,
+      textBaseline: textBaseline,
+      height: height,
+      locale: locale,
+      foreground: foreground,
+      background: background,
+      shadows: shadows,
+      fontFeatures: fontFeatures,
+      decoration: decoration,
+      decorationColor: decorationColor,
+      decorationStyle: decorationStyle,
+      decorationThickness: decorationThickness,
+      fontFamily: fontFamily,
+      fontFamilyFallback: fontFamilyFallback,
+      package: package,
+      overflow: overflow,
+    );
+    if (style == null) {
+      return copyWith(
+          style: Theme.of(_context).textTheme.labelSmall?.merge(textStyle));
+    }
+    return setStyle(Theme.of(_context).textTheme.labelSmall?.merge(textStyle));
   }
 
   /// Make the font bold.
@@ -1199,68 +2137,6 @@ extension NyText on Text {
   }
 }
 
-extension NyBackpack<T> on String {
-  /// Read a value from the Backpack instance.
-  T? fromBackpack<T>({dynamic defaultValue}) {
-    return Backpack.instance.read<T>(this, defaultValue: defaultValue);
-  }
-
-  /// Read a StorageKey value from NyStorage
-  Future<T?> fromStorage<T>({dynamic defaultValue}) async {
-    return await NyStorage.read<T>(this, defaultValue: defaultValue);
-  }
-
-  /// Read a StorageKey value from NyStorage
-  Future<T?> read<T>({dynamic defaultValue}) async {
-    return await fromStorage<T>(defaultValue: defaultValue);
-  }
-
-  /// Read a JSON value from NyStorage
-  Future<T?> readJson<T>({dynamic defaultValue}) async {
-    T? response = await NyStorage.readJson<T>(this, defaultValue: defaultValue);
-    if (response == null) return null;
-    try {
-      return response;
-    } catch (e) {
-      NyLogger.error(e);
-      return null;
-    }
-  }
-
-  /// Store a value in NyStorage
-  /// You can also store a value in the backpack by setting [inBackpack] to true
-  store(dynamic value, {bool inBackpack = false}) async {
-    return await NyStorage.store(this, value, inBackpack: inBackpack);
-  }
-
-  /// Store a JSON value in NyStorage
-  /// You can also store a value in the backpack by setting [inBackpack] to true
-  storeJson(dynamic value, {bool inBackpack = false}) async {
-    try {
-      return await NyStorage.storeJson(this, value, inBackpack: inBackpack);
-    } catch (e) {
-      NyLogger.error(e);
-    }
-  }
-
-  /// Add a value to a collection in NyStorage
-  /// You can also set [allowDuplicates] to false to prevent duplicates
-  addToCollection(dynamic value, {bool allowDuplicates = true}) async {
-    return await NyStorage.addToCollection<T>(this,
-        item: value, allowDuplicates: allowDuplicates);
-  }
-
-  /// Read a collection from NyStorage
-  Future<List<T>> readCollection<T>() async {
-    return await NyStorage.readCollection(this);
-  }
-
-  /// Delete a StorageKey value from NyStorage
-  deleteFromStorage({bool andFromBackpack = false}) async {
-    return await NyStorage.delete(this, andFromBackpack: andFromBackpack);
-  }
-}
-
 /// Extension on the `List<T>` class that adds a `paginate` method for easy
 /// pagination of list elements.
 extension Paginate<T> on List<T> {
@@ -1307,10 +2183,10 @@ extension Paginate<T> on List<T> {
 /// Check if the device is in Dark Mode
 extension DarkMode on BuildContext {
   /// Example
-  /// if (context.isDarkMode) {
+  /// if (context.isDeviceInDarkMode) {
   ///   do something here...
   /// }
-  bool get isDarkMode {
+  bool get isDeviceInDarkMode {
     final brightness = MediaQuery.of(this).platformBrightness;
     return brightness == Brightness.dark;
   }
@@ -1348,4 +2224,157 @@ extension NyMapEntry on Iterable<MapEntry<String, dynamic>> {
   Map<String, dynamic> toMap() {
     return Map.fromEntries(this);
   }
+}
+
+extension RouteViewExt on RouteView {
+  /// Get the path of the route.
+  String get name {
+    return this.$1;
+  }
+
+  /// Get the path of the route with arguments.
+  String withParams(Map<String, dynamic> args) {
+    String path = this.$1;
+    args.forEach((key, value) {
+      path = path.replaceAll("{$key}", value.toString());
+    });
+    return path;
+  }
+
+  /// Get the state name of the route.
+  String stateName() {
+    String fullPath = this.$2.toString();
+    String pathName = fullPath.split(" => ").last;
+
+    String template = "Closure: () => _{page_name}State";
+    return template.replaceAll("{page_name}", pathName);
+  }
+
+  /// Refresh the page
+  stateRefresh() {
+    return StateAction.refreshPage(this.$1);
+  }
+
+  /// Route to a new page.
+  navigateTo(
+      {dynamic data,
+      Map<String, dynamic>? queryParameters,
+      NavigationType navigationType = NavigationType.push,
+      dynamic result,
+      bool Function(Route<dynamic> route)? removeUntilPredicate,
+      PageTransitionSettings? pageTransitionSettings,
+      PageTransitionType? pageTransitionType,
+      Function(dynamic value)? onPop}) {
+    return routeTo(name,
+        data: data,
+        queryParameters: queryParameters,
+        navigationType: navigationType,
+        result: result,
+        removeUntilPredicate: removeUntilPredicate,
+        pageTransitionSettings: pageTransitionSettings,
+        pageTransitionType: pageTransitionType,
+        onPop: onPop);
+  }
+}
+
+/// Extensions for [List<AppTheme>]
+extension NyAppTheme on List<AppTheme> {
+  get darkTheme {
+    return firstWhere((theme) => theme.id == getEnv('DARK_THEME_ID'),
+        orElse: () => first).data;
+  }
+}
+
+/// Storagekey typedef
+typedef StorageKey = String;
+
+extension NyStorageKey on StorageKey {
+  /// Attempt to convert a [String] into a model by using your model decoders.
+  T toModel<T>() => dataToModel<T>(data: parseJson());
+
+  /// Read a value from the Backpack instance.
+  T? fromBackpack<T>({dynamic defaultValue}) {
+    return Backpack.instance.read<T>(this, defaultValue: defaultValue);
+  }
+
+  /// Read a StorageKey value from NyStorage
+  Future<T?> fromStorage<T>({dynamic defaultValue}) async {
+    return await NyStorage.read<T>(this, defaultValue: defaultValue);
+  }
+
+  /// Read a StorageKey value from NyStorage
+  Future<T?> read<T>({dynamic defaultValue}) async {
+    return await fromStorage<T>(defaultValue: defaultValue);
+  }
+
+  /// Set a default value for a StorageKey
+  Future Function(bool inBackpack)? defaultValue<T>(value) {
+    return (inBackpack) async {
+      dynamic localValue = await fromStorage();
+      if (localValue == null) {
+        await save(value, inBackpack: inBackpack);
+        Backpack.instance.save(this, value);
+        return;
+      }
+      if (inBackpack) {
+        dynamic data = await storageRead<T>(this);
+        Backpack.instance.save(this, data);
+      }
+    };
+  }
+
+  /// Read a JSON value from NyStorage
+  Future<T?> readJson<T>({dynamic defaultValue}) async {
+    T? response = await NyStorage.readJson<T>(this, defaultValue: defaultValue);
+    if (response == null) return null;
+    try {
+      return response;
+    } catch (e) {
+      NyLogger.error(e);
+      return null;
+    }
+  }
+
+  /// Store a value in NyStorage
+  /// You can also save a value in the backpack by setting [inBackpack] to true
+  save(dynamic value, {bool inBackpack = false}) async {
+    return await NyStorage.save(this, value, inBackpack: inBackpack);
+  }
+
+  /// Store a JSON value in NyStorage
+  /// You can also save a value in the backpack by setting [inBackpack] to true
+  saveJson(dynamic value, {bool inBackpack = false}) async {
+    try {
+      return await NyStorage.saveJson(this, value, inBackpack: inBackpack);
+    } catch (e) {
+      NyLogger.error(e);
+    }
+  }
+
+  /// Add a value to a collection in NyStorage
+  /// You can also set [allowDuplicates] to false to prevent duplicates
+  addToCollection<T>(dynamic value, {bool allowDuplicates = true}) async {
+    return await NyStorage.addToCollection<T>(this,
+        item: value, allowDuplicates: allowDuplicates);
+  }
+
+  /// Read a collection from NyStorage
+  Future<List<T>> readCollection<T>() async {
+    return await NyStorage.readCollection(this);
+  }
+
+  /// Delete a StorageKey value from NyStorage
+  deleteFromStorage({bool andFromBackpack = true}) async {
+    return await NyStorage.delete(this, andFromBackpack: andFromBackpack);
+  }
+
+  /// Flush data from NyStorage
+  flush({bool andFromBackpack = true}) async {
+    return await deleteFromStorage(andFromBackpack: andFromBackpack);
+  }
+}
+
+/// Extensions for String
+extension StringExtension on String {
+  String capitalize() => "${this[0].toUpperCase()}${substring(1)}";
 }

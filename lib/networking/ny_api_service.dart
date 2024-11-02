@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import '/helpers/ny_logger.dart';
 import '/alerts/toast_enums.dart';
 import '/alerts/toast_notification.dart';
 import '/helpers/helper.dart';
@@ -7,14 +8,12 @@ import '/networking/dio_api_service.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 
 class NyApiService extends DioApiService {
-  NyApiService(BuildContext? context,
-      {this.decoders = const {},
-      BaseOptions Function(BaseOptions baseOptions)? baseOptions})
-      : super(context, baseOptions: baseOptions);
+  NyApiService(super.context, {this.decoders = const {}, super.baseOptions});
 
   /// Map decoders to modelDecoders
   @override
-  final Map<Type, dynamic> decoders;
+  // ignore: overridden_fields
+  final Map<Type, dynamic>? decoders;
 
   /// Default interceptors
   @override
@@ -133,6 +132,6 @@ class NyApiService extends DioApiService {
     showToastNotification(context,
         title: "Oops!",
         description: "Something went wrong",
-        style: ToastNotificationStyleType.DANGER);
+        style: ToastNotificationStyleType.danger);
   }
 }

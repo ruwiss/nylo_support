@@ -30,17 +30,14 @@ class ToastMeta {
       String? description,
       String? title,
       Duration? duration,
-      Function? action,
-      Map<String, dynamic>? metaData,
-      icon = const Icon(Icons.check, color: Colors.green, size: 20)})
-      : icon = icon,
-        title = title ?? "Success",
+      this.action,
+      this.metaData,
+      this.icon = const Icon(Icons.check, color: Colors.green, size: 20)})
+      : title = title ?? "Success",
         description = description ?? "",
         color = backgroundColor ?? Colors.green.shade50,
         duration = duration ?? const Duration(seconds: 5),
-        action = action,
         style = 'success',
-        metaData = metaData,
         super();
 
   /// Pre-defined style for the [ToastNotificationStyleType.WARNING] toast alert.
@@ -49,17 +46,14 @@ class ToastMeta {
     String? description,
     String? title,
     Duration? duration,
-    Function? action,
-    Map<String, dynamic>? metaData,
-    icon = const Icon(Icons.error_outline, color: Colors.orange, size: 20),
-  })  : icon = icon,
-        title = "Oops!",
+    this.action,
+    this.metaData,
+    this.icon = const Icon(Icons.error_outline, color: Colors.orange, size: 20),
+  })  : title = "Oops!",
         description = "",
         color = Colors.orange.shade50,
         duration = const Duration(seconds: 6),
-        action = action,
         style = 'warning',
-        metaData = metaData,
         super();
 
   /// Pre-defined style for the [ToastNotificationStyleType.INFO] toast alert.
@@ -68,17 +62,14 @@ class ToastMeta {
     String? description,
     String? title,
     Duration? duration,
-    Function? action,
-    Map<String, dynamic>? metaData,
-    icon = const Icon(Icons.info, color: Colors.teal, size: 20),
-  })  : icon = icon,
-        title = "Info",
+    this.action,
+    this.metaData,
+    this.icon = const Icon(Icons.info, color: Colors.teal, size: 20),
+  })  : title = "Info",
         description = "",
         color = Colors.teal.shade50,
         duration = const Duration(seconds: 5),
-        action = action,
         style = 'info',
-        metaData = metaData,
         super();
 
   /// Pre-defined style for the [ToastNotificationStyleType.DANGER] toast alert.
@@ -87,17 +78,14 @@ class ToastMeta {
     String? description,
     String? title,
     Duration? duration,
-    Function? action,
-    Map<String, dynamic>? metaData,
-    icon = const Icon(Icons.warning, color: Colors.redAccent, size: 20),
-  })  : icon = icon,
-        title = "Oops!",
+    this.action,
+    this.metaData,
+    this.icon = const Icon(Icons.warning, color: Colors.redAccent, size: 20),
+  })  : title = "Oops!",
         description = "",
         color = Colors.red.shade50,
         duration = const Duration(seconds: 7),
-        action = action,
         style = 'danger',
-        metaData = metaData,
         super();
 
   /// Pre-defined style for the [ToastNotificationStyleType.CUSTOM] toast alert.
@@ -106,17 +94,14 @@ class ToastMeta {
     String? description,
     String? title,
     Duration? duration,
-    Function? action,
-    Map<String, dynamic>? metaData,
-    icon = const Icon(Icons.warning, color: Colors.redAccent, size: 20),
-  })  : icon = icon,
-        title = "",
+    this.action,
+    this.metaData,
+    this.icon = const Icon(Icons.warning, color: Colors.redAccent, size: 20),
+  })  : title = "",
         description = "",
         color = Colors.red.shade50,
         duration = const Duration(seconds: 7),
-        action = action,
         style = 'custom',
-        metaData = metaData,
         super();
 
   /// ToastMeta.copyWith() is used to copy the current toast alert and
@@ -130,7 +115,16 @@ class ToastMeta {
       Function? action,
       Function? dismiss,
       Duration? duration}) {
-    return this;
+    return ToastMeta(
+      icon: icon ?? this.icon,
+      title: title ?? this.title,
+      style: style ?? this.style,
+      description: description ?? this.description,
+      color: color ?? this.color,
+      action: action ?? this.action,
+      dismiss: dismiss ?? this.dismiss,
+      duration: duration ?? this.duration,
+    );
   }
 }
 
@@ -140,7 +134,7 @@ class ToastNotificationStyleMetaHelper {
   ToastNotificationStyleMetaHelper(ToastNotificationStyleType? style)
       : _style = style;
 
-  ToastNotificationStyleType? _style;
+  final ToastNotificationStyleType? _style;
 
   ToastMeta onSuccess() {
     return ToastMeta.success();
@@ -164,13 +158,13 @@ class ToastNotificationStyleMetaHelper {
 
   ToastMeta getValue() {
     switch (_style) {
-      case ToastNotificationStyleType.SUCCESS:
+      case ToastNotificationStyleType.success:
         return onSuccess();
-      case ToastNotificationStyleType.WARNING:
+      case ToastNotificationStyleType.warning:
         return onWarning();
-      case ToastNotificationStyleType.INFO:
+      case ToastNotificationStyleType.info:
         return onInfo();
-      case ToastNotificationStyleType.DANGER:
+      case ToastNotificationStyleType.danger:
         return onDanger();
       default:
         return onSuccess();

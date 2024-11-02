@@ -1,13 +1,15 @@
 import 'package:flutter/cupertino.dart';
+import '/router/models/nyrouter_route_guard.dart';
 import '/router/models/ny_argument.dart';
 import '/widgets/ny_stateful_widget.dart';
-import '../router/models/ny_query_parameters.dart';
+import '/router/models/ny_query_parameters.dart';
 
 /// Base class to handle requests
 class NyRequest {
   String? currentRoute;
   NyArgument? _args;
   NyQueryParameters? _queryParameters;
+
   NyRequest(
       {this.currentRoute,
       NyArgument? args,
@@ -18,24 +20,19 @@ class NyRequest {
 
   /// Write [data] to controller
   setData(dynamic data) {
-    _args!.data = data;
+    _args?.data = data;
   }
 
   /// Returns data passed as an argument to a page
   /// e.g. routeTo("/my-page", data: {"hello": "world"})
-  dynamic data({String? key}) {
+  T? data<T>({dynamic defaultValue}) {
     if (_args == null) {
-      return null;
+      return defaultValue;
     }
 
-    dynamic data = _args!.data;
-
-    if (key != null && data is Map) {
-      if (data.containsKey(key)) {
-        return data[key];
-      } else {
-        return null;
-      }
+    dynamic data = _args?.data;
+    if (data == null) {
+      return defaultValue;
     }
 
     return data;
@@ -67,16 +64,19 @@ abstract class BaseController {
   NyRequest? request;
   String? state;
 
+  /// List of route guards
+  List<RouteGuard> routeGuards = [];
+
   BaseController({this.context, this.request, this.state = "/"});
 
   /// Returns any data passed through a [Navigator] or [routeTo] method.
-  dynamic data({String? key}) => request?.data(key: key);
+  T? data<T>({dynamic defaultValue}) =>
+      request?.data(defaultValue: defaultValue);
 
   /// Returns any query parameters passed in a route
   /// e.g. /my-page?hello=world
   /// Result {"hello": "world"}
-  dynamic queryParameters({String? key}) =>
-      request?.queryParameters(key: key);
+  dynamic queryParameters({String? key}) => request?.queryParameters(key: key);
 
   /// Initialize your controller with this method.
   /// It contains same [BuildContext] as the [NyStatefulWidget].

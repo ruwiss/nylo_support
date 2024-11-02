@@ -1,22 +1,21 @@
 import 'package:flutter/material.dart';
+import '/router/router.dart';
+import '/router/page_transition/src/enum.dart';
 import '/router/models/ny_argument.dart';
+import 'ny_page_transition_settings.dart';
+import 'ny_query_parameters.dart';
 
 /// Class interface
 abstract class RouteGuard {
-  RouteGuard();
+  RouteGuard({this.pageRequest});
 
-  /// Return true if the User can access this page and false if they can't.
-  /// [canOpen] will contain the [context] and any arguments passed from the
-  /// last route.
-  Future<bool> canOpen(
-    BuildContext? context,
-    NyArgument? data,
-  );
+  PageRequest? pageRequest;
 
-  /// This method is called after the [canOpen] returns false.
-  /// Provide an action that should occur.
-  /// E.g. routeTo('login');
-  Future<void> redirectTo(BuildContext? context, NyArgument? data);
+  /// Called before a route is opened.
+  onRequest(
+    PageRequest pageRequest,
+  ) =>
+      null;
 }
 
 /// Base class for Nylo's [RouteGuard].
@@ -27,15 +26,14 @@ abstract class RouteGuard {
 ///   AuthRouteGuard();
 ///
 ///   @override
-///   Future<bool> canOpen(BuildContext? context, NyArgument? data) async {
-///     // return true or false if a user can access the page.
-///     return await Auth.loggedIn();
-///   }
+///   Future<PageRequest?> onRequest(PageRequest pageRequest) async {
 ///
-///   @override
-///   redirectTo(BuildContext? context, NyArgument? data) async {
-///     // routeTo a page if [canOpen] fails.
-///     await routeTo(HomePage.path);
+///     // Check if user is authenticated
+///     if (await Auth.loggedIn()) {
+///       return redirect(HomePage.path);
+///     }
+///
+///     return pageRequest;
 ///   }
 /// }
 ///
@@ -50,15 +48,70 @@ abstract class RouteGuard {
 class NyRouteGuard extends RouteGuard {
   NyRouteGuard();
 
-  @override
-  Future<bool> canOpen(
-    BuildContext? context,
-    NyArgument? data,
-  ) async =>
-      true;
+  /// The [NyArgument] passed from the last route.
+  get data => pageRequest?.data;
+
+  /// The [BuildContext] for the current route.
+  BuildContext? get context => pageRequest?.context;
+
+  /// The [NyQueryParameters] for the current route.
+  Map<String, String>? get queryParameters => pageRequest?.queryParameters;
+
+  /// Add data to the current route.
+  addData(dynamic Function(dynamic data) currentData) {
+    pageRequest?.addData(currentData);
+  }
 
   @override
-  Future<void> redirectTo(BuildContext? context, NyArgument? data) async {
-    return;
+  onRequest(
+    PageRequest pageRequest,
+  );
+
+  /// Redirect to a new route.
+  redirect(dynamic path,
+      {dynamic data,
+      Map<String, dynamic>? queryParameters,
+      NavigationType navigationType = NavigationType.pushReplace,
+      dynamic result,
+      bool Function(Route<dynamic> route)? removeUntilPredicate,
+      PageTransitionSettings? pageTransitionSettings,
+      PageTransitionType? pageTransitionType,
+      Function(dynamic value)? onPop}) {
+    dynamic currentData = this.data;
+    if (data != null) {
+      currentData = data;
+    }
+    routeTo(path,
+        data: currentData,
+        queryParameters: queryParameters,
+        navigationType: navigationType,
+        result: result,
+        removeUntilPredicate: removeUntilPredicate,
+        pageTransitionSettings: pageTransitionSettings,
+        pageTransitionType: pageTransitionType,
+        onPop: onPop);
+    return PageRequest.redirect();
+  }
+}
+
+/// Class interface for [PageRequest].
+class PageRequest {
+  BuildContext? context;
+  NyArgument? nyArgument;
+  Map<String, String>? queryParameters;
+  bool isRedirect = false;
+
+  get data => nyArgument?.data;
+
+  PageRequest({this.context, this.nyArgument, this.queryParameters});
+
+  /// Redirect to a new route.
+  PageRequest.redirect() {
+    isRedirect = true;
+  }
+
+  /// Add data to the current route.
+  addData(dynamic Function(dynamic data) currentData) {
+    nyArgument?.setData((currentData(data)));
   }
 }

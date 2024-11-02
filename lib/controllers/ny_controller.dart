@@ -1,23 +1,13 @@
-import 'package:flutter/material.dart';
 import '/alerts/toast_enums.dart';
 import '/helpers/helper.dart';
 import 'controller.dart';
 
 /// Base NyController
 class NyController extends BaseController {
-  /// The BuildContext from the widget
-  BuildContext? context;
-
-  /// The request object
-  NyRequest? request;
-
-  /// The name of the state
-  String? state;
-
   /// Set this to true if you want to use a singleton controller
   bool get singleton => false;
 
-  NyController({this.context, this.request}) : super(context: context);
+  NyController({super.context, super.request});
 
   /// Updates the page [state]
   /// Provide an [action] and [data] to call a method in the [NyState].
@@ -30,6 +20,11 @@ class NyController extends BaseController {
   /// Refreshes the page
   refreshPage() {
     updatePageState("refresh-page", {"setState": () {}});
+  }
+
+  /// Set the state of the page
+  setState({required Function() setState}) {
+    updatePageState("set-state", {"setState": setState});
   }
 
   /// Pop the page
@@ -46,7 +41,7 @@ class NyController extends BaseController {
     updatePageState("toast-sorry", {
       "title": title ?? "Sorry",
       "description": description,
-      "style": style ?? ToastNotificationStyleType.DANGER
+      "style": style ?? ToastNotificationStyleType.danger
     });
   }
 
@@ -59,7 +54,7 @@ class NyController extends BaseController {
     updatePageState("toast-warning", {
       "title": title ?? "Warning",
       "description": description,
-      "style": style ?? ToastNotificationStyleType.WARNING
+      "style": style ?? ToastNotificationStyleType.warning
     });
   }
 
@@ -72,7 +67,7 @@ class NyController extends BaseController {
     updatePageState("toast-info", {
       "title": title ?? "Info",
       "description": description,
-      "style": style ?? ToastNotificationStyleType.INFO
+      "style": style ?? ToastNotificationStyleType.info
     });
   }
 
@@ -85,7 +80,7 @@ class NyController extends BaseController {
     updatePageState("toast-danger", {
       "title": title ?? "Error",
       "description": description,
-      "style": style ?? ToastNotificationStyleType.DANGER
+      "style": style ?? ToastNotificationStyleType.danger
     });
   }
 
@@ -98,7 +93,7 @@ class NyController extends BaseController {
     updatePageState("toast-oops", {
       "title": title ?? "Oops",
       "description": description,
-      "style": style ?? ToastNotificationStyleType.DANGER
+      "style": style ?? ToastNotificationStyleType.danger
     });
   }
 
@@ -111,7 +106,7 @@ class NyController extends BaseController {
     updatePageState("toast-success", {
       "title": title ?? "Success",
       "description": description,
-      "style": style ?? ToastNotificationStyleType.SUCCESS
+      "style": style ?? ToastNotificationStyleType.success
     });
   }
 
@@ -123,7 +118,7 @@ class NyController extends BaseController {
     updatePageState("toast-custom", {
       "title": title ?? "",
       "description": description,
-      "style": style ?? ToastNotificationStyleType.CUSTOM
+      "style": style ?? ToastNotificationStyleType.custom
     });
   }
 
@@ -135,7 +130,7 @@ class NyController extends BaseController {
       bool showAlert = true,
       Duration? alertDuration,
       ToastNotificationStyleType alertStyle =
-          ToastNotificationStyleType.WARNING,
+          ToastNotificationStyleType.warning,
       required Function()? onSuccess,
       Function(Exception exception)? onFailure,
       String? lockRelease}) {

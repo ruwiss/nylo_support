@@ -1,5 +1,7 @@
 import 'dart:core';
 import 'dart:convert';
+import '/helpers/ny_logger.dart';
+import '/local_storage/local_storage.dart';
 import '/helpers/extensions.dart';
 import '/helpers/helper.dart';
 import '/localization/app_localization.dart';
@@ -74,7 +76,7 @@ class NyLanguageSwitcher extends StatefulWidget {
   /// Store the language in the storage
   static storeLanguage({String? key, Map<String, dynamic>? object}) {
     key ??= state;
-    return NyStorage.storeJson(key, object);
+    return NyStorage.saveJson(key, object);
   }
 
   /// Clear the language from the storage
@@ -88,6 +90,7 @@ class NyLanguageSwitcher extends StatefulWidget {
     List<Map<String, String>> list = await getLanguageList();
     Map<String, dynamic>? currentLang = await currentLanguage();
     showModalBottomSheet(
+        // ignore: use_build_context_synchronously
         context: context,
         builder: (BuildContext context) {
           return SafeArea(
@@ -95,7 +98,7 @@ class NyLanguageSwitcher extends StatefulWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text("Select your language".tr())
-                  .headingMedium(context)
+                  .headingMedium()
                   .alignCenter()
                   .paddingOnly(top: 16, bottom: 8),
               Flexible(
@@ -122,6 +125,7 @@ class NyLanguageSwitcher extends StatefulWidget {
 
                           updateState(state,
                               data: {"action": "refresh-page", "data": {}});
+                          // ignore: use_build_context_synchronously
                           Navigator.pop(context);
                         },
                       );
@@ -753,10 +757,10 @@ class _NyLanguageSwitcherState extends NyState<NyLanguageSwitcher> {
   }
 
   @override
-  boot() async {
-    languages = await NyLanguageSwitcher.getLanguageList();
-    selectedLanguage = await NyLanguageSwitcher.currentLanguage();
-  }
+  get init => () async {
+        languages = await NyLanguageSwitcher.getLanguageList();
+        selectedLanguage = await NyLanguageSwitcher.currentLanguage();
+      };
 
   @override
   Widget build(BuildContext context) {

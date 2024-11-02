@@ -1,6 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import '/helpers/helper.dart';
+import '/helpers/ny_cache.dart' as ny_cache;
+import '/helpers/ny_logger.dart';
 import '/networking/models/default_response.dart';
 
 /// Base API Service class
@@ -43,6 +45,22 @@ class DioApiService {
 
   /// should the request retry if the [retryIf] callback returns true
   bool shouldSetAuthHeaders = true;
+
+  /// Callback for when the request is successful
+  Function(Response response, dynamic data)? _onSuccessEvent;
+
+  /// Callback for when the request fails
+  Function(DioException dioException)? _onErrorEvent;
+
+  /// Set the [onSuccess] callback for the request
+  onSuccess(Function(Response response, dynamic data) onSuccess) {
+    _onSuccessEvent = onSuccess;
+  }
+
+  /// Set the [onError] callback for the request
+  onError(Function(DioException dioException) onError) {
+    _onErrorEvent = onError;
+  }
 
   DioApiService(BuildContext? context,
       {BaseOptions Function(BaseOptions baseOptions)? baseOptions}) {
@@ -140,6 +158,19 @@ class DioApiService {
     _api.options.contentType = contentType;
   }
 
+  /// Set the [Duration] for the cache.
+  /// If cacheDuration is null, the cache will be disabled.
+  Duration? _cacheDuration;
+
+  /// Cache key
+  String? _cacheKey;
+
+  /// Set the cache for the request.
+  setCache(Duration? duration, String cacheKey) {
+    _cacheDuration = duration;
+    _cacheKey = cacheKey;
+  }
+
   /// Apply a pagination query to the HTTP request
   setPagination(int page,
       {String? paramPage, String? paramPerPage, String? perPage}) {
@@ -185,6 +216,8 @@ class DioApiService {
       Duration? connectionTimeout,
       Duration? receiveTimeout,
       Duration? sendTimeout,
+      Duration? cacheDuration,
+      String? cacheKey,
       Map<String, dynamic>? headers}) async {
     headers ??= {};
     try {
@@ -222,14 +255,72 @@ class DioApiService {
       if (sendTimeout != null) {
         _api.options.sendTimeout = sendTimeout;
       }
-      Response response = await request(_api);
+
+      Response? response;
+
+      Duration? cacheDurationRequest = cacheDuration;
+      cacheDurationRequest ??= _cacheDuration;
+
+      String? cacheKeyRequest = cacheKey;
+      cacheKeyRequest ??= _cacheKey;
+
+      if (cacheDurationRequest != null || cacheKeyRequest != null) {
+        assert(cacheDurationRequest != null, 'Cache duration is required');
+        assert(cacheKeyRequest != null, 'Cache key is required');
+
+        int inSeconds = cacheDurationRequest?.inSeconds ?? 60;
+        bool cacheHit = true;
+        Map responseMap = await ny_cache
+            .cache()
+            .saveRemember(cacheKeyRequest!, inSeconds, () async {
+          cacheHit = false;
+          Response requestData = await request(_api);
+          return {
+            'requestOptions': {
+              'path': requestData.requestOptions.path,
+              'method': requestData.requestOptions.method,
+              'baseUrl': requestData.requestOptions.baseUrl,
+            },
+            'statusCode': requestData.statusCode,
+            'statusMessage': requestData.statusMessage,
+            'data': requestData.data,
+          };
+        });
+        response = Response(
+          requestOptions: RequestOptions(
+            path: responseMap['requestOptions']['path'],
+            method: responseMap['requestOptions']['method'],
+            baseUrl: responseMap['requestOptions']['baseUrl'],
+          ),
+          statusCode: responseMap['statusCode'],
+          statusMessage: responseMap['statusMessage'],
+          data: responseMap['data'],
+        );
+
+        if (cacheHit) {
+          printDebug('');
+          printDebug('╔╣ ${response.requestOptions.uri}');
+          printDebug('║  Cache ${cacheHit ? 'hit' : 'miss'}: $cacheKeyRequest');
+          printDebug('║  Status: ${response.statusCode}');
+          printDebug('╚╣ Response');
+          printDebug(response.data);
+        } else {
+          printDebug('Cached response $cacheKeyRequest');
+        }
+      } else {
+        response = await request(_api);
+      }
+
       _api.options.headers = oldHeader; // reset headers
       _api.options.baseUrl = oldBaseUrl; //  reset base url
       _api.options.queryParameters = {}; // reset query parameters
 
-      dynamic data = handleResponse<T>(response, handleSuccess: handleSuccess);
+      dynamic data = handleResponse<T>(response!, handleSuccess: handleSuccess);
       if (data != T && useUndefinedResponse) {
         onUndefinedResponse(data, response, _context);
+      }
+      if (_onSuccessEvent != null) {
+        _onSuccessEvent!(response, data);
       }
       _context = null;
       return data;
@@ -267,13 +358,17 @@ class DioApiService {
       }
 
       NyLogger.error(dioException.toString());
-      onError(dioException);
+      error(dioException);
       if (_context != null) {
         displayError(dioException, _context!);
       }
 
       if (handleFailure != null) {
         return handleFailure(dioException);
+      }
+
+      if (_onErrorEvent != null) {
+        _onErrorEvent!(dioException);
       }
 
       return null;
@@ -284,7 +379,7 @@ class DioApiService {
   }
 
   /// Handle the [DioException] response if there is an issue.
-  onError(DioException dioException) {}
+  error(DioException dioException) {}
 
   /// Display a error to the user
   /// This method is only called if you provide the API service

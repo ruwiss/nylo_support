@@ -13,7 +13,7 @@ abstract class NyProvider {
 /// See "config/providers" to add/modify providers
 Future<Nylo> bootApplication(Map<Type, NyProvider> providers) async {
   Nylo nylo = Nylo();
-  for (var provider in providers.values) {
+  for (final provider in providers.values) {
     Nylo? nyloObject = await provider.boot(nylo);
     if (nyloObject != null) {
       nylo = nyloObject;
@@ -28,7 +28,7 @@ Future<Nylo> bootFinished(Nylo nylo, Map<Type, NyProvider> providers,
   for (var provider in providers.values) {
     await provider.afterBoot(nylo);
   }
-  Backpack.instance.set(key, nylo);
+  Backpack.instance.save(key, nylo);
   try {
     Nylo.canMonitorAppUsage();
     await Nylo.appLaunched();
