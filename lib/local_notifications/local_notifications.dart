@@ -4,6 +4,7 @@ import 'dart:ui';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import '/helpers/helper.dart';
 import '/helpers/extensions.dart';
 import '/helpers/ny_scheduler.dart';
 import 'package:path_provider/path_provider.dart';
@@ -105,6 +106,7 @@ class PushNotification {
   List<AndroidNotificationAction>? _actions;
   bool? _colorized;
   AudioAttributesUsage? _audioAttributesUsage;
+  bool _initialized = false;
 
   PushNotification({String title = "", String body = ""})
       : _title = title,
@@ -183,6 +185,47 @@ class PushNotification {
       title: title,
       body: body,
     );
+    if (Platform.isAndroid) {
+      if (channelId == null) {
+        pushNotification.addChannelId("default_channel");
+      }
+      if (channelName == null) {
+        pushNotification.addChannelName("Default Channel");
+      }
+      if (channelDescription == null) {
+        pushNotification.addChannelDescription("Default Channel");
+      }
+      if (importance == null) {
+        pushNotification.addImportance(Importance.max);
+      }
+      if (priority == null) {
+        pushNotification.addPriority(Priority.high);
+      }
+      if (ticker == null) {
+        pushNotification.addTicker("ticker");
+      }
+      if (icon == null) {
+        pushNotification.addIcon("app_icon");
+      }
+      if (playSound == null) {
+        pushNotification.addPlaySound(true);
+      }
+      if (enableVibration == null) {
+        pushNotification.addEnableVibration(true);
+      }
+      if (groupAlertBehavior == null) {
+        pushNotification.addGroupAlertBehavior(GroupAlertBehavior.all);
+      }
+      if (autoCancel == null) {
+        pushNotification.addAutoCancel(true);
+      }
+      if (showWhen == null) {
+        pushNotification.addShowWhen(true);
+      }
+      if (channelShowBadge == null) {
+        pushNotification.addChannelShowBadge(true);
+      }
+    }
     if (payload != null) {
       pushNotification.addPayload(payload);
     }
@@ -365,7 +408,14 @@ class PushNotification {
 
     NotificationDetails notificationDetails = await _getNotificationDetails();
 
+    if (_initialized == false) {
+      _initialized = await Nylo.instance.initializeLocalNotifications();
+    }
+
     if (_sendAt != null) {
+      if (Platform.isAndroid) {
+        printInfo("Android does not support scheduling notifications");
+      }
       String? sendAtDateTime = at.toDateTimeString();
 
       if (sendAtDateTime == null) {
@@ -893,43 +943,24 @@ class PushNotification {
         await localNotifications
             .resolvePlatformSpecificImplementation<
                 IOSFlutterLocalNotificationsPlugin>()
-            ?.requestPermissions(
-              alert: alert,
-              badge: badge,
-              sound: sound,
-              provisional: provisional,
-              critical: critical,
-            );
+            ?.requestPermissions();
         return;
       }
       if (Platform.isAndroid) {
         await localNotifications
             .resolvePlatformSpecificImplementation<
                 AndroidFlutterLocalNotificationsPlugin>()
-            ?.createNotificationChannel(
-              AndroidNotificationChannel(
-                channelId,
-                channelName,
-                importance: importance ?? Importance.high,
-                description: description,
-                groupId: groupId,
-                playSound: sound,
-                enableVibration: vibrate,
-                vibrationPattern: vibratePattern == null
-                    ? null
-                    : Int64List.fromList(vibratePattern),
-                showBadge: badge,
-                enableLights: enableLights,
-                ledColor: ledColor,
-                audioAttributesUsage:
-                    audioAttributesUsage ?? AudioAttributesUsage.notification,
-              ),
-            );
+            ?.requestNotificationsPermission();
         return;
       }
 
       throw Exception("Platform not supported");
     });
+  }
+
+  /// Clear badge count
+  static clearBadgeCount() async {
+    await clearBadgeNumber();
   }
 }
 

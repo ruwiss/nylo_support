@@ -70,6 +70,7 @@ class Nylo {
   Function(NotificationResponse details)?
       _onDidReceiveBackgroundNotificationResponse;
   NyCache? _cache;
+  bool isFlutterLocalNotificationsInitialized = false;
 
   /// Get the cache instance
   NyCache? get getCache => _cache;
@@ -244,22 +245,32 @@ class Nylo {
   /// Use local notifications
   void useLocalNotifications({
     DarwinInitializationSettings? iosSettings,
-    AndroidInitializationSettings? androidSettings =
-        const AndroidInitializationSettings('app_icon'),
-    LinuxInitializationSettings? linuxSettings =
-        const LinuxInitializationSettings(
-            defaultActionName: 'Open notification'),
+    AndroidInitializationSettings? androidSettings,
+    LinuxInitializationSettings? linuxSettings,
     Function(NotificationResponse details)? onDidReceiveLocalNotification,
     Function(NotificationResponse details)?
         onDidReceiveBackgroundNotificationResponse,
   }) {
     _useLocalNotifications = true;
 
-    InitializationSettings initializationSettings = InitializationSettings(
-      android: androidSettings,
-      iOS: iosSettings,
-      linux: linuxSettings,
-    );
+    late InitializationSettings initializationSettings;
+    if (Platform.isAndroid) {
+      initializationSettings = InitializationSettings(
+        android: androidSettings ?? AndroidInitializationSettings('app_icon'),
+      );
+    }
+    if (Platform.isIOS || Platform.isMacOS) {
+      initializationSettings = InitializationSettings(
+        iOS: iosSettings ?? const DarwinInitializationSettings(),
+      );
+    }
+    if (Platform.isLinux) {
+      initializationSettings = InitializationSettings(
+        linux: linuxSettings ??
+            const LinuxInitializationSettings(
+                defaultActionName: 'Open notification'),
+      );
+    }
 
     _initializationSettings = initializationSettings;
     _onDidReceiveLocalNotification = onDidReceiveLocalNotification;
@@ -422,14 +433,59 @@ class Nylo {
   static localNotifications(
       Function(FlutterLocalNotificationsPlugin localNotifications)
           callback) async {
+    Nylo nylo = Nylo.instance;
     FlutterLocalNotificationsPlugin? flutterLocalNotifications =
-        Nylo.instance.getLocalNotifications();
+        nylo.getLocalNotifications();
     if (flutterLocalNotifications == null) {
       flutterLocalNotifications = FlutterLocalNotificationsPlugin();
-      Nylo.instance.setLocalNotifications(flutterLocalNotifications);
+      nylo.setLocalNotifications(flutterLocalNotifications);
     }
+    if (nylo.isFlutterLocalNotificationsInitialized) {
+      await callback(flutterLocalNotifications);
+      return;
+    }
+    nylo.isFlutterLocalNotificationsInitialized =
+        await flutterLocalNotifications.initialize(
+              nylo.getInitializationSettings() ?? InitializationSettings(),
+              onDidReceiveBackgroundNotificationResponse:
+                  notificationTapBackground,
+              onDidReceiveNotificationResponse:
+                  onDidReceiveNotificationResponse,
+            ) ??
+            false;
     await callback(flutterLocalNotifications);
   }
+
+  @pragma('vm:entry-point')
+  static void notificationTapBackground(
+      NotificationResponse notificationResponse) {
+    Function(NotificationResponse notificationResponse)?
+        onDidReceiveBackgroundNotificationResponse =
+        Nylo.instance.getOnDidReceiveBackgroundNotificationResponse();
+    if (onDidReceiveBackgroundNotificationResponse != null) {
+      onDidReceiveBackgroundNotificationResponse(notificationResponse);
+    }
+  }
+
+  /// On did receive notification response
+  static void onDidReceiveNotificationResponse(
+      NotificationResponse notificationResponse) async {
+    Function(NotificationResponse notificationResponse)?
+        onDidReceiveNotificationResponse =
+        Nylo.instance.getOnDidReceiveNotificationResponse();
+    if (onDidReceiveNotificationResponse != null) {
+      onDidReceiveNotificationResponse(notificationResponse);
+    }
+  }
+
+  /// Get on did receive notification response
+  Function(NotificationResponse notificationResponse)?
+      getOnDidReceiveNotificationResponse() => _onDidReceiveLocalNotification;
+
+  /// Get on did receive background notification response
+  Function(NotificationResponse notificationResponse)?
+      getOnDidReceiveBackgroundNotificationResponse() =>
+          _onDidReceiveBackgroundNotificationResponse;
 
   /// Initialize Nylo
   static Future<Nylo> init(
@@ -465,15 +521,8 @@ class Nylo {
       if (nyloApp._useLocalNotifications == true) {
         FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
             FlutterLocalNotificationsPlugin();
-        nyloApp.setLocalNotifications(flutterLocalNotificationsPlugin);
         if (nyloApp._initializationSettings != null) {
-          await flutterLocalNotificationsPlugin.initialize(
-            nyloApp._initializationSettings!,
-            onDidReceiveBackgroundNotificationResponse:
-                nyloApp._onDidReceiveBackgroundNotificationResponse,
-            onDidReceiveNotificationResponse:
-                nyloApp._onDidReceiveLocalNotification,
-          );
+          nyloApp.setLocalNotifications(flutterLocalNotificationsPlugin);
         }
       }
       return nyloApp;
@@ -491,7 +540,23 @@ class Nylo {
           initialRoute: nyloApp.getInitialRoute(),
           errorWidget: nyloApp._errorStackErrorWidget);
     }
+    if (nyloApp._useLocalNotifications == true) {
+      FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+          FlutterLocalNotificationsPlugin();
+      if (nyloApp._initializationSettings != null) {
+        nyloApp.setLocalNotifications(flutterLocalNotificationsPlugin);
+      }
+    }
     return nyloApp;
+  }
+
+  initializeLocalNotifications() async {
+    return await _localNotifications?.initialize(
+      _initializationSettings!,
+      onDidReceiveBackgroundNotificationResponse:
+          _onDidReceiveBackgroundNotificationResponse,
+      onDidReceiveNotificationResponse: _onDidReceiveLocalNotification,
+    );
   }
 
   /// Get the current locale
