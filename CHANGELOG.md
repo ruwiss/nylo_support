@@ -1,3 +1,7 @@
+## [6.1.1] - 2024-11-08
+
+* Update local push notifications
+ 
 ## [6.1.0] - 2024-11-04
 
 * Add local push notifications

@@ -413,9 +413,6 @@ class PushNotification {
     }
 
     if (_sendAt != null) {
-      if (Platform.isAndroid) {
-        printInfo("Android does not support scheduling notifications");
-      }
       String? sendAtDateTime = at.toDateTimeString();
 
       if (sendAtDateTime == null) {
