@@ -1,3 +1,6 @@
+import 'package:skeletonizer/skeletonizer.dart';
+
+import '/nylo.dart';
 import '/widgets/ny_base_state.dart';
 import '/router/models/nyrouter_route_guard.dart';
 import '/router/models/ny_argument.dart';
@@ -67,5 +70,40 @@ abstract class NyPage<T extends StatefulWidget> extends NyBaseState<T> {
       },
       shouldSetStateBefore: true,
     );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!shouldLoadView && overrideLoading == false) {
+      return view(context);
+    }
+
+    if (hasInitComplete == false || isLoading()) {
+      switch (loadingStyle.type) {
+        case LoadingStyleType.normal:
+          {
+            if (loadingStyle.child != null) {
+              return loadingStyle.child!;
+            }
+            return Scaffold(body: Nylo.appLoader());
+          }
+        case LoadingStyleType.skeletonizer:
+          {
+            if (loadingStyle.child != null) {
+              return Skeletonizer(
+                enabled: true,
+                child: loadingStyle.child!,
+              );
+            }
+            return Skeletonizer(
+              enabled: true,
+              child: view(context),
+            );
+          }
+        case LoadingStyleType.none:
+          return view(context);
+      }
+    }
+    return view(context);
   }
 }

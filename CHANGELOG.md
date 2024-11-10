@@ -1,3 +1,10 @@
+## [6.2.0] - 2024-11-10
+
+* Override `build` in NyPage to support loading using a Scaffold
+* Rename `Session` to `NySession`
+* Fix typo with skeletonizer
+* Update pubspec.yaml
+
 ## [6.1.1] - 2024-11-08
 
 * Update local push notifications

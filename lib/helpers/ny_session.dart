@@ -1,14 +1,14 @@
 import 'backpack.dart';
 
-Session session(String name) => Session(name: name);
+NySession session(String name) => NySession(name: name);
 
-class Session {
+class NySession {
   String name;
 
-  Session({required this.name});
+  NySession({required this.name});
 
   /// Add a value to the session
-  Session add(String key, dynamic value) {
+  NySession add(String key, dynamic value) {
     Backpack.instance.sessionUpdate(name, key, value);
     return this;
   }
@@ -19,19 +19,19 @@ class Session {
   }
 
   /// Delete a value from the session
-  Session delete(String key) {
+  NySession delete(String key) {
     Backpack.instance.sessionRemove(name, key);
     return this;
   }
 
   /// Clear the session
-  Session flush() {
+  NySession flush() {
     Backpack.instance.sessionFlush(name);
     return this;
   }
 
   /// Clear the session
-  Session clear() {
+  NySession clear() {
     return flush();
   }
 
