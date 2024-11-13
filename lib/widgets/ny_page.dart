@@ -1,11 +1,13 @@
 import 'package:skeletonizer/skeletonizer.dart';
 
+import '../event_bus/res/history_entry.dart';
 import '/nylo.dart';
 import '/widgets/ny_base_state.dart';
 import '/router/models/nyrouter_route_guard.dart';
 import '/router/models/ny_argument.dart';
 import 'package:flutter/material.dart';
 import '/widgets/ny_stateful_widget.dart';
+import 'event_bus/update_state.dart';
 
 abstract class NyPage<T extends StatefulWidget> extends NyBaseState<T> {
   /// Base NyPage
@@ -21,9 +23,35 @@ abstract class NyPage<T extends StatefulWidget> extends NyBaseState<T> {
     return init is Future Function();
   }
 
+  /// enable or disable if the [NyPage] should be state managed
+  bool get stateManaged => false;
+
   @override
   void initState() {
     super.initState();
+
+    if (stateManaged) {
+      /// Set the state name if the widget is a NyStatefulWidget
+      if (widget is NyStatefulWidget) {
+        stateName = (widget as NyStatefulWidget).child.runtimeType.toString();
+      }
+
+      if (allowStateUpdates) {
+        List<EventBusHistoryEntry> eventHistory = eventBus!.history
+            .where((element) =>
+                element.event.runtimeType.toString() == 'UpdateState')
+            .toList();
+        if (eventHistory.isNotEmpty) {
+          stateData = eventHistory.last.event.props[1];
+        }
+        eventSubscription = eventBus!.on<UpdateState>().listen((event) async {
+          if (event.stateName != stateName) return;
+
+          await stateUpdated(event.data);
+          setState(() {});
+        });
+      }
+    }
 
     if (widget is! NyStatefulWidget) {
       if (!shouldLoadView) {

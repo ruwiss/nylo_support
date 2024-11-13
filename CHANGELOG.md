@@ -1,3 +1,9 @@
+## [6.3.0] - 2024-11-13
+
+* Update `updateState` to support RouteView paths
+* Allow `NyPage` to support stateManaged methods using `bool get stateManaged => true;`
+* Update pubspec.yaml
+ 
 ## [6.2.0] - 2024-11-10
 
 * Override `build` in NyPage to support loading using a Scaffold

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
+import 'package:nylo_support/router/router.dart';
 import '/event_bus/event_bus_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -348,7 +349,7 @@ void showNextLog() {
 ///   print(data); // 2
 /// }
 ///
-void updateState<T>(String name,
+void updateState<T>(dynamic name,
     {dynamic data, dynamic Function(T? currentValue)? setValue}) {
   EventBus? eventBus = Backpack.instance.read("event_bus");
   if (eventBus == null) {
@@ -369,7 +370,17 @@ void updateState<T>(String name,
     }
   }
 
-  final event = UpdateState(data: dataUpdate, stateName: name);
+  String stateName = '';
+  if (name is String) {
+    stateName = name;
+  }
+  if (name is RouteView) {
+    stateName =
+        "${name.$2.runtimeType.toString().replaceAll("BuildContext", "")}State"
+            .replaceAll("() => ", "() => _");
+  }
+
+  final event = UpdateState(data: dataUpdate, stateName: stateName);
   eventBus.fire(event);
 }
 
