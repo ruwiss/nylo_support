@@ -1,3 +1,7 @@
+## [6.4.0] - 2024-11-15
+
+* New `initDio(Dio dio)` method added to `DioApiService`
+
 ## [6.3.0] - 2024-11-13
 
 * Update `updateState` to support RouteView paths

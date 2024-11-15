@@ -63,7 +63,9 @@ class DioApiService {
   }
 
   DioApiService(BuildContext? context,
-      {BaseOptions Function(BaseOptions baseOptions)? baseOptions}) {
+      {BaseOptions Function(BaseOptions baseOptions)? baseOptions,
+      Dio Function(Dio api)? initDio}) {
+    _initDio = initDio;
     _context = context;
     if (baseOptions != null) {
       BaseOptions baseOptionsFinal = BaseOptions();
@@ -188,7 +190,13 @@ class DioApiService {
     if (useInterceptors) {
       _addInterceptors();
     }
+
+    if (_initDio != null) {
+      _api = _initDio!(_api);
+    }
   }
+
+  Dio Function(Dio api)? _initDio;
 
   /// Networking class to handle API requests
   /// Use the [request] callback to call an API

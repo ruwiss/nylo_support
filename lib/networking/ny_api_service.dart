@@ -8,7 +8,8 @@ import '/networking/dio_api_service.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 
 class NyApiService extends DioApiService {
-  NyApiService(super.context, {this.decoders = const {}, super.baseOptions});
+  NyApiService(super.context,
+      {this.decoders = const {}, super.baseOptions, super.initDio});
 
   /// Map decoders to modelDecoders
   @override
