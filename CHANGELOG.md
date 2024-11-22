@@ -1,3 +1,7 @@
+## [6.4.1] - 2024-11-22
+
+* Update pubspec.yaml
+
 ## [6.4.0] - 2024-11-15
 
 * New `initDio(Dio dio)` method added to `DioApiService`
