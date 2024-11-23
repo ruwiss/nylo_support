@@ -452,7 +452,7 @@ dump(dynamic value, {String? tag, bool alwaysPrint = false}) =>
 /// Get the DateTime.now() value.
 DateTime now() => DateTime.now();
 
-/// Sleep for a given amount of milliseconds.
+/// Sleep for a given amount of seconds.
 sleep(int seconds) async {
   await Future.delayed(Duration(seconds: seconds));
 }
