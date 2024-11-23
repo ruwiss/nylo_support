@@ -1,3 +1,12 @@
+## [6.5.0] - 2024-11-23
+
+* Dark mode support for Form fields: picker, date picker, checkbox and chips
+* New helper `color({light, dark})` to get the color based on the theme
+* New helper `whenTheme({light, dark})` to handle widgets based on the theme
+* Add `NyThemeType` to BaseThemeConfig. This will allow you to set if a theme is light or dark
+* Contribution from [stensonb](https://github.com/stensonb) to update the documentation for the sleep method
+* Update pubspec.yaml
+
 ## [6.4.1] - 2024-11-22
 
 * Update pubspec.yaml

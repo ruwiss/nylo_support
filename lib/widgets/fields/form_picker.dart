@@ -54,7 +54,8 @@ class _NyFormPickerState extends FieldBaseState<NyFormPicker> {
               alignment: Alignment.center,
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.grey.shade100,
+                color:
+                    color(light: Colors.grey.shade100, dark: surfaceColorDark),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: currentValue != null
@@ -72,8 +73,12 @@ class _NyFormPickerState extends FieldBaseState<NyFormPicker> {
                                 textAlign: width < 200
                                     ? TextAlign.left
                                     : TextAlign.center,
-                                style: const TextStyle(
-                                    fontSize: 13, fontWeight: FontWeight.bold),
+                                style: TextStyle(
+                                    color: color(
+                                        light: Colors.black87,
+                                        dark: Colors.white),
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold),
                               ),
                             ),
                           if (width > 200)
@@ -84,8 +89,11 @@ class _NyFormPickerState extends FieldBaseState<NyFormPicker> {
                                   textAlign: width < 200
                                       ? TextAlign.left
                                       : TextAlign.center,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                       fontSize: 13,
+                                      color: color(
+                                          light: Colors.black87,
+                                          dark: Colors.white),
                                       fontWeight: FontWeight.bold),
                                 ),
                               ),
@@ -95,9 +103,11 @@ class _NyFormPickerState extends FieldBaseState<NyFormPicker> {
                             top: 5,
                             child: Text(
                               widget.field.name.titleCase,
-                              style: const TextStyle(
+                              style: TextStyle(
                                   fontSize: 10,
-                                  color: Colors.black54,
+                                  color: color(
+                                      light: Colors.black54,
+                                      dark: Colors.white),
                                   fontWeight: FontWeight.bold),
                             ),
                           )
@@ -115,13 +125,17 @@ class _NyFormPickerState extends FieldBaseState<NyFormPicker> {
                                 width < 200 ? TextAlign.left : TextAlign.center,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                                fontSize: 13, fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                                color: color(
+                                    light: Colors.black54, dark: Colors.white),
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold),
                           ),
                         ),
                         Icon(
                           Icons.arrow_drop_down,
-                          color: Colors.grey.shade800,
+                          color: color(
+                              light: Colors.grey.shade800, dark: Colors.white),
                         )
                       ],
                     ).withGap(10))
@@ -152,11 +166,16 @@ class _NyFormPickerState extends FieldBaseState<NyFormPicker> {
           child: Container(
             height: MediaQuery.of(context).size.height / 2,
             width: double.infinity,
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+              color: color(light: Colors.white, dark: surfaceColorDark),
+            ),
             padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.start,
-              children: <Widget>[
+              children: [
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -164,7 +183,10 @@ class _NyFormPickerState extends FieldBaseState<NyFormPicker> {
                     Text(
                       widget.field.name,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color:
+                              color(light: Colors.black, dark: Colors.white)),
                     ).paddingOnly(top: 10),
                     Text(
                       "Clear".tr(),
@@ -182,12 +204,16 @@ class _NyFormPickerState extends FieldBaseState<NyFormPicker> {
                     shrinkWrap: true,
                     children: ListTile.divideTiles(
                         context: context,
+                        color: color(
+                            light: Colors.grey.shade100, dark: Colors.black38),
                         tiles: values.map((item) {
                           return ListTile(
                             title: Text(
                               item,
-                              style: const TextStyle(
-                                  color: Colors.black,
+                              style: TextStyle(
+                                  color: color(
+                                      light: Colors.black87,
+                                      dark: Colors.white),
                                   fontWeight: FontWeight.bold,
                                   fontSize: 14),
                             ),

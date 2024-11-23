@@ -3,6 +3,9 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import '/helpers/extensions.dart';
+import 'package:theme_provider/theme_provider.dart';
+import '/themes/base_theme_config.dart';
 import '/validation/rules.dart';
 import '/widgets/ny_form.dart';
 import '/controllers/controller.dart';
@@ -822,6 +825,64 @@ abstract class NyBaseState<T extends StatefulWidget> extends State<T> {
         },
       ),
     );
+  }
+
+  /// Get the color based on the device mode
+  Color color({Color? light, Color? dark}) {
+    bool isDarkModeEnabled = false;
+    ThemeController themeController = ThemeProvider.controllerOf(context);
+
+    if (themeController.currentThemeId == getEnv('DARK_THEME_ID')) {
+      isDarkModeEnabled = true;
+    }
+
+    if ((themeController.theme.options as NyThemeOptions).meta is Map &&
+        (themeController.theme.options as NyThemeOptions).meta['type'] ==
+            NyThemeType.dark) {
+      isDarkModeEnabled = true;
+    }
+
+    if (context.isDeviceInDarkMode) {
+      isDarkModeEnabled = true;
+    }
+
+    if (isDarkModeEnabled) {
+      return dark ?? Colors.black38;
+    }
+
+    return light ?? Colors.grey.shade100;
+  }
+
+  /// When the theme is in [light] mode, return [light] function, else return [dark] function
+  // ignore: avoid_shadowing_type_parameters
+  T whenTheme<T>({
+    required T Function() light,
+    T Function()? dark,
+  }) {
+    bool isDarkModeEnabled = false;
+    ThemeController themeController = ThemeProvider.controllerOf(context);
+
+    if (themeController.currentThemeId == getEnv('DARK_THEME_ID')) {
+      isDarkModeEnabled = true;
+    }
+
+    if ((themeController.theme.options as NyThemeOptions).meta is Map &&
+        (themeController.theme.options as NyThemeOptions).meta['type'] ==
+            NyThemeType.dark) {
+      isDarkModeEnabled = true;
+    }
+
+    if (context.isDeviceInDarkMode) {
+      isDarkModeEnabled = true;
+    }
+
+    if (isDarkModeEnabled) {
+      if (dark != null) {
+        return dark();
+      }
+    }
+
+    return light();
   }
 }
 

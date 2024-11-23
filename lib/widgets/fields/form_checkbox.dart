@@ -119,18 +119,24 @@ class _NyFormCheckboxState extends FieldBaseState<NyFormCheckbox> {
 
     title ??= Text(
       widget.field.name.titleCase,
+      style: TextStyle(
+        color: color(light: Colors.black, dark: Colors.white),
+      ),
     );
     if (title is Text && (title.data == null || title.data!.isEmpty)) {
       title = Text(
         widget.field.name.titleCase,
+        style: TextStyle(
+          color: color(light: Colors.black, dark: Colors.white),
+        ),
       );
     }
 
-    Color? fillColorMetaData = getMetaData('fillColor');
-    WidgetStateProperty<Color?>? fillColor;
-    if (fillColorMetaData != null) {
-      fillColor = WidgetStateProperty.all(fillColorMetaData);
-    }
+    Color? fillColorMetaData = color(
+        light: getMetaData('fillColor') ?? Colors.transparent,
+        dark: Colors.black);
+    WidgetStateProperty<Color?>? fillColor =
+        WidgetStateProperty.all(fillColorMetaData);
 
     Color? overlayColorMetaData = getMetaData('overlayColor');
     WidgetStateProperty<Color?>? overlayColor;
@@ -151,9 +157,12 @@ class _NyFormCheckboxState extends FieldBaseState<NyFormCheckbox> {
         });
       },
       controlAffinity: ListTileControlAffinity.leading,
-      activeColor: getMetaData('activeColor'),
+      activeColor: color(
+          light: getMetaData('activeColor') ?? Colors.black,
+          dark: Colors.black),
       fillColor: fillColor,
-      checkColor: getMetaData('checkColor'),
+      checkColor: color(
+          light: getMetaData('checkColor') ?? Colors.black, dark: Colors.white),
       hoverColor: getMetaData('hoverColor'),
       overlayColor: overlayColor,
       splashRadius: getMetaData('splashRadius'),
@@ -162,7 +171,10 @@ class _NyFormCheckboxState extends FieldBaseState<NyFormCheckbox> {
       focusNode: getMetaData('focusNode'),
       autofocus: getMetaData('autofocus'),
       shape: getMetaData('shape'),
-      side: getMetaData('side'),
+      side: whenTheme(
+          light: () => getMetaData('side'),
+          dark: () => BorderSide(
+              width: 2, color: color(light: Colors.black, dark: Colors.white))),
       isError: getMetaData('isError'),
       enabled: getMetaData('enabled'),
       tileColor: getMetaData('tileColor'),

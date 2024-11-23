@@ -81,12 +81,18 @@ class _NyFormChipState extends FieldBaseState<NyFormChip> {
             bool isSelected = currentValues.contains(option);
             return ChoiceChip(
               materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              side: isSelected ? getSelectedSide() : getUnselectedSide(),
+              side: whenTheme(
+                  light: () =>
+                      isSelected ? getSelectedSide() : getUnselectedSide(),
+                  dark: () => BorderSide(color: Colors.transparent)),
               shape: getShape(),
               label: Text(option,
-                  style: isSelected
-                      ? getSelectedTextStyle()
-                      : getUnselectedTextStyle()),
+                  style: whenTheme(
+                      light: () => isSelected
+                          ? getSelectedTextStyle()
+                          : getUnselectedTextStyle(),
+                      dark: () => TextStyle(
+                          fontWeight: FontWeight.bold, color: Colors.white))),
               labelStyle: getLabelStyle(),
               selected: isSelected,
               selectedColor: getSelectedColor(),
@@ -94,10 +100,14 @@ class _NyFormChipState extends FieldBaseState<NyFormChip> {
               backgroundColor: Colors.transparent,
               shadowColor: Colors.transparent,
               surfaceTintColor: Colors.transparent,
-              checkmarkColor: getCheckmarkColor(),
+              checkmarkColor: whenTheme(
+                  light: () => getCheckmarkColor(), dark: () => Colors.white),
               selectedShadowColor: Colors.transparent,
-              color: WidgetStateColor.resolveWith((color) {
-                return isSelected ? getSelectedColor() : getBackgroundColor();
+              color: WidgetStateColor.resolveWith((_) {
+                return color(
+                    light:
+                        isSelected ? getSelectedColor() : getBackgroundColor(),
+                    dark: surfaceColorDark);
               }),
               onSelected: (bool selected) {
                 setState(() {
@@ -123,7 +133,8 @@ class _NyFormChipState extends FieldBaseState<NyFormChip> {
   Color getBackgroundColor() => getFieldMeta("backgroundColor", Colors.white);
 
   /// Get the selected color from the field
-  Color getSelectedColor() => getFieldMeta("selectedColor", Colors.black);
+  Color getSelectedColor() => getFieldMeta(
+      "selectedColor", color(light: Colors.black, dark: Colors.white));
 
   /// Get the borderRadius from the field
   OutlinedBorder getShape() => getFieldMeta(
@@ -138,16 +149,25 @@ class _NyFormChipState extends FieldBaseState<NyFormChip> {
       "selectedSide", BorderSide(color: "#bfbbc5".toHexColor(), width: 1));
 
   /// Get the labelStyle from the field
-  TextStyle getLabelStyle() => getFieldMeta("labelStyle",
-      const TextStyle(fontWeight: FontWeight.bold, color: Colors.black));
+  TextStyle getLabelStyle() => getFieldMeta(
+      "labelStyle",
+      TextStyle(
+          fontWeight: FontWeight.bold,
+          color: color(light: Colors.black, dark: Colors.white)));
 
   /// Get the unselectedTextStyle from the field
-  TextStyle getUnselectedTextStyle() => getFieldMeta("unselectedTextStyle",
-      const TextStyle(fontWeight: FontWeight.bold, color: Colors.black));
+  TextStyle getUnselectedTextStyle() => getFieldMeta(
+      "unselectedTextStyle",
+      TextStyle(
+          fontWeight: FontWeight.bold,
+          color: color(light: Colors.black, dark: Colors.white)));
 
   /// Get the selectedTextStyle from the field
-  TextStyle getSelectedTextStyle() => getFieldMeta("selectedTextStyle",
-      const TextStyle(fontWeight: FontWeight.bold, color: Colors.white));
+  TextStyle getSelectedTextStyle() => getFieldMeta(
+      "selectedTextStyle",
+      TextStyle(
+          fontWeight: FontWeight.bold,
+          color: color(light: Colors.black, dark: Colors.white)));
 
   /// Get the padding from the field
   EdgeInsets getPadding() => getFieldMeta("padding", const EdgeInsets.all(8.0));

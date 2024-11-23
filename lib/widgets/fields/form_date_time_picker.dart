@@ -97,10 +97,15 @@ class _NyFormDateTimePickerState extends FieldBaseState<NyFormDateTimePicker> {
     return DateTimeFormField(
       decoration: getMetaData('decoration') ??
           InputDecoration(
-            fillColor: Colors.grey.shade100,
+            fillColor:
+                color(light: Colors.grey.shade100, dark: surfaceColorDark),
             border: InputBorder.none,
             filled: true,
+            suffixIconColor: color(light: Colors.black, dark: Colors.white),
             labelText: widget.field.name.titleCase,
+            labelStyle: TextStyle(
+                fontSize: 16,
+                color: color(light: Colors.grey, dark: Colors.white)),
             isDense: true,
             focusedBorder: const OutlineInputBorder(
                 borderRadius: BorderRadius.all(Radius.circular(12)),
@@ -124,17 +129,21 @@ class _NyFormDateTimePickerState extends FieldBaseState<NyFormDateTimePicker> {
       materialTimePickerOptions: getMetaData('materialTimePickerOptions') ??
           const MaterialTimePickerOptions(),
       cupertinoDatePickerOptions: getMetaData('cupertinoDatePickerOptions') ??
-          const CupertinoDatePickerOptions(),
+          CupertinoDatePickerOptions(
+            style: CupertinoDatePickerOptionsStyle(
+                modalTitle: TextStyle(
+                    color: color(light: Colors.black, dark: Colors.white))),
+          ),
       hideDefaultSuffixIcon: getMetaData('hideDefaultSuffixIcon') ?? false,
       padding: getMetaData('padding') ?? EdgeInsets.zero,
       style: getMetaData('style') ??
-          const TextStyle(fontSize: 16, color: Colors.black),
+          TextStyle(
+              fontSize: 16,
+              color: color(light: Colors.black, dark: Colors.white)),
       onChanged: widget.onChanged,
     );
   }
 
   /// Get the metadata from the field
-  getMetaData(String key) {
-    return widget.field.cast.metaData[key];
-  }
+  getMetaData(String key) => widget.field.cast.metaData[key];
 }

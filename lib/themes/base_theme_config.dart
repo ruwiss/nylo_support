@@ -8,7 +8,8 @@ class BaseThemeConfig<T> {
   final String description;
   ThemeData Function(T colorStyles) theme;
   final T colors;
-  final dynamic meta;
+  Map<String, dynamic>? meta;
+  final NyThemeType type;
 
   /// Create a new [BaseThemeConfig].
   BaseThemeConfig(
@@ -16,7 +17,13 @@ class BaseThemeConfig<T> {
       required this.description,
       required this.theme,
       required this.colors,
-      this.meta = const {}});
+      this.type = NyThemeType.light,
+      this.meta}) {
+    if (meta == null) {
+      this.meta = {};
+    }
+    this.meta?.addAll({"type": type});
+  }
 
   /// Convert the theme to a [AppTheme] object.
   AppTheme toAppTheme({ThemeData? defaultTheme}) => AppTheme(
@@ -34,3 +41,5 @@ class NyThemeOptions<T> extends AppThemeOptions {
 
   NyThemeOptions({required this.colors, this.meta = const {}});
 }
+
+enum NyThemeType { light, dark }

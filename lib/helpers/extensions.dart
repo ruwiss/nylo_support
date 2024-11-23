@@ -50,11 +50,12 @@ import 'package:flutter/material.dart'
         VerticalDivider;
 import 'package:get_time_ago/get_time_ago.dart';
 import 'package:intl/intl.dart' as intl;
+import '/themes/base_theme_config.dart';
 import '/helpers/state_action.dart';
 import '/nylo.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:theme_provider/theme_provider.dart';
-import '../local_storage/local_storage.dart';
+import '/local_storage/local_storage.dart';
 import '/helpers/backpack.dart';
 import '/helpers/helper.dart';
 import '/localization/app_localization.dart';
@@ -2186,10 +2187,8 @@ extension DarkMode on BuildContext {
   /// if (context.isDeviceInDarkMode) {
   ///   do something here...
   /// }
-  bool get isDeviceInDarkMode {
-    final brightness = MediaQuery.of(this).platformBrightness;
-    return brightness == Brightness.dark;
-  }
+  bool get isDeviceInDarkMode =>
+      MediaQuery.of(this).platformBrightness == Brightness.dark;
 }
 
 extension NyContext on BuildContext {
@@ -2216,6 +2215,20 @@ extension NyContext on BuildContext {
   /// Get the height of the screen
   double widgetHeight() {
     return mediaQuery().size.height;
+  }
+
+  /// Check if the device is in dark mode
+  bool get isThemeDark {
+    if (isDeviceInDarkMode) return true;
+    ThemeController themeController = ThemeProvider.controllerOf(this);
+    if ((themeController.theme.options as NyThemeOptions).meta is Map &&
+        (themeController.theme.options as NyThemeOptions).meta['type'] ==
+            NyThemeType.dark) {
+      return true;
+    }
+
+    return ThemeProvider.controllerOf(this).currentThemeId ==
+        getEnv('DARK_THEME_ID');
   }
 }
 
