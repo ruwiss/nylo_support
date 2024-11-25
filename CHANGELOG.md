@@ -1,3 +1,8 @@
+## [6.6.0] - 2024-11-25
+
+* New `nyPageName` extension helper added to `RouteView`
+* Update `StateAction` to support `RouteView` paths
+
 ## [6.5.0] - 2024-11-23
 
 * Dark mode support for Form fields: picker, date picker, checkbox and chips

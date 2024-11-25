@@ -2263,6 +2263,12 @@ extension RouteViewExt on RouteView {
     return template.replaceAll("{page_name}", pathName);
   }
 
+  /// Get the ny page name.
+  String nyPageName() {
+    return "${this.$2.runtimeType.toString().replaceAll("BuildContext", "")}State"
+        .replaceAll("() => ", "() => _");
+  }
+
   /// Refresh the page
   stateRefresh() {
     return StateAction.refreshPage(this.$1);
