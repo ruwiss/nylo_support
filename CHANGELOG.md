@@ -1,3 +1,9 @@
+## [6.7.0] - 2024-11-27
+
+* Add `NyLocaleHelper`
+* New `Nylo.package` helper for initializing packages
+* Fix `NyStoreage.read` helper
+
 ## [6.6.0] - 2024-11-25
 
 * New `nyPageName` extension helper added to `RouteView`

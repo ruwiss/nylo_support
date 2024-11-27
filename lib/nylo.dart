@@ -550,6 +550,14 @@ class Nylo {
     return nyloApp;
   }
 
+  /// Initialize package
+  static Nylo package() {
+    dotenv.testLoad();
+    Nylo nyloApp = Nylo();
+    Backpack.instance.save("nylo", nyloApp);
+    return nyloApp;
+  }
+
   initializeLocalNotifications() async {
     return await _localNotifications?.initialize(
       _initializationSettings!,

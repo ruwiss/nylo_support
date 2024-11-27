@@ -128,7 +128,7 @@ class NyStorage {
       return defaultValue;
     }
 
-    if (runtimeType != null) {
+    if (runtimeType != null && modelDecoders == null) {
       switch (runtimeType.toLowerCase()) {
         case 'int':
           return int.parse(data);
