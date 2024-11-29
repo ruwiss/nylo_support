@@ -81,6 +81,8 @@ class _BadgeTabState extends NyState<BadgeTab> {
           dynamic badgeCountData = await NyStorage.read(stateName!);
           if (badgeCountData != null) {
             currentCount = badgeCountData;
+          } else {
+            await NyStorage.save(stateName!, currentCount);
           }
         }
         if (stateData != null) {

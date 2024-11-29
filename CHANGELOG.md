@@ -1,3 +1,7 @@
+## [6.7.1] - 2024-11-29
+
+* Fix BadgeTab
+
 ## [6.7.0] - 2024-11-27
 
 * Add `NyLocaleHelper`
