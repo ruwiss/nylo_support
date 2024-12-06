@@ -1,3 +1,10 @@
+## [6.8.0] - 2024-12-06
+
+* New `Field.switchBox` added to `NyForm` to create a switch box field
+* Localization support for picker and datetime fields
+* `currency.toLowerCase()` in Field.currency()
+* Update pubspec.yaml
+
 ## [6.7.1] - 2024-11-29
 
 * Fix BadgeTab

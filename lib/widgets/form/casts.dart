@@ -1,4 +1,5 @@
 import 'package:date_field/date_field.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '/widgets/ny_form.dart';
@@ -137,6 +138,97 @@ class FormCast {
     metaData['onFocusChange'] = onFocusChange;
     metaData['enableFeedback'] = enableFeedback;
     metaData['checkboxSemanticLabel'] = checkboxSemanticLabel;
+  }
+
+  /// Cast to a switchBox
+  FormCast.switchBox({
+    MouseCursor? mouseCursor,
+    Color? activeColor,
+    Color? fillColor,
+    Color? checkColor,
+    Color? hoverColor,
+    Color? overlayColor,
+    double? splashRadius,
+    MaterialTapTargetSize? materialTapTargetSize,
+    VisualDensity? visualDensity,
+    FocusNode? focusNode,
+    bool autofocus = false,
+    ShapeBorder? shape,
+    BorderSide? side,
+    bool isError = false,
+    bool? enabled,
+    Color? tileColor,
+    Widget? title,
+    Widget? subtitle,
+    bool isThreeLine = false,
+    bool? dense,
+    Widget? secondary,
+    bool selected = false,
+    ListTileControlAffinity controlAffinity = ListTileControlAffinity.platform,
+    EdgeInsetsGeometry? contentPadding,
+    bool tristate = false,
+    ShapeBorder? checkboxShape,
+    Color? selectedTileColor,
+    ValueChanged<bool?>? onFocusChange,
+    bool? enableFeedback,
+    String? checkboxSemanticLabel,
+    Color? activeTrackColor,
+    Color? inactiveThumbColor,
+    Color? inactiveTrackColor,
+    ImageProvider? activeThumbImage,
+    ImageErrorListener? onActiveThumbImageError,
+    ImageProvider? inactiveThumbImage,
+    ImageErrorListener? onInactiveThumbImageError,
+    Color? thumbColor,
+    Color? trackColor,
+    Color? trackOutlineColor,
+    Widget? thumbIcon,
+    DragStartBehavior dragStartBehavior = DragStartBehavior.start,
+  }) {
+    type = "switchBox";
+    metaData = {};
+    metaData['mouseCursor'] = mouseCursor;
+    metaData['activeColor'] = activeColor;
+    metaData['fillColor'] = fillColor;
+    metaData['checkColor'] = checkColor;
+    metaData['hoverColor'] = hoverColor;
+    metaData['overlayColor'] = overlayColor;
+    metaData['splashRadius'] = splashRadius;
+    metaData['materialTapTargetSize'] = materialTapTargetSize;
+    metaData['visualDensity'] = visualDensity;
+    metaData['focusNode'] = focusNode;
+    metaData['autofocus'] = autofocus;
+    metaData['shape'] = shape;
+    metaData['side'] = side;
+    metaData['isError'] = isError;
+    metaData['enabled'] = enabled;
+    metaData['tileColor'] = tileColor;
+    metaData['title'] = title;
+    metaData['subtitle'] = subtitle;
+    metaData['isThreeLine'] = isThreeLine;
+    metaData['dense'] = dense;
+    metaData['secondary'] = secondary;
+    metaData['selected'] = selected;
+    metaData['controlAffinity'] = controlAffinity;
+    metaData['contentPadding'] = contentPadding;
+    metaData['tristate'] = tristate;
+    metaData['checkboxShape'] = checkboxShape;
+    metaData['selectedTileColor'] = selectedTileColor;
+    metaData['onFocusChange'] = onFocusChange;
+    metaData['enableFeedback'] = enableFeedback;
+    metaData['checkboxSemanticLabel'] = checkboxSemanticLabel;
+    metaData['activeTrackColor'] = activeTrackColor;
+    metaData['inactiveThumbColor'] = inactiveThumbColor;
+    metaData['inactiveTrackColor'] = inactiveTrackColor;
+    metaData['activeThumbImage'] = activeThumbImage;
+    metaData['onActiveThumbImageError'] = onActiveThumbImageError;
+    metaData['inactiveThumbImage'] = inactiveThumbImage;
+    metaData['onInactiveThumbImageError'] = onInactiveThumbImageError;
+    metaData['thumbColor'] = thumbColor;
+    metaData['trackColor'] = trackColor;
+    metaData['trackOutlineColor'] = trackOutlineColor;
+    metaData['thumbIcon'] = thumbIcon;
+    metaData['dragStartBehavior'] = dragStartBehavior;
   }
 
   /// Cast to capitalize words

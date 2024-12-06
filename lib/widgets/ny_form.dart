@@ -20,16 +20,22 @@ typedef FormStyleTextField = Map<String, NyTextField Function(NyTextField)>;
 /// FormStyleCheckbox is a typedef that helps in managing form style checkboxes
 typedef FormStyleCheckbox = Map<String, FormCast Function()>;
 
+/// FormStyleSwitchBox is a typedef that helps in managing form style switch boxes
+typedef FormStyleSwitchBox = Map<String, FormCast Function()>;
+
 /// TextAreaSize is an enum that helps in managing textarea sizes
 enum TextAreaSize { sm, md, lg }
 
 /// NyFormStyle is a class that helps in managing form styles
 class NyFormStyle {
-  /// TextField styles for the form
+  /// FormStyleTextField styles for the form
   FormStyleTextField textField(BuildContext context, Field field) => {};
 
-  /// Checkbox styles for the form
+  /// FormStyleCheckbox styles for the form
   FormStyleCheckbox checkbox(BuildContext context, Field field) => {};
+
+  /// FormStyleSwitchBox styles for the form
+  FormStyleSwitchBox switchBox(BuildContext context, Field field) => {};
 }
 
 /// DecoratorTextField is a class that helps in managing form text fields
@@ -342,7 +348,7 @@ class Field {
     this.style,
     this.metaData = const {},
     this.hidden = false,
-  }) : cast = FormCast.currency(currency) {
+  }) : cast = FormCast.currency(currency.toLowerCase()) {
     if (style == null) return;
 
     metaData = {};
@@ -668,6 +674,94 @@ class Field {
     bool? enableFeedback,
     String? checkboxSemanticLabel,
   }) : cast = FormCast.checkbox(
+            mouseCursor: mouseCursor,
+            activeColor: activeColor,
+            fillColor: fillColor,
+            checkColor: checkColor,
+            hoverColor: hoverColor,
+            overlayColor: overlayColor,
+            splashRadius: splashRadius,
+            materialTapTargetSize: materialTapTargetSize,
+            visualDensity: visualDensity,
+            focusNode: focusNode,
+            autofocus: autofocus,
+            shape: shape,
+            side: side,
+            isError: isError,
+            enabled: enabled,
+            tileColor: tileColor,
+            title: title,
+            subtitle: subtitle,
+            isThreeLine: isThreeLine,
+            dense: dense,
+            secondary: secondary,
+            selected: selected,
+            controlAffinity: controlAffinity,
+            contentPadding: contentPadding,
+            tristate: tristate,
+            checkboxShape: checkboxShape,
+            selectedTileColor: selectedTileColor,
+            onFocusChange: onFocusChange,
+            enableFeedback: enableFeedback,
+            checkboxSemanticLabel: checkboxSemanticLabel) {
+    if (style == null) return;
+
+    metaData = {};
+    if (style is String) {
+      style = style;
+      return;
+    }
+    if (style is Map) {
+      style as Map<String, dynamic>;
+      metaData!["decoration_style"] =
+          (style as Map<String, dynamic>).entries.first.value;
+      style = (style as Map<String, dynamic>).entries.first.key;
+    }
+  }
+
+  /// Field.switchBox is a constructor that helps in managing switch fields
+  Field.switchBox(
+    this.key, {
+    this.value,
+    this.validate,
+    this.autofocus = false,
+    this.dummyData,
+    this.header,
+    this.footer,
+    this.titleStyle,
+    this.style,
+    this.metaData = const {},
+    this.hidden = false,
+    MouseCursor? mouseCursor,
+    Color? activeColor,
+    Color? fillColor,
+    Color? checkColor,
+    Color? hoverColor,
+    Color? overlayColor,
+    double? splashRadius,
+    MaterialTapTargetSize? materialTapTargetSize,
+    VisualDensity? visualDensity,
+    FocusNode? focusNode,
+    ShapeBorder? shape,
+    BorderSide? side,
+    bool isError = false,
+    bool? enabled,
+    Color? tileColor,
+    Widget? title,
+    Widget? subtitle,
+    bool isThreeLine = false,
+    bool? dense,
+    Widget? secondary,
+    bool selected = false,
+    ListTileControlAffinity controlAffinity = ListTileControlAffinity.platform,
+    EdgeInsetsGeometry? contentPadding,
+    bool tristate = false,
+    ShapeBorder? checkboxShape,
+    Color? selectedTileColor,
+    ValueChanged<bool?>? onFocusChange,
+    bool? enableFeedback,
+    String? checkboxSemanticLabel,
+  }) : cast = FormCast.switchBox(
             mouseCursor: mouseCursor,
             activeColor: activeColor,
             fillColor: fillColor,

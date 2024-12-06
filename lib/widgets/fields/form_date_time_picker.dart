@@ -1,6 +1,7 @@
 import 'package:date_field/date_field.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:nylo_support/localization/app_localization.dart';
 import '/widgets/fields/field_base_state.dart';
 import '/widgets/ny_form.dart';
 import 'package:recase/recase.dart';
@@ -102,7 +103,7 @@ class _NyFormDateTimePickerState extends FieldBaseState<NyFormDateTimePicker> {
             border: InputBorder.none,
             filled: true,
             suffixIconColor: color(light: Colors.black, dark: Colors.white),
-            labelText: widget.field.name.titleCase,
+            labelText: widget.field.name.titleCase.tr(),
             labelStyle: TextStyle(
                 fontSize: 16,
                 color: color(light: Colors.grey, dark: Colors.white)),

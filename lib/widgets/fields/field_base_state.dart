@@ -23,6 +23,27 @@ abstract class FieldBaseState<T extends StatefulWidget> extends State<T> {
     return field.cast.metaData![name];
   }
 
+  /// Get the widget state property for color
+  WidgetStateProperty<Color>? getWidgetStatePropertyColor(String key,
+      {Color? defaultValue}) {
+    Color? colorMetaData = getFieldMeta(key, defaultValue);
+    if (colorMetaData == null) {
+      return null;
+    }
+    Color? thumbColorMetaData = color(light: colorMetaData, dark: Colors.black);
+    return WidgetStateProperty.all(thumbColorMetaData);
+  }
+
+  /// Get the widget state property for icon
+  WidgetStateProperty<Icon>? getWidgetStatePropertyIcon(String key,
+      {Icon? defaultValue}) {
+    Icon? iconMetaData = getFieldMeta(key, defaultValue);
+    if (iconMetaData == null) {
+      return null;
+    }
+    return WidgetStateProperty.all(iconMetaData);
+  }
+
   /// Get the headerSpacing from the field
   double getHeaderSpacing() => getFieldMeta("headerSpacing", 5);
 

@@ -1,13 +1,14 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:nylo_support/localization/app_localization.dart';
 import '/widgets/fields/field_base_state.dart';
 import '/widgets/ny_form.dart';
 import 'package:recase/recase.dart';
 
-/// A [NyFormCheckbox] widget for Form Fields
-class NyFormCheckbox extends StatefulWidget {
-  /// Creates a [NyFormCheckbox] widget
-  NyFormCheckbox(
+/// A [NyFormSwitchBox] widget for Form Fields
+class NyFormSwitchBox extends StatefulWidget {
+  /// Creates a [NyFormSwitchBox] widget
+  NyFormSwitchBox(
       {super.key,
       required String name,
       bool? value,
@@ -42,41 +43,66 @@ class NyFormCheckbox extends StatefulWidget {
       ValueChanged<bool?>? onFocusChange,
       bool? enableFeedback,
       String? checkboxSemanticLabel,
+      Color? activeTrackColor,
+      Color? inactiveThumbColor,
+      Color? inactiveTrackColor,
+      ImageProvider? activeThumbImage,
+      ImageErrorListener? onActiveThumbImageError,
+      ImageProvider? inactiveThumbImage,
+      ImageErrorListener? onInactiveThumbImageError,
+      Color? thumbColor,
+      Color? trackColor,
+      Color? trackOutlineColor,
+      Widget? thumbIcon,
+      DragStartBehavior dragStartBehavior = DragStartBehavior.start,
       this.onChanged})
       : field = Field(name, value: value)
-          ..cast = FormCast.checkbox(
-              mouseCursor: mouseCursor,
-              activeColor: activeColor,
-              fillColor: fillColor,
-              checkColor: checkColor,
-              hoverColor: hoverColor,
-              overlayColor: overlayColor,
-              splashRadius: splashRadius,
-              materialTapTargetSize: materialTapTargetSize,
-              visualDensity: visualDensity,
-              focusNode: focusNode,
-              autofocus: autofocus,
-              shape: shape,
-              side: side,
-              isError: isError,
-              enabled: enabled,
-              tileColor: tileColor,
-              subtitle: subtitle,
-              isThreeLine: isThreeLine,
-              dense: dense,
-              secondary: secondary,
-              selected: selected,
-              controlAffinity: controlAffinity,
-              contentPadding: contentPadding,
-              tristate: tristate,
-              checkboxShape: checkboxShape,
-              selectedTileColor: selectedTileColor,
-              onFocusChange: onFocusChange,
-              enableFeedback: enableFeedback,
-              checkboxSemanticLabel: checkboxSemanticLabel);
+          ..cast = FormCast.switchBox(
+            activeTrackColor: activeTrackColor,
+            inactiveThumbColor: inactiveThumbColor,
+            inactiveTrackColor: inactiveTrackColor,
+            activeThumbImage: activeThumbImage,
+            onActiveThumbImageError: onActiveThumbImageError,
+            inactiveThumbImage: inactiveThumbImage,
+            onInactiveThumbImageError: onInactiveThumbImageError,
+            thumbColor: thumbColor,
+            trackColor: trackColor,
+            trackOutlineColor: trackOutlineColor,
+            thumbIcon: thumbIcon,
+            dragStartBehavior: dragStartBehavior,
+            mouseCursor: mouseCursor,
+            activeColor: activeColor,
+            fillColor: fillColor,
+            checkColor: checkColor,
+            hoverColor: hoverColor,
+            overlayColor: overlayColor,
+            splashRadius: splashRadius,
+            materialTapTargetSize: materialTapTargetSize,
+            visualDensity: visualDensity,
+            focusNode: focusNode,
+            autofocus: autofocus,
+            shape: shape,
+            side: side,
+            isError: isError,
+            enabled: enabled,
+            tileColor: tileColor,
+            subtitle: subtitle,
+            isThreeLine: isThreeLine,
+            dense: dense,
+            secondary: secondary,
+            selected: selected,
+            controlAffinity: controlAffinity,
+            contentPadding: contentPadding,
+            tristate: tristate,
+            checkboxShape: checkboxShape,
+            selectedTileColor: selectedTileColor,
+            onFocusChange: onFocusChange,
+            enableFeedback: enableFeedback,
+            checkboxSemanticLabel: checkboxSemanticLabel,
+          );
 
-  /// Creates a [NyFormCheckbox] widget from a [Field]
-  const NyFormCheckbox.fromField(this.field, this.onChanged, {super.key});
+  /// Creates a [NyFormSwitchBox] widget from a [Field]
+  const NyFormSwitchBox.fromField(this.field, this.onChanged, {super.key});
 
   /// The field to be rendered
   final Field field;
@@ -86,13 +112,13 @@ class NyFormCheckbox extends StatefulWidget {
 
   @override
   // ignore: no_logic_in_create_state
-  createState() => _NyFormCheckboxState(field);
+  createState() => _NyFormSwitchBoxState(field);
 }
 
-class _NyFormCheckboxState extends FieldBaseState<NyFormCheckbox> {
+class _NyFormSwitchBoxState extends FieldBaseState<NyFormSwitchBox> {
   dynamic currentValue;
 
-  _NyFormCheckboxState(super.field);
+  _NyFormSwitchBoxState(super.field);
 
   @override
   void initState() {
@@ -133,20 +159,13 @@ class _NyFormCheckboxState extends FieldBaseState<NyFormCheckbox> {
       );
     }
 
-    Color? fillColorMetaData = color(
-        light: getFieldMeta('fillColor', null) ?? Colors.transparent,
-        dark: Colors.black);
-    WidgetStateProperty<Color?>? fillColor =
-        WidgetStateProperty.all(fillColorMetaData);
-
     Color? overlayColorMetaData = getFieldMeta('overlayColor', null);
     WidgetStateProperty<Color?>? overlayColor;
     if (overlayColorMetaData != null) {
       overlayColor = WidgetStateProperty.all(overlayColorMetaData);
     }
 
-    return CheckboxListTile(
-      mouseCursor: getFieldMeta('mouseCursor', null),
+    return SwitchListTile.adaptive(
       title: title,
       value: currentValue,
       onChanged: (value) {
@@ -160,12 +179,8 @@ class _NyFormCheckboxState extends FieldBaseState<NyFormCheckbox> {
       controlAffinity:
           getFieldMeta("controlAffinity", ListTileControlAffinity.platform),
       activeColor: color(
-          light: getFieldMeta('activeColor', null) ?? Colors.black,
+          light: getFieldMeta('activeColor', null) ?? Color(0xFF0766ff),
           dark: Colors.black),
-      fillColor: fillColor,
-      checkColor: color(
-          light: getFieldMeta('checkColor', null) ?? Colors.black,
-          dark: Colors.white),
       hoverColor: getFieldMeta('hoverColor', null),
       overlayColor: overlayColor,
       splashRadius: getFieldMeta('splashRadius', null),
@@ -174,12 +189,6 @@ class _NyFormCheckboxState extends FieldBaseState<NyFormCheckbox> {
       focusNode: getFieldMeta('focusNode', null),
       autofocus: getFieldMeta('autofocus', false),
       shape: getFieldMeta('shape', null),
-      side: whenTheme(
-          light: () => getFieldMeta('side', null),
-          dark: () => BorderSide(
-              width: 2, color: color(light: Colors.black, dark: Colors.white))),
-      isError: getFieldMeta('isError', false),
-      enabled: getFieldMeta('enabled', null),
       tileColor: getFieldMeta('tileColor', null),
       subtitle: getFieldMeta('subtitle', null),
       isThreeLine: getFieldMeta('isThreeLine', false),
@@ -187,12 +196,24 @@ class _NyFormCheckboxState extends FieldBaseState<NyFormCheckbox> {
       secondary: getFieldMeta('secondary', null),
       selected: getFieldMeta('selected', false),
       contentPadding: getFieldMeta('contentPadding', null),
-      tristate: getFieldMeta('tristate', false),
-      checkboxShape: getFieldMeta('checkboxShape', null),
       selectedTileColor: getFieldMeta('selectedTileColor', null),
       onFocusChange: getFieldMeta('onFocusChange', null),
       enableFeedback: getFieldMeta('enableFeedback', null),
-      checkboxSemanticLabel: getFieldMeta('checkboxSemanticLabel', null),
+      activeThumbImage: getFieldMeta('activeThumbImage', null),
+      onActiveThumbImageError: getFieldMeta('onActiveThumbImageError', null),
+      inactiveThumbImage: getFieldMeta('inactiveThumbImage', null),
+      onInactiveThumbImageError:
+          getFieldMeta('onInactiveThumbImageError', null),
+      thumbColor: getWidgetStatePropertyColor('thumbColor'),
+      trackColor: getWidgetStatePropertyColor('trackColor'),
+      trackOutlineColor: getWidgetStatePropertyColor('trackOutlineColor'),
+      thumbIcon: getWidgetStatePropertyIcon('thumbIcon'),
+      activeTrackColor: getFieldMeta('activeTrackColor', null),
+      inactiveThumbColor: getFieldMeta('inactiveThumbColor', null),
+      inactiveTrackColor: getFieldMeta('inactiveTrackColor', null),
+      dragStartBehavior:
+          getFieldMeta('dragStartBehavior', DragStartBehavior.start),
+      mouseCursor: getFieldMeta('mouseCursor', null),
     );
   }
 }

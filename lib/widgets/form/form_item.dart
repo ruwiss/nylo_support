@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_multi_formatter/formatters/phone_input_formatter.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
+import 'package:nylo_support/widgets/fields/form_switch_box.dart';
 import 'package:recase/recase.dart';
 
 import '/helpers/currency_input_matcher.dart';
@@ -154,6 +155,36 @@ class NyFormItem extends StatelessWidget {
         field.cast = formCast;
       }
       return NyFormCheckbox.fromField(
+        field,
+        onChanged,
+      );
+    }
+
+    // check if the field is a checkbox field
+    if (field.cast.type == "switchBox") {
+      FormStyleSwitchBox? styles = formStyle?.switchBox(context, field);
+      if ((styles ?? {}).containsKey('default')) {
+        FormCast formCast = styles!['default']!();
+        formCast.metaData.forEach((key, value) {
+          if (key == 'title' && field.cast.metaData[key] is Text) {
+            Text? title = field.cast.metaData[key];
+            if (title?.data == null) {
+              formCast.metaData[key] = Text(field.name);
+            } else {
+              formCast.metaData[key] = title;
+            }
+          } else {
+            field.cast.metaData[key] = value;
+          }
+        });
+        field.cast = formCast;
+      } else if ((styles ?? {}).containsKey(fieldStyle)) {
+        FormCast formCast = styles![fieldStyle]!();
+        formCast.metaData
+            .forEach((key, value) => field.cast.metaData[key] = value);
+        field.cast = formCast;
+      }
+      return NyFormSwitchBox.fromField(
         field,
         onChanged,
       );

@@ -102,7 +102,7 @@ class _NyFormPickerState extends FieldBaseState<NyFormPicker> {
                             left: 0,
                             top: 5,
                             child: Text(
-                              widget.field.name.titleCase,
+                              widget.field.name.titleCase.tr(),
                               style: TextStyle(
                                   fontSize: 10,
                                   color: color(
@@ -120,7 +120,7 @@ class _NyFormPickerState extends FieldBaseState<NyFormPicker> {
                       children: [
                         Flexible(
                           child: Text(
-                            "${"Select".tr()} ${widget.field.name}",
+                            "${"Select".tr()} ${widget.field.name.tr()}",
                             textAlign:
                                 width < 200 ? TextAlign.left : TextAlign.center,
                             maxLines: 2,
@@ -181,7 +181,7 @@ class _NyFormPickerState extends FieldBaseState<NyFormPicker> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      widget.field.name,
+                      widget.field.name.tr(),
                       textAlign: TextAlign.center,
                       style: TextStyle(
                           fontWeight: FontWeight.bold,
