@@ -43,14 +43,13 @@ class NyCache {
   ///
   /// Returns the cached value, either from the cache if it exists and hasn't expired,
   /// or by calling the callback function and caching the result.
-  Future<T> saveRemember<T>(
-      String key, int seconds, Function() callback) async {
+  Future saveRemember<T>(String key, int seconds, Function() callback) async {
     final File cacheFile = File('${_cacheDirectory.path}/$key');
     if (await cacheFile.exists()) {
       final content = await cacheFile.readAsString();
       final data = jsonDecode(content);
       if (DateTime.now().isBefore(DateTime.parse(data['expiration']))) {
-        return data['value'] as T;
+        return data['value'];
       }
     }
 
@@ -76,12 +75,12 @@ class NyCache {
   ///
   /// Returns the cached value, either from the cache if it exists,
   /// or by calling the callback function and caching the result.
-  Future<T> saveForever<T>(String key, Future<T> Function() callback) async {
+  Future saveForever<T>(String key, Future<T> Function() callback) async {
     final File cacheFile = File('${_cacheDirectory.path}/$key');
     if (await cacheFile.exists()) {
       final content = await cacheFile.readAsString();
       final data = jsonDecode(content);
-      return data['value'] as T;
+      return data['value'];
     }
 
     final T value = await callback();

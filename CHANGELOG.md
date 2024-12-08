@@ -1,3 +1,8 @@
+## [6.8.1] - 2024-12-08
+
+* Fix `saveRemember` and `saveForever` in NyCache
+* Update pubspec.yaml
+
 ## [6.8.0] - 2024-12-06
 
 * New `Field.switchBox` added to `NyForm` to create a switch box field
