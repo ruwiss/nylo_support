@@ -137,10 +137,6 @@ class PageTransition<T> extends PageRouteBuilder<T> {
           ).animate(animation),
           child: child,
         );
-
-      /// FadeTransitions which is the fade transition
-      default:
-        return FadeTransition(opacity: animation, child: child);
     }
   }
 }

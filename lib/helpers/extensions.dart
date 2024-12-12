@@ -747,20 +747,28 @@ extension NyStatelessWidget on StatelessWidget {
 
     switch (strength) {
       case 1:
-        return _setShadow(color ?? Colors.grey.withOpacity(0.4), 1.5, 0,
-            offset ?? const Offset(0.0, 0.1), rounded ?? 0);
+        return _setShadow(color ?? Colors.grey.withAlpha((255.0 * 0.4).round()),
+            1.5, 0, offset ?? const Offset(0.0, 0.1), rounded ?? 0);
       case 2:
-        return _setShadow(color ?? Colors.grey.withOpacity(0.6), 2, 0,
-            offset ?? const Offset(0.0, 0.1), rounded ?? 0);
+        return _setShadow(color ?? Colors.grey.withAlpha((255.0 * 0.6).round()),
+            2, 0, offset ?? const Offset(0.0, 0.1), rounded ?? 0);
       case 3:
-        return _setShadow(color ?? Colors.black38.withOpacity(0.25), 5.5, 0,
-            offset ?? const Offset(0.0, 0.1), rounded ?? 0);
+        return _setShadow(
+            color ?? Colors.black38.withAlpha((255.0 * 0.25).round()),
+            5.5,
+            0,
+            offset ?? const Offset(0.0, 0.1),
+            rounded ?? 0);
       case 4:
-        return _setShadow(color ?? Colors.black38.withOpacity(0.3), 10, 1,
-            offset ?? const Offset(0.0, 0.1), rounded ?? 0);
+        return _setShadow(
+            color ?? Colors.black38.withAlpha((255.0 * 0.3).round()),
+            10,
+            1,
+            offset ?? const Offset(0.0, 0.1),
+            rounded ?? 0);
       default:
-        return _setShadow(color ?? Colors.grey.withOpacity(0.4), 1.5, 0,
-            offset ?? const Offset(0.0, 0.1), rounded ?? 0);
+        return _setShadow(color ?? Colors.grey.withAlpha((255.0 * 0.4).round()),
+            1.5, 0, offset ?? const Offset(0.0, 0.1), rounded ?? 0);
     }
   }
 

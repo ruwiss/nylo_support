@@ -78,7 +78,7 @@ class NyFader extends StatelessWidget {
         colors = [
           Colors.transparent,
           Colors.transparent,
-          color.withOpacity(0.12),
+          color.withAlpha((255.0 * 0.12).round()),
           color
         ];
         stops = [0, 0, 0.9, 1];
@@ -87,7 +87,7 @@ class NyFader extends StatelessWidget {
         colors = [
           Colors.transparent,
           Colors.transparent,
-          color.withOpacity(0.2),
+          color.withAlpha((255.0 * 0.2).round()),
           color
         ];
         stops = [0, 0, 0.8, 1];
@@ -96,7 +96,7 @@ class NyFader extends StatelessWidget {
         colors = [
           Colors.transparent,
           Colors.transparent,
-          color.withOpacity(0.22),
+          color.withAlpha((255.0 * 0.22).round()),
           color
         ];
         stops = [0, 0, 0.7, 1];
@@ -105,7 +105,7 @@ class NyFader extends StatelessWidget {
         colors = [
           Colors.transparent,
           Colors.transparent,
-          color.withOpacity(0.22),
+          color.withAlpha((255.0 * 0.22).round()),
           color
         ];
         stops = [0, 0, 0.6, 1];
@@ -114,8 +114,7 @@ class NyFader extends StatelessWidget {
         colors = [
           Colors.transparent,
           Colors.transparent,
-          color.withOpacity(0.2),
-          color
+          color.withAlpha((255.0 * 0.2).round())
         ];
         stops = [0, 0, 0.5, 1];
         break;

@@ -29,7 +29,7 @@ class DefaultToastNotification extends StatelessWidget {
             BoxShadow(
               color: context.isDeviceInDarkMode
                   ? Colors.black12
-                  : Colors.grey.withOpacity(0.1),
+                  : Colors.grey.withAlpha((255.0 * 0.1).round()),
               spreadRadius: 3,
               blurRadius: 5,
               offset: const Offset(0, 2),
@@ -72,7 +72,8 @@ class DefaultToastNotification extends StatelessWidget {
                               .bodyLarge!
                               .copyWith(
                                   color: context.isDeviceInDarkMode
-                                      ? Colors.white.withOpacity(0.8)
+                                      ? Colors.white
+                                          .withAlpha((255.0 * 0.8).round())
                                       : "#171717".toHexColor()),
                         ).fontWeightBold(),
                         Flexible(
