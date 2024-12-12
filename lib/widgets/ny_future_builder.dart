@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '/widgets/ny_base_state.dart';
+import '/helpers/loading_style.dart';
 import '/nylo.dart';
 
 /// Simple way to render Future's in your project.

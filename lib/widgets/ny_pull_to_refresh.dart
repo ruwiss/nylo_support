@@ -2,7 +2,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import '/helpers/helper.dart';
-import '/widgets/ny_base_state.dart';
+import '/helpers/loading_style.dart';
 import '/localization/app_localization.dart';
 import '/nylo.dart';
 import '/widgets/ny_state.dart';

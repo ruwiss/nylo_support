@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import '/helpers/extensions.dart';
 import '/nylo.dart';
-
+import '/helpers/loading_style.dart';
 import 'form/form.dart';
 import 'form/form_data.dart';
 import 'ny_state.dart';
@@ -12,18 +12,22 @@ class ButtonState extends StatefulWidget {
     super.key,
     required this.child,
     this.onSubmit,
-    this.loading,
+    this.loadingStyle,
     this.onFailure,
     this.showToastError,
     this.skeletonizerLoading,
+    this.loading,
   });
 
   final Widget Function(VoidCallback? onPressed) child;
-  final Widget? loading;
   final (Function()? onPressed, (dynamic, Function(dynamic data))?)? onSubmit;
   final Function(dynamic data)? onFailure;
   final bool? showToastError;
+  final LoadingStyle? loadingStyle;
+  @Deprecated('Use loadingStyle instead')
   final bool? skeletonizerLoading;
+  @Deprecated('Use loadingStyle instead')
+  final Widget? loading;
 
   @override
   createState() => _ButtonStateState();
@@ -55,14 +59,45 @@ class _ButtonStateState extends NyState<ButtonState> {
   @override
   Widget build(BuildContext context) {
     if (isLocked(widget.child.toString()) || formLoading) {
-      if (widget.skeletonizerLoading == true) {
+      // ignore: deprecated_member_use_from_same_package
+      if (widget.skeletonizerLoading == false) {
+        // ignore: deprecated_member_use_from_same_package
+        if (widget.loading != null) {
+          // ignore: deprecated_member_use_from_same_package
+          return widget.loading!;
+        }
+        return SizedBox(
+          height: 50,
+          child: Nylo.appLoader(),
+        );
+      }
+
+      if (widget.loadingStyle?.type == LoadingStyleType.skeletonizer) {
+        if (widget.loadingStyle?.child != null) {
+          return SizedBox(
+            height: 50,
+            child: widget.loadingStyle!.child!.toSkeleton(),
+          );
+        }
         return widget.child(null).toSkeleton();
       }
-      return widget.loading ??
-          SizedBox(
-            height: 50,
-            child: Nylo.appLoader(),
-          );
+      if (widget.loadingStyle?.type == LoadingStyleType.normal) {
+        if (widget.loadingStyle?.child != null) {
+          return widget.loadingStyle?.child ??
+              SizedBox(
+                height: 50,
+                child: Nylo.appLoader(),
+              );
+        }
+        return SizedBox(
+          height: 50,
+          child: Nylo.appLoader(),
+        );
+      }
+      if (widget.loadingStyle?.type == LoadingStyleType.none) {
+        return widget.child(null);
+      }
+      return widget.child(null).toSkeleton();
     }
     return widget.child(() {
       if (widget.onSubmit == null) return;

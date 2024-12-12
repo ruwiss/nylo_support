@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '/helpers/extensions.dart';
-import '/widgets/ny_base_state.dart';
+import '/helpers/loading_style.dart';
 import 'package:recase/recase.dart';
 import '/forms/ny_login_form.dart';
 import '/helpers/helper.dart';

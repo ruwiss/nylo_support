@@ -85,7 +85,12 @@ class Backpack {
 
   /// Delete all values from [Backpack].
   void deleteAll() {
-    _values.removeWhere((key, value) => key != 'nylo');
+    _values.removeWhere((key, value) {
+      if (['nylo', 'event_bus'].contains(key)) {
+        return false;
+      }
+      return true;
+    });
   }
 
   /// Returns an instance of Nylo.

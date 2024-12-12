@@ -3,7 +3,7 @@ import '/local_storage/local_storage.dart';
 import '/widgets/navigation_hub/navigation_tab.dart';
 import '/widgets/ny_state.dart';
 
-import '../ny_base_state.dart';
+import '/helpers/loading_style.dart';
 
 /// BadgeTab is a class that holds the state, icon, initialCount, backgroundColor, textColor, smallSize, largeSize, textStyle, padding, alignment, offset, and isLabelVisible of a badge tab.
 class BadgeTab extends StatefulWidget {

@@ -1,3 +1,9 @@
+## [6.9.0] - 2024-12-12
+
+* Add `LoadingStyle` to helpers/loading_style.dart
+* New `loadingStyle: loadingStyle` parameter added to `ButtonState` class
+* Fix https://github.com/nylo-core/nylo/discussions/187
+
 ## [6.8.1] - 2024-12-08
 
 * Fix `saveRemember` and `saveForever` in NyCache
