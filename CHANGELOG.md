@@ -1,3 +1,7 @@
+## [6.9.1] - 2024-12-13
+
+* Update `delete` request to support optional parameters
+ 
 ## [6.9.0] - 2024-12-12
 
 * Add `LoadingStyle` to helpers/loading_style.dart

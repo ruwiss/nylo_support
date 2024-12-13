@@ -113,8 +113,8 @@ class NyApiService extends DioApiService {
   }
 
   /// Make a DELETE request
-  Future<T?> delete<T>(String url, Object? data, Options? options,
-      CancelToken? cancelToken) async {
+  Future<T?> delete<T>(String url,
+      {Object? data, Options? options, CancelToken? cancelToken}) async {
     if (T.toString() == 'dynamic') {
       return await network(
         request: (request) => request.deleteUri(Uri.parse(url),
