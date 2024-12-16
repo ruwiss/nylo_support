@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:nylo_support/helpers/extensions.dart';
 import 'package:theme_provider/theme_provider.dart';
+import '../../helpers/ny_color.dart';
 import '/helpers/helper.dart';
 import '/themes/base_theme_config.dart';
 import '/widgets/ny_form.dart';
@@ -31,6 +32,9 @@ abstract class FieldBaseState<T extends StatefulWidget> extends State<T> {
       return null;
     }
     Color? thumbColorMetaData = color(light: colorMetaData, dark: Colors.black);
+    if (thumbColorMetaData == null) {
+      return null;
+    }
     return WidgetStateProperty.all(thumbColorMetaData);
   }
 
@@ -81,29 +85,8 @@ abstract class FieldBaseState<T extends StatefulWidget> extends State<T> {
   }
 
   /// Get the color based on the device mode
-  Color color({Color? light, Color? dark}) {
-    bool isDarkModeEnabled = false;
-    ThemeController themeController = ThemeProvider.controllerOf(context);
-
-    if (themeController.currentThemeId == getEnv('DARK_THEME_ID')) {
-      isDarkModeEnabled = true;
-    }
-
-    if ((themeController.theme.options as NyThemeOptions).meta is Map &&
-        (themeController.theme.options as NyThemeOptions).meta['type'] ==
-            NyThemeType.dark) {
-      isDarkModeEnabled = true;
-    }
-
-    if (context.isDeviceInDarkMode) {
-      isDarkModeEnabled = true;
-    }
-
-    if (isDarkModeEnabled) {
-      return dark ?? Colors.black38;
-    }
-
-    return light ?? Colors.grey.shade100;
+  Color? color({Color? light, Color? dark}) {
+    return NyColor.resolveColor(context, light: light, dark: dark);
   }
 
   /// When the theme is in [light] mode, return [light] function, else return [dark] function

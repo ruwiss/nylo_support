@@ -550,14 +550,7 @@ class Nylo {
     return nyloApp;
   }
 
-  /// Initialize package
-  static Nylo package() {
-    dotenv.testLoad();
-    Nylo nyloApp = Nylo();
-    Backpack.instance.save("nylo", nyloApp);
-    return nyloApp;
-  }
-
+  /// Initialize local notifications
   initializeLocalNotifications() async {
     return await _localNotifications?.initialize(
       _initializationSettings!,
@@ -803,6 +796,11 @@ class Nylo {
       throw Exception("Auth key is not set in your Nylo instance");
     }
     return instance.authStorageKey!;
+  }
+
+  /// Get the auth key
+  String? getAuthKey() {
+    return authStorageKey;
   }
 
   /// Add an auth key to the Nylo instance

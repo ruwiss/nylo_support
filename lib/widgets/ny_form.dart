@@ -3,6 +3,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:nylo_support/widgets/styles/bottom_modal_sheet_style.dart';
 import '/widgets/form/validation.dart';
 import '/widgets/ny_text_field.dart';
 import 'form/casts.dart';
@@ -444,7 +445,9 @@ class Field {
     this.metaData = const {},
     this.hidden = false,
     required List<String> options,
-  }) : cast = FormCast.picker(options: options) {
+    BottomModalSheetStyle? bottomModalSheetStyle,
+  }) : cast = FormCast.picker(
+            options: options, bottomModalSheetStyle: bottomModalSheetStyle) {
     if (style == null) return;
 
     metaData = {};

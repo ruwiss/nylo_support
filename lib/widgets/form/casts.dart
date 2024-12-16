@@ -2,6 +2,7 @@ import 'package:date_field/date_field.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:nylo_support/widgets/styles/bottom_modal_sheet_style.dart';
 import '/widgets/ny_form.dart';
 
 /// FormCast is a class that helps in managing form casts
@@ -394,10 +395,23 @@ class FormCast {
   }
 
   /// Cast to a picker
-  FormCast.picker({required List<dynamic> options}) {
+  FormCast.picker({
+    required List<dynamic> options,
+    BottomModalSheetStyle? bottomModalSheetStyle,
+  }) {
     type = "picker";
     metaData = {};
     metaData['options'] = options;
+
+    // BottomModalSheetStyle
+    metaData['bm_backgroundColor'] = bottomModalSheetStyle?.backgroundColor;
+    metaData['bm_barrierColor'] = bottomModalSheetStyle?.barrierColor;
+    metaData['bm_useRootNavigator'] = bottomModalSheetStyle?.useRootNavigator;
+    metaData['bm_routeSettings'] = bottomModalSheetStyle?.routeSettings;
+
+    metaData['bm_titleTextStyle'] = bottomModalSheetStyle?.titleStyle;
+    metaData['bm_itemStyle'] = bottomModalSheetStyle?.itemStyle;
+    metaData['bm_clearButtonStyle'] = bottomModalSheetStyle?.clearButtonStyle;
   }
 
   /// Cast to a chips

@@ -106,9 +106,11 @@ class _NyFormChipState extends FieldBaseState<NyFormChip> {
               selectedShadowColor: Colors.transparent,
               color: WidgetStateColor.resolveWith((_) {
                 return color(
-                    light:
-                        isSelected ? getSelectedColor() : getBackgroundColor(),
-                    dark: surfaceColorDark);
+                        light: isSelected
+                            ? getSelectedColor()
+                            : getBackgroundColor(),
+                        dark: surfaceColorDark) ??
+                    const Color(0xFF000000);
               }),
               onSelected: (bool selected) {
                 setState(() {
@@ -134,7 +136,7 @@ class _NyFormChipState extends FieldBaseState<NyFormChip> {
   Color getBackgroundColor() => getFieldMeta("backgroundColor", Colors.white);
 
   /// Get the selected color from the field
-  Color getSelectedColor() => getFieldMeta(
+  Color? getSelectedColor() => getFieldMeta(
       "selectedColor", color(light: Colors.black, dark: Colors.white));
 
   /// Get the borderRadius from the field

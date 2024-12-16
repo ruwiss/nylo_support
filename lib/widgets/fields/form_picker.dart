@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:nylo_support/helpers/ny_color.dart';
+import 'package:nylo_support/helpers/ny_text_style.dart';
+import 'package:nylo_support/widgets/styles/bottom_modal_sheet_style.dart';
 import '/helpers/extensions.dart';
 import '/localization/app_localization.dart';
 import '/widgets/fields/field_base_state.dart';
@@ -8,14 +11,16 @@ import 'package:recase/recase.dart';
 /// A [NyFormPicker] widget for Form Fields
 class NyFormPicker extends StatefulWidget {
   /// Creates a [NyFormPicker] widget
-  NyFormPicker(
-      {super.key,
-      required String name,
-      required List<String> options,
-      String? selectedValue,
-      this.onChanged})
-      : field = Field(name, value: selectedValue)
-          ..cast = FormCast.picker(options: options);
+  NyFormPicker({
+    super.key,
+    required String name,
+    required List<String> options,
+    String? selectedValue,
+    BottomModalSheetStyle? bottomModalSheetStyle,
+    this.onChanged,
+  }) : field = Field(name, value: selectedValue)
+          ..cast = FormCast.picker(
+              options: options, bottomModalSheetStyle: bottomModalSheetStyle);
 
   /// Creates a [NyFormPicker] widget from a [Field]
   const NyFormPicker.fromField(this.field, this.onChanged, {super.key});
@@ -153,14 +158,56 @@ class _NyFormPickerState extends FieldBaseState<NyFormPicker> {
     return List<String>.from(widget.field.cast.metaData!["options"]);
   }
 
+  // Get the color from the field meta
+  Color? findColorFromMeta(String name, {Color? defaultColor}) {
+    if (getFieldMeta<NyColor?>(name, null) != null) {
+      NyColor nyColor = getFieldMeta<NyColor?>(name, null)!;
+      return color(light: nyColor.light, dark: nyColor.dark);
+    }
+    return defaultColor;
+  }
+
+  // Get the color from the field meta
+  TextStyle? findTextStyleFromMeta(String name,
+      {NyTextStyle? defaultTextStyle}) {
+    if (getFieldMeta<NyTextStyle?>(name, null) != null) {
+      NyTextStyle textStyle = getFieldMeta<NyTextStyle?>(name, null)!;
+      return textStyle.toTextStyle(context);
+    }
+    return defaultTextStyle?.toTextStyle(context);
+  }
+
   /// Select a value from the list of options
   _selectValue(BuildContext context) {
     // get the list of values
     List<String> values = getOptions();
 
+    // colors
+    Color? backgroundColor = findColorFromMeta('bm_backgroundColor');
+    Color? barrierColor =
+        findColorFromMeta('bm_barrierColor', defaultColor: null);
+
+    // text styles
+    TextStyle? titleTextStyle = findTextStyleFromMeta('bm_titleTextStyle',
+        defaultTextStyle: NyTextStyle(
+            fontWeight: FontWeight.bold,
+            color: NyColor(light: Colors.black, dark: Colors.white)));
+    TextStyle? itemStyle = findTextStyleFromMeta('bm_itemStyle',
+        defaultTextStyle: NyTextStyle(
+            color: NyColor(light: Colors.black87, dark: Colors.white),
+            fontWeight: FontWeight.bold,
+            fontSize: 14));
+    TextStyle? clearButtonStyle = findTextStyleFromMeta('bm_clearButtonStyle',
+        defaultTextStyle: NyTextStyle(
+            fontSize: 13, color: NyColor(light: Colors.red, dark: Colors.red)));
+
     // show modal bottom sheet
     showModalBottomSheet<void>(
       context: context,
+      backgroundColor: backgroundColor,
+      barrierColor: barrierColor,
+      useRootNavigator: getFieldMeta('bm_useRootNavigator', false),
+      routeSettings: getFieldMeta('bm_routeSettings', null),
       builder: (BuildContext context) {
         return SafeArea(
           child: Container(
@@ -169,7 +216,7 @@ class _NyFormPickerState extends FieldBaseState<NyFormPicker> {
             decoration: BoxDecoration(
               borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(20), topRight: Radius.circular(20)),
-              color: color(light: Colors.white, dark: surfaceColorDark),
+              color: backgroundColor,
             ),
             padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
             child: Column(
@@ -183,14 +230,11 @@ class _NyFormPickerState extends FieldBaseState<NyFormPicker> {
                     Text(
                       widget.field.name.tr(),
                       textAlign: TextAlign.center,
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color:
-                              color(light: Colors.black, dark: Colors.white)),
+                      style: titleTextStyle,
                     ).paddingOnly(top: 10),
                     Text(
                       "Clear".tr(),
-                      style: const TextStyle(fontSize: 13, color: Colors.red),
+                      style: clearButtonStyle,
                     ).onTap(() {
                       setState(() {
                         currentValue = null;
@@ -210,12 +254,7 @@ class _NyFormPickerState extends FieldBaseState<NyFormPicker> {
                           return ListTile(
                             title: Text(
                               item,
-                              style: TextStyle(
-                                  color: color(
-                                      light: Colors.black87,
-                                      dark: Colors.white),
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14),
+                              style: itemStyle,
                             ),
                             onTap: () {
                               if (widget.onChanged != null) {

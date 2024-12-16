@@ -177,7 +177,9 @@ class _NyFormCheckboxState extends FieldBaseState<NyFormCheckbox> {
       side: whenTheme(
           light: () => getFieldMeta('side', null),
           dark: () => BorderSide(
-              width: 2, color: color(light: Colors.black, dark: Colors.white))),
+              width: 2,
+              color: color(light: Colors.black, dark: Colors.white) ??
+                  const Color(0xFF000000))),
       isError: getFieldMeta('isError', false),
       enabled: getFieldMeta('enabled', null),
       tileColor: getFieldMeta('tileColor', null),

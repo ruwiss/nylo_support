@@ -1,3 +1,12 @@
+## [6.10.0] - 2024-12-16
+
+* New `NyTextStyle` class
+* New `NyColor` class
+* Update form picker, form chips and checkbox to support light and dark colors better
+* New `NyColor.resolveColor` method
+* Remove `Nylo.package` method
+* New `getAuthKey()` method
+
 ## [6.9.1] - 2024-12-13
 
 * Update `delete` request to support optional parameters
