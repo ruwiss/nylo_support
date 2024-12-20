@@ -18,8 +18,14 @@ class NyController extends BaseController {
   }
 
   /// Refreshes the page
+  @Deprecated("Use notifyListeners instead")
   refreshPage() {
     updatePageState("refresh-page", {"setState": () {}});
+  }
+
+  /// Update the state of the page
+  notifyListeners() {
+    updatePageState("set-state", {"setState": () {}});
   }
 
   /// Set the state of the page
