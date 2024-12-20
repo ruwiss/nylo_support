@@ -238,12 +238,8 @@ abstract class NyBaseState<T extends StatefulWidget> extends State<T> {
       case 'set-state':
         {
           Function()? setStateData = stateData['setState'];
-          if (setStateData != null) {
-            setState(() {
-              setStateData();
-            });
-            return;
-          }
+          if (setStateData != null) setStateData();
+          setState(() {});
         }
       default:
         {}
