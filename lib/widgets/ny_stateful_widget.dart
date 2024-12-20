@@ -16,8 +16,7 @@ abstract class NyStatefulWidget<T extends BaseController>
   /// Child state
   final dynamic child;
 
-  NyStatefulWidget({super.key, this.child, String? stateName})
-      : state = stateName ?? child.toString() {
+  NyStatefulWidget({super.key, this.child}) : state = child.toString() {
     Nylo nylo = Backpack.instance.nylo();
     controller = nylo.getController(T) ?? NyController();
   }
