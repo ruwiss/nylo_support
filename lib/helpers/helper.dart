@@ -372,7 +372,7 @@ void updateState<T>(dynamic name,
 
   String stateName = '';
   if (name is String) {
-    stateName = name;
+    stateName = name.replaceAll("Closure: ", "");
   }
   if (name is RouteView) {
     stateName =
